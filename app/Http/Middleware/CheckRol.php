@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
+
+/**
+ * Uso en rutas:
+ *   ->middleware('rol:ADMINISTRADOR')
+ *   ->middleware('rol:FOTOGRAFO')
+ *   ->middleware('rol:CLIENTE')
+ *   ->middleware('rol:ADMINISTRADOR,FOTOGRAFO')  // múltiples roles permitidos
+ */
+class CheckRol
+{
+    public function handle(Request $request, Closure $next, string ...$roles): Response
+    {
+        /** @var \App\Models\Usuario|null $usuario */
+        $usuario = Auth::user();
+
+        if (! $usuario || ! in_array($usuario->getRol(), $roles)) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        return $next($request);
+    }
+}

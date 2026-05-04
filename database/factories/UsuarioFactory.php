@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 /**
  * @extends Factory<Usuario>
  */
-class UserFactory extends Factory
+class UsuarioFactory extends Factory
 {
     /**
      * The current password being used by the factory.

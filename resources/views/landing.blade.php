@@ -11,12 +11,16 @@
 
 {{-- ── NAVBAR ── --}}
 <nav class="navbar-landing" id="navbar">
-    <a href="/" class="navbar-logo">AS <span>Studio</span></a>
+    <a href="/" class="navbar-logo">
+        <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="40">
+    </a>
+
     <ul class="navbar-links">
         <li><a href="#galeria">Galería</a></li>
         <li><a href="#paquetes">Paquetes</a></li>
         <li><a href="#contacto">Contacto</a></li>
     </ul>
+
     @auth
         @php
             $dashboardRoute = match(auth()->user()->getRol()) {
@@ -32,31 +36,53 @@
     @else
         <div style="display:flex; align-items:center; gap:0.5rem;">
             <a href="{{ route('register') }}" class="btn-nav-signup">Sign up</a>
-            <a href="{{ route('login') }}" class="btn-nav-login">Log in</a>
+            <a href="{{ route('login') }}"    class="btn-nav-login">Log in</a>
         </div>
     @endauth
+
+    {{-- Hamburger mobile --}}
+    <button class="navbar-hamburger" id="hamburger" aria-label="Menú">
+        <span></span><span></span><span></span>
+    </button>
 </nav>
+
+{{-- Mobile drawer --}}
+<div class="navbar-mobile-menu" id="mobileMenu">
+    <a href="#galeria"  onclick="closeMobileMenu()">Galería</a>
+    <a href="#paquetes" onclick="closeMobileMenu()">Paquetes</a>
+    <a href="#proceso"  onclick="closeMobileMenu()">Proceso</a>
+    <a href="#contacto" onclick="closeMobileMenu()">Contacto</a>
+    @auth
+        <a href="{{ $dashboardRoute }}" onclick="closeMobileMenu()">Mi cuenta</a>
+    @else
+        <a href="{{ route('login') }}"    onclick="closeMobileMenu()">Iniciar sesión</a>
+        <a href="{{ route('register') }}" onclick="closeMobileMenu()">Registrarse</a>
+    @endauth
+</div>
 
 {{-- 1 ── HERO ── --}}
 <section class="hero" id="inicio">
-    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
         <div class="carousel-inner">
             <div class="carousel-item active">
-                <img src="https://images.unsplash.com/photo-1460978812857-470ed1c77af0?q=80&w=1295&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Foto 1">
+                <img src="https://images.unsplash.com/photo-1460978812857-470ed1c77af0?q=80&w=1295&auto=format&fit=crop" alt="Sesión fotográfica 1">
             </div>
             <div class="carousel-item">
-                <img src="https://images.unsplash.com/photo-1520390138845-fd2d229dd553?w=1600" alt="Foto 2">
+                <img src="https://images.unsplash.com/photo-1520390138845-fd2d229dd553?w=1600" alt="Sesión fotográfica 2">
             </div>
             <div class="carousel-item">
-                <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=1600" alt="Foto 3">
+                <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=1600" alt="Sesión fotográfica 3">
             </div>
         </div>
     </div>
     <div class="hero-content">
+        <p class="hero-eyebrow">Fotografía profesional</p>
+        <h1 class="hero-title">Cada momento<br>merece ser <em>eterno</em></h1>
+        <p class="hero-subtitle">Capturamos tu historia con luz, emoción y un estilo atemporal que perdura.</p>
         @auth
-            <a href="{{ route('cliente.reservas.paso1') }}" class="btn-hero">Solicita tu Reserva</a>
+            <a href="{{ route('cliente.reservas.paso1') }}" class="btn-hero">Reserva tu sesión</a>
         @else
-            <a href="{{ route('login') }}" class="btn-hero">Solicita tu Reserva</a>
+            <a href="{{ route('login') }}" class="btn-hero">Reserva tu sesión</a>
         @endauth
     </div>
 </section>
@@ -64,8 +90,8 @@
 {{-- 2 ── BIENVENIDA ── --}}
 <section class="section-bienvenida">
     <div class="container">
-        <div class="bienvenida-box">
-            <p class="bienvenida-eyebrow">Bienvenidos</p>
+        <div class="bienvenida-box reveal">
+            <p class="bienvenida-eyebrow">Bienvenidos a AS Studio</p>
             <h2 class="bienvenida-title">
                 Capturamos momentos que merecen quedarse para siempre
             </h2>
@@ -73,19 +99,19 @@
                 Cada sesión está pensada para resaltar tu esencia con una experiencia cercana, estética y cuidadosamente dirigida.
                 Creamos fotografías con emoción, detalle y un estilo atemporal que cuenta tu historia de forma auténtica.
             </p>
+            <div class="section-divider"><div class="section-divider-dot"></div></div>
         </div>
     </div>
 </section>
 
 {{-- 3 ── GALERÍA ── --}}
 <section class="section-galeria" id="galeria">
-    <div class="container-fluid px-4">
-        <div class="galeria-header">
+    <div class="container-fluid px-0">
+        <div class="galeria-header reveal">
             <p class="section-eyebrow">Nuestra galería</p>
             <h2 class="section-heading">Momentos que cuentan <em>historias</em></h2>
             <p class="section-subtext">
-                Descubre una selección de sesiones, celebraciones y momentos especiales capturados
-                con emoción, detalle y un estilo atemporal que transforma cada instante en un recuerdo inolvidable.
+                Una selección de sesiones, celebraciones y momentos especiales capturados con emoción, detalle y un estilo atemporal.
             </p>
         </div>
 
@@ -113,7 +139,7 @@
             <span></span>
         </div>
 
-        <div class="galeria-cta">
+        <div class="galeria-cta reveal">
             <a class="btn-catalogo">Conocer el Catálogo</a>
         </div>
     </div>
@@ -122,19 +148,19 @@
 {{-- 4 ── PROCESO ── --}}
 <section class="section-proceso" id="proceso">
     <div class="container">
-        <div class="proceso-header">
+        <div class="proceso-header reveal">
             <p class="section-eyebrow">Cómo trabajamos</p>
-            <h3 class="section-heading">El proceso de la<br><em>sesión fotográfica</em></h3>
+            <h2 class="section-heading">El proceso de tu<br><em>sesión fotográfica</em></h2>
         </div>
 
         <div class="proceso-carousel-wrapper">
-            <button class="proceso-btn prev" onclick="moveProcesoSlide(-1)">&#10094;</button>
+            <button class="proceso-btn prev" onclick="moveProcesoSlide(-1)" aria-label="Anterior">&#10094;</button>
             <div class="proceso-carousel" id="procesoCarousel">
                 <div class="proceso-track" id="procesoTrack">
                     <div class="proceso-slide active">
                         <div class="paso-num">01</div>
                         <h4 class="paso-titulo">Completa tu Solicitud</h4>
-                        <p class="paso-desc">Cuéntanos los detalles de tu sesión o evento.</p>
+                        <p class="paso-desc">Cuéntanos los detalles de tu sesión o evento para que podamos prepararlo todo.</p>
                     </div>
                     <div class="proceso-slide">
                         <div class="paso-num">02</div>
@@ -144,7 +170,7 @@
                     <div class="proceso-slide">
                         <div class="paso-num">03</div>
                         <h4 class="paso-titulo">Capturamos tu evento</h4>
-                        <p class="paso-desc">Llega el gran día y tomamos cada momento especial.</p>
+                        <p class="paso-desc">Llega el gran día y tomamos cada momento especial con atención al detalle.</p>
                     </div>
                     <div class="proceso-slide">
                         <div class="paso-num">04</div>
@@ -158,30 +184,37 @@
                     </div>
                 </div>
             </div>
-            <button class="proceso-btn next" onclick="moveProcesoSlide(1)">&#10095;</button>
+            <button class="proceso-btn next" onclick="moveProcesoSlide(1)" aria-label="Siguiente">&#10095;</button>
         </div>
+        <p class="proceso-counter"><span id="procesoActual">1</span> / {{ 5 }}</p>
     </div>
 </section>
 
 {{-- 5 ── GRATITUD / TESTIMONIO ── --}}
 <section class="section-gratitud" id="gratitud">
     <div class="container">
-        <div class="gratitud-box">
-            <span class="gratitud-comillas">"</span>
-            <p class="gratitud-eyebrow">Palabras de Gratitud</p>
+        <div class="gratitud-box reveal">
+            <p class="gratitud-eyebrow">Palabras de gratitud</p>
+            <div class="gratitud-stars">
+                <div class="gratitud-star"></div>
+                <div class="gratitud-star"></div>
+                <div class="gratitud-star"></div>
+                <div class="gratitud-star"></div>
+                <div class="gratitud-star"></div>
+            </div>
             <blockquote class="gratitud-quote">
                 No solo capturaron imágenes, nos regalaron recuerdos que vamos a atesorar toda la vida.
             </blockquote>
-            <p class="gratitud-author">— Laura Méndez</p>
+            <p class="gratitud-author">Laura Méndez</p>
         </div>
     </div>
 </section>
 
-{{-- 7 ── CONTACTO ── --}}
+{{-- 6 ── CONTACTO ── --}}
 <section class="section-contacto" id="contacto">
     <div class="container">
-        <div class="row">
-            <div class="col-md-6">
+        <div class="row align-items-start">
+            <div class="col-md-6 reveal">
                 <p class="section-label">Escríbenos</p>
                 <h2 class="section-title">Contáctanos</h2>
                 <p class="section-subtitle">¿Tienes alguna pregunta? Con gusto te respondemos.</p>
@@ -194,13 +227,13 @@
                     <input type="email" class="contacto-input" placeholder="tu@correo.com">
 
                     <label class="contacto-label">Mensaje</label>
-                    <textarea class="contacto-input" rows="3" placeholder="¿En qué podemos ayudarte?"></textarea>
+                    <textarea class="contacto-input" rows="4" placeholder="¿En qué podemos ayudarte?"></textarea>
 
                     <button type="submit" class="btn-contacto">Enviar mensaje</button>
                 </form>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6 reveal reveal-delay-2">
                 <div class="contacto-info">
                     <div class="contacto-info-item">
                         <p>Email</p>
@@ -224,32 +257,70 @@
     </div>
 </section>
 
+{{--FALTA EL ABOUT ME --}}
+
 {{-- FOOTER ── --}}
 <footer class="footer">
+    <p class="footer-brand">AS Studio</p>
     <p>© {{ date('Y') }} AS Studio. Todos los derechos reservados.</p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Navbar scroll
-    window.addEventListener('scroll', function () {
-        document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 80);
+    // ── NAVBAR SCROLL ──
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+        navbar.classList.toggle('scrolled', window.scrollY > 80);
     });
 
+    // ── HAMBURGER MENU ──
+    const hamburger   = document.getElementById('hamburger');
+    const mobileMenu  = document.getElementById('mobileMenu');
+
+    hamburger.addEventListener('click', () => {
+        const isOpen = mobileMenu.classList.toggle('open');
+        hamburger.classList.toggle('open', isOpen);
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+    });
+
+    function closeMobileMenu() {
+        mobileMenu.classList.remove('open');
+        hamburger.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    // ── SCROLL REVEAL ──
+    const revealEls = document.querySelectorAll('.reveal');
+    const observer  = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    revealEls.forEach(el => observer.observe(el));
+
     // ── PROCESO CAROUSEL ──
-    let procesoIndex = 0;
-    const procesoTrack  = document.getElementById('procesoTrack');
-    const procesoSlides = document.querySelectorAll('.proceso-slide');
+    let procesoIndex        = 0;
+    const procesoTrack      = document.getElementById('procesoTrack');
+    const procesoSlides     = document.querySelectorAll('.proceso-slide');
+    const procesoActualEl   = document.getElementById('procesoActual');
 
     function updateProcesoCarousel() {
         procesoTrack.style.transform = `translateX(-${procesoIndex * 100}%)`;
         procesoSlides.forEach((s, i) => s.classList.toggle('active', i === procesoIndex));
+        if (procesoActualEl) procesoActualEl.textContent = procesoIndex + 1;
     }
 
     function moveProcesoSlide(dir) {
         procesoIndex = (procesoIndex + dir + procesoSlides.length) % procesoSlides.length;
         updateProcesoCarousel();
     }
+
+    // Auto-advance proceso
+    setInterval(() => moveProcesoSlide(1), 4500);
 
     // ── GALERÍA SWIPE ──
     (function () {
@@ -259,15 +330,12 @@
         const dots     = document.querySelectorAll('#galeriaDots span');
         let current = 0, startX = 0, isDragging = false, dragDelta = 0;
 
-        function slideWidth() {
-            return slides[0].offsetWidth + 20; // 20 = gap en px (1.25rem ≈ 20px)
-        }
+        function slideWidth() { return slides[0].offsetWidth + 20; }
 
         function getOffset(index) {
-            // Centra el slide activo en el viewport
-            const vw      = viewport.offsetWidth;
-            const sw      = slides[0].offsetWidth;
-            const center  = (vw - sw) / 2;
+            const vw     = viewport.offsetWidth;
+            const sw     = slides[0].offsetWidth;
+            const center = (vw - sw) / 2;
             return -(index * slideWidth()) + center;
         }
 
@@ -280,11 +348,8 @@
         }
 
         // Touch
-        viewport.addEventListener('touchstart', e => {
-            startX = e.touches[0].clientX;
-        }, { passive: true });
-
-        viewport.addEventListener('touchend', e => {
+        viewport.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+        viewport.addEventListener('touchend',   e => {
             const diff = startX - e.changedTouches[0].clientX;
             if (Math.abs(diff) > 40) goTo(current + (diff > 0 ? 1 : -1));
         }, { passive: true });
@@ -309,10 +374,8 @@
             else goTo(current);
         });
 
-        // Dots
         dots.forEach((d, i) => d.addEventListener('click', () => goTo(i)));
 
-        // Init y resize
         goTo(0, false);
         window.addEventListener('resize', () => goTo(current, false));
     })();

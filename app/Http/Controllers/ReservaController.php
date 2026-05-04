@@ -2,24 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use \App\Http\Controllers\Auth;
 use App\Models\Catalogo;
-use App\Models\Cliente;
 use App\Models\PaqueteFotografico;
-use App\Models\Reserva;
+use App\Services\ReservaService;
 use Illuminate\Http\Request;
 
 class ReservaController extends Controller
 {
+    public function __construct(
+        private ReservaService $reservaService
+    ) {}
 
     public function index()
     {
-        $cliente = \App\Models\Cliente::where('usuario_id', auth()->id())->first();
-
-        $reservas = $cliente
-            ? $cliente->reservas()->with('paquete')->latest()->get()
-            : collect();
-
+        $reservas = $this->reservaService->reservasDelCliente(auth()->id());
         return view('reservas.index', compact('reservas'));
     }
 
@@ -35,7 +31,9 @@ class ReservaController extends Controller
             'catalogo_id' => 'required|exists:catalogos,id',
             'paquete_id'  => 'required|exists:paquetes_fotograficos,id',
             'tipo'        => 'required|in:ESTUDIO,EXTERIOR',
-            'lugar'       => 'nullable|string|max:255',
+            'lugar'       => 'required_if:tipo,EXTERIOR|nullable|string|max:255',
+        ], [
+            'lugar.required_if' => 'El campo lugar es obligatorio, para sesiones en exteriores.',
         ]);
 
         session(['reserva_paso1' => $request->only([
@@ -84,6 +82,24 @@ class ReservaController extends Controller
             'telefono' => 'required|string|max:20',
         ]);
 
+        $usuario = auth()->user();
+        $persona = $usuario->persona;
+
+        // Separar nombre completo en nombre y apellido
+        $partes    = explode(' ', trim($request->nombre), 2);
+        $nombre    = $partes[0];
+        $apellido  = $partes[1] ?? $persona->apellido;
+
+        $persona->update([
+            'nombre'   => $nombre,
+            'apellido' => $apellido,
+            'telefono' => $request->telefono,
+        ]);
+
+        $usuario->update([
+            'email' => $request->correo,
+        ]);
+
         session(['reserva_paso3' => $request->only([
             'nombre', 'correo', 'telefono'
         ])]);
@@ -107,30 +123,27 @@ class ReservaController extends Controller
 
     public function enviar(Request $request)
     {
-        $paso1   = session('reserva_paso1');
-        $paso2   = session('reserva_paso2');
-        $paquete = PaqueteFotografico::find($paso1['paquete_id']);
+        try {
+            $this->reservaService->crearReserva(
+                paso1:      session('reserva_paso1'),
+                paso2:      session('reserva_paso2'),
+                usuario_id: auth()->id(),
+            );
 
-        // Obtener o crear el cliente vinculado al usuario
-        $cliente = Cliente::firstOrCreate(
-            ['usuario_id' => auth()->id()]
-        );
+            session()->forget(['reserva_paso1', 'reserva_paso2', 'reserva_paso3']);
 
-        Reserva::create([
-            'cliente_id'   => $cliente->id,
-            'paquete_id'   => $paso1['paquete_id'],
-            'catalogo_id'  => $paso1['catalogo_id'],
-            'tipo'         => $paso1['tipo'],
-            'lugar'        => $paso1['lugar'] ?? null,
-            'descripcion'  => $paso2['descripcion'],
-            'fecha_inicio' => $paso2['fecha'] . ' ' . $paso2['hora'],
-            'fecha_fin'    => $paso2['fecha'] . ' ' . $paso2['hora'],
-            'estado'       => 'PENDIENTE',
-            'precio_total' => $paquete->precio_base,
-        ]);
+            return redirect('/')->with('success', '¡Reserva enviada! El fotógrafo revisará tu solicitud.');
 
-        session()->forget(['reserva_paso1', 'reserva_paso2', 'reserva_paso3']);
-
-        return redirect('/')->with('success', '¡Reserva enviada! El fotógrafo revisará tu solicitud.');
+        } catch (\Exception $e) {
+            //return back()->with('error', $e->getMessage());
+            dd([
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea'   => $e->getLine(),
+                'paso1'   => session('reserva_paso1'),
+                'paso2'   => session('reserva_paso2'),
+                'usuario' => auth()->id(),
+            ]);
+        }
     }
 }

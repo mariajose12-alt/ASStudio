@@ -51,13 +51,18 @@ class Fotografo extends Model
     }
 
     //  Helpers
-    public function usuario(): Usuario
+    public function getUsuario(): Usuario
     {
         return $this->empleado->usuario;
     }
 
-    public function persona(): Persona
+    public function getPersona(): Persona
     {
         return $this->empleado->usuario->persona;
+    }
+
+    public function reservas()
+    {
+        return $this->hasMany(Reserva::class, 'fotografo_id');
     }
 }

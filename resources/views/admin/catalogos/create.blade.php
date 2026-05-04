@@ -55,10 +55,10 @@
                 {{-- Selección de paquetes --}}
                 <div style="margin-top:8px;">
                     <div style="margin-bottom:16px;">
-                        <label style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted);">
+                        <label style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--muted);">
                             Paquetes incluidos en este catálogo
                         </label>
-                        <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">
+                        <p style="font-size:12px; color:var(--muted); margin-top:4px;">
                             Selecciona los paquetes fotográficos que forman parte de este catálogo.
                         </p>
                     </div>
@@ -71,7 +71,7 @@
                                         {{ in_array($paqueteFotografico->id, old('paquetes', [])) ? 'checked' : '' }}>
                                     <div>
                                         <div style="font-size:13px; font-weight:500; color:#1a1a1a;">{{ $paqueteFotografico->nombre }}</div>
-                                        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                                        <div style="font-size:11px; color:var(--muted); margin-top:2px;">
                                             Fotos {{ $paqueteFotografico->cantidad_fotos_incluidas}} · RD$ {{ number_format($paqueteFotografico->precio_base, 2) }}
                                         </div>
                                     </div>
@@ -79,7 +79,7 @@
                             @endforeach
                         </div>
                     @else
-                        <div style="padding:24px; background:var(--page-bg, #f4f2ee); border-radius:10px; text-align:center; color:var(--text-muted); font-size:13px;">
+                        <div style="padding:24px; background:var(--page-bg, #f4f2ee); border-radius:10px; text-align:center; color:var(--muted); font-size:13px;">
                             No hay paquetes activos disponibles.
                             <a href="{{ route('admin.paquetes.create') }}" style="color:var(--gold); margin-left:4px;">Crear un paquete</a>
                         </div>

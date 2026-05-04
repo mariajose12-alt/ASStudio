@@ -2,32 +2,42 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\FotografoService;
 use Illuminate\Support\Facades\Auth;
 
 class FotografoController extends Controller
 {
+    public function __construct(
+        private FotografoService $fotografoService
+    ) {}
+
     public function dashboard()
     {
-        $usuario   = Auth::user();
-        $fotografo = $usuario->empleado->fotografo;
+        $fotografo = Auth::user()->empleado->fotografo;
+        $metricas  = $this->fotografoService->metricasDashboard($fotografo);
 
-        $sesionesProximas = $fotografo->sesiones()
-            ->wherePivot('estado_participacion', '!=', 'CANCELADA')
-            ->where('fecha_inicio', '>=', now())
-            ->orderBy('fecha_inicio')
-            ->limit(5)
-            ->get();
-
-        $totalSesiones    = $fotografo->sesiones()->count();
-        $sesionesPendientes = $fotografo->sesiones()
-            ->wherePivot('estado_participacion', 'PENDIENTE')
-            ->count();
-
-        return view('fotografo.dashboard', compact(
-            'fotografo',
-            'sesionesProximas',
-            'totalSesiones',
-            'sesionesPendientes',
+        return view('fotografo.dashboard', array_merge(
+            compact('fotografo'),
+            $metricas
         ));
     }
+
+    public function calendario()
+    {
+        return view('fotografo.calendario');
+    }
+
+    public function upload()
+    {
+        return view('fotografo.upload');
+    }
+
+    public function reservasJson()
+    {
+        $fotografo = Auth::user()->empleado->fotografo;
+        $eventos   = $this->fotografoService->eventosCalendario($fotografo);
+
+        return response()->json($eventos);
+    }
+
 }

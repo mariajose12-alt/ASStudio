@@ -11,9 +11,12 @@
 </head>
 <body>
 
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <aside class="sidebar">
     <div class="sidebar-logo">
-        <a href="{{ url('/') }}" class="brand">AS Studio</a>
+        <a href="/" class="navbar-logo">
+            <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+        </a>
         <div class="brand-sub">Mi Cuenta</div>
     </div>
 
@@ -38,15 +41,11 @@
             Inicio
         </a>
 
-        {{--
-        <div class="nav-section-label">Explorar</div>
-        <a href="{{ route('cliente.galeria') }}" class="nav-link {{ request()->routeIs('cliente.galeria*') ? 'active' : '' }}">
+        <a href="{{ route('cliente.galeria') }}" class="nav-link {{ request()->routeIs('cliente.galeria') ? 'active' : '' }}">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             Galería
         </a>
-        --}}
 
-        <div class="nav-section-label">Mis Reservas</div>
         <a href="{{ route('cliente.reservas.index') }}" class="nav-link {{ request()->routeIs('cliente.reservas*') ? 'active' : '' }}">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             Reservas
@@ -79,7 +78,21 @@
 
 <main class="main">
     <div class="topbar">
-        <h1 class="page-title">@yield('title', 'Inicio')</h1>
+        <div style="display:flex; align-items:center; gap:14px;">
+            <button class="sidebar-hamburger" onclick="toggleSidebar()">
+                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <line x1="3" y1="6" x2="21" y2="6" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="3" y1="12" x2="21" y2="12" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="3" y1="18" x2="21" y2="18" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <div>
+                <h1 class="page-title">@yield('title', 'Inicio')</h1>
+                @hasSection('subtitle')
+                    <p style="color:var(--muted); font-size:14px; margin:8px 0 0 0;">@yield('subtitle')</p>
+                @endif
+            </div>
+        </div>
         <div>@yield('topbar-actions')</div>
     </div>
     <div class="content">
@@ -96,7 +109,36 @@
         @yield('content')
     </div>
 </main>
+<style>
+    .sidebar-hamburger {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        color: var(--navy);
+        flex-shrink: 0;
+    }
+    @media (max-width: 768px) {
+        .sidebar-hamburger { display: flex; }
+    }
+</style>
 
+<script>
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+        document.body.style.overflow = document.querySelector('.sidebar').classList.contains('open') ? 'hidden' : '';
+    }
+    function closeSidebar() {
+        document.querySelector('.sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', closeSidebar);
+    });
+</script>
 @stack('scripts')
 </body>
 </html>

@@ -31,7 +31,7 @@ class Cliente extends Model
     }
 
     //  Helpers
-    public function persona(): Persona
+    public function getPersona(): Persona
     {
         return $this->usuario->persona;
     }

@@ -2,28 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Empleado;
-use App\Models\PaqueteFotografico;
-use App\Models\Catalogo;
 use App\Models\Reserva;
+use App\Services\AdminService;
+use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
+    public function __construct(
+        private AdminService $adminService
+    ) {}
+
     public function dashboard()
     {
-        $totalEmpleados  = Empleado::count();
-        $totalPaquetes   = PaqueteFotografico::count();
-        $totalCatalogos  = Catalogo::count();
-        $totalReservas   = Reserva::count();
-        $reservasPendientes = Reserva::where('estado', 'PENDIENTE')->count();
-
-        return view('admin.dashboard', compact(
-            'totalEmpleados',
-            'totalPaquetes',
-            'totalCatalogos',
-            'totalReservas',
-            'reservasPendientes'
-        ));
+        $metricas = $this->adminService->metricasDashboard();
+        return view('admin.dashboard', $metricas);
     }
 
     public function reservasIndex()
@@ -41,15 +33,31 @@ class AdminController extends Controller
         return view('admin.reservas.show', compact('reserva'));
     }
 
-    public function reservasCambiarEstado(\Illuminate\Http\Request $request, Reserva $reserva)
+    public function reservasCambiarEstado(Request $request, Reserva $reserva)
     {
         $request->validate([
-            'estado' => 'required|in:APROBADA,RECHAZADA,CANCELADA,PENDIENTE,PAGO_RECIBIDO'
+            'estado'         => 'required|in:APROBADA,RECHAZADA,CANCELADA,PENDIENTE,PAGO_RECIBIDO,MODIFICACION_PROPUESTA',
+            'motivo_rechazo' => 'nullable|string|required_if:estado,MODIFICACION_PROPUESTA',
         ]);
 
-        $reserva->update(['estado' => $request->estado]);
+        $this->adminService->cambiarEstadoReserva(
+            $reserva,
+            $request->estado,
+            $request->motivo_rechazo
+        );
 
-        return redirect()->route('admin.reservas.show', $reserva)
-            ->with('success', 'Estado de la reserva actualizado correctamente.');
+        return redirect()->route('admin.reservas.index')
+            ->with('success', 'Estado actualizado correctamente.');
+    }
+
+    public function estudio()
+    {
+        return view('admin.estudio');
+    }
+
+
+    public function nomina()
+    {
+        return view('admin.nomina');
     }
 }

@@ -9,7 +9,7 @@
             <div class="stat-label">Sesiones Totales</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value" style="color:#a07820;">{{ $sesionesPendientes }}</div>
+            <div class="stat-value">{{ $sesionesPendientes }}</div>
             <div class="stat-label">Sesiones Pendientes</div>
         </div>
         <div class="stat-card">
@@ -42,12 +42,12 @@
                         <div style="font-weight:500; font-size:14px;">
                             {{ $sesion->reserva->paquete->nombre ?? 'Sesión fotográfica' }}
                         </div>
-                        <div style="font-size:12px; color:var(--text-muted); margin-top:3px;">
+                        <div style="font-size:12px; color:var(--muted); margin-top:3px;">
                             {{ \Carbon\Carbon::parse($sesion->fecha_inicio)->format('d \d\e F, Y — H:i') }}
                         </div>
-                        <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                        <div style="font-size:12px; color:var(--muted); margin-top:2px;">
                             Rol:
-                            <span style="font-weight:600; color:var(--gold);">
+                            <span style="font-weight:600;">
                                 {{ $sesion->pivot->rol ?? '—' }}
                             </span>
                         </div>
@@ -57,7 +57,7 @@
                     </span>
                 </div>
             @empty
-                <div style="padding:32px 24px; text-align:center; color:var(--text-muted); font-size:14px;">
+                <div style="padding:32px 24px; text-align:center; color:var(--muted); font-size:14px;">
                     No tienes sesiones próximas asignadas.
                 </div>
             @endforelse

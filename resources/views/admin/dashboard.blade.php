@@ -20,7 +20,7 @@
             <div class="stat-label">Reservas Totales</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value" style="color:#a07820;">{{ $reservasPendientes }}</div>
+            <div class="stat-value">{{ $reservasPendientes }}</div>
             <div class="stat-label">Reservas Pendientes</div>
         </div>
     </div>

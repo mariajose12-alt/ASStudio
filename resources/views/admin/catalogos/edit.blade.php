@@ -23,7 +23,7 @@
 
                         {{-- Nombre --}}
                         <div>
-                            <label style="font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Nombre</label>
+                            <label style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">Nombre</label>
                             <input type="text" name="nombre"
                                    value="{{ old('nombre', $catalogo->nombre) }}"
                                    class="form-control @error('nombre') is-invalid @enderror"
@@ -35,7 +35,7 @@
 
                         {{-- Estado --}}
                         <div>
-                            <label style="font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:8px;">Estado</label>
+                            <label style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:8px;">Estado</label>
                             <input type="hidden" name="activo" value="0">
                             <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
                                 <input type="checkbox" name="activo" value="1" id="activo"
@@ -47,7 +47,7 @@
                         {{-- Fechas --}}
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                             <div>
-                                <label style="font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Inicio vigencia</label>
+                                <label style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">Inicio vigencia</label>
                                 <input type="date" name="fecha_inicio_vigencia"
                                        value="{{ old('fecha_inicio_vigencia', $catalogo->fecha_inicio_vigencia?->format('Y-m-d')) }}"
                                        class="form-control"
@@ -57,7 +57,7 @@
                                 @enderror
                             </div>
                             <div>
-                                <label style="font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Fin vigencia</label>
+                                <label style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">Fin vigencia</label>
                                 <input type="date" name="fecha_fin_vigencia"
                                        value="{{ old('fecha_fin_vigencia', $catalogo->fecha_fin_vigencia?->format('Y-m-d')) }}"
                                        class="form-control"
@@ -75,7 +75,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h2>Paquetes del catálogo</h2>
-                        <span style="font-size:12px; color:var(--text-muted);">{{ $paquetes->count() }} disponibles</span>
+                        <span style="font-size:12px; color:var(--muted);">{{ $paquetes->count() }} disponibles</span>
                     </div>
 
                     @if($paquetes->count() > 0)
@@ -111,7 +111,7 @@
                             </table>
                         </div>
                     @else
-                        <div class="card-body" style="text-align:center; padding:40px; color:var(--text-muted);">
+                        <div class="card-body" style="text-align:center; padding:40px; color:var(--muted);">
                             No hay paquetes activos disponibles.
                         </div>
                     @endif
@@ -136,7 +136,7 @@
 
                 {{-- Info --}}
                 <div class="card">
-                    <div class="card-body" style="font-size:12px; color:var(--text-muted); display:flex; flex-direction:column; gap:6px;">
+                    <div class="card-body" style="font-size:12px; color:var(--muted); display:flex; flex-direction:column; gap:6px;">
                         <div>ID: {{ $catalogo->id }}</div>
                         <div>Creado: {{ $catalogo->created_at->format('d/m/Y H:i') }}</div>
                         <div>Actualizado: {{ $catalogo->updated_at->format('d/m/Y H:i') }}</div>

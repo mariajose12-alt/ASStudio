@@ -46,7 +46,7 @@
     {{-- Precio --}}
     <div class="card mb-4 border-0 bg-light rounded-3 p-3">
         <p class="text-muted small mb-1" style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em;">Precio Estimado</p>
-        <h4 class="fw-bold mb-0" style="color:#E07B2A;">${{ number_format($paquete->precio_base, 2) }}</h4>
+        <h4 class="fw-bold mb-0" style="color:var(--sage-lt);">${{ number_format($paquete->precio_base, 2) }}</h4>
     </div>
 
     <div class="d-flex justify-content-between">
@@ -62,7 +62,7 @@
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0,0,0,0.55);
         z-index: 9999;
         align-items: center;
         justify-content: center;
@@ -97,12 +97,12 @@
 
             <p class="small text-muted mb-3">
                 Al enviar la solicitud aceptas nuestras condiciones de reserva, política de cancelación y uso del espacio.
-                <a href="#" style="color:#E07B2A;">Leer términos completos →</a>
+                <a href="#" style="color:var(--sage);">Leer términos completos →</a>
             </p>
 
-            <div class="mb-4 p-2 rounded-3 d-flex align-items-center gap-2" style="background:#f5f5f5;">
-                <input type="checkbox" id="aceptoTerminos" style="accent-color:#E07B2A;">
-                <label for="aceptoTerminos" class="small mb-0">Entiendo y acepto los términos y condiciones</label>
+            <div class="terminos-condiciones">
+                <input type="checkbox" id="aceptoTerminos" name="acepto_terminos">
+                <label for="aceptoTerminos">Entiendo y acepto los términos y condiciones</label>
             </div>
 
             <hr class="mb-3">

@@ -69,11 +69,11 @@
             {{-- Precio destacado --}}
             <div class="card">
                 <div class="card-body" style="text-align:center; padding:32px 24px;">
-                    <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Precio Total</div>
+                    <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Precio Total</div>
                     <div style="font-family:'Playfair Display', serif; font-size:42px; color:var(--gold); line-height:1;">
                         RD$ {{ number_format($paquete->precio_total, 2) }}
                     </div>
-                    <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">Base: RD$ {{ number_format($paquete->precio_base, 2) }}</div>
+                    <div style="font-size:12px; color:var(--muted); margin-top:8px;">Base: RD$ {{ number_format($paquete->precio_base, 2) }}</div>
                 </div>
             </div>
 

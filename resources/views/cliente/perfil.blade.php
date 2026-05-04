@@ -123,10 +123,10 @@
                 datasets: [{
                     label: 'Sesiones',
                     data: totales,
-                    borderColor: '#b8922a',
+                    borderColor: '#2d6a4f',
                     backgroundColor: 'rgba(185,146,42,0.08)',
                     borderWidth: 2,
-                    pointBackgroundColor: '#b8922a',
+                    pointBackgroundColor: '#2d6a4f',
                     pointRadius: 4,
                     pointHoverRadius: 6,
                     tension: 0.4,

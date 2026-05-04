@@ -42,7 +42,7 @@
             <div class="card">
                 <div class="card-header">
                     <h2>Paquetes en este catálogo</h2>
-                    <span style="font-size:12px; color:var(--text-muted);">{{ $catalogo->paquetes->count() }} paquetes</span>
+                    <span style="font-size:12px; color:var(--muted);">{{ $catalogo->paquetes->count() }} paquetes</span>
                 </div>
                 @if($catalogo->paquetes->count() > 0)
                     <div class="table-wrap">
@@ -83,7 +83,7 @@
                         </table>
                     </div>
                 @else
-                    <div class="card-body" style="text-align:center; padding:40px; color:var(--text-muted);">
+                    <div class="card-body" style="text-align:center; padding:40px; color:var(--muted);">
                         Este catálogo no tiene paquetes asignados.
                         <a href="{{ route('admin.catalogos.edit', $catalogo) }}" style="color:var(--gold); margin-left:4px;">Agregar paquetes</a>
                     </div>
@@ -97,7 +97,7 @@
                     <div style="font-family:'Playfair Display',serif; font-size:48px; color:var(--gold); line-height:1;">
                         {{ $catalogo->paquetes->count() }}
                     </div>
-                    <div style="font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-top:6px;">
+                    <div style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:6px;">
                         Paquetes asignados
                     </div>
                 </div>

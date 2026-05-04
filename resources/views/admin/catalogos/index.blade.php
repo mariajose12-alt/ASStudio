@@ -9,7 +9,7 @@
     <div class="card">
         <div class="card-header">
             <h2>Lista de Catálogos</h2>
-            <span style="font-size:12px; color:var(--text-muted);">{{ $catalogos->total() }} catálogos en total</span>
+            <span style="font-size:12px; color:var(--muted);">{{ $catalogos->total() }} catálogos en total</span>
         </div>
         <div class="table-wrap">
             <table>
@@ -27,7 +27,7 @@
                 <tbody>
                 @forelse($catalogos as $catalogo)
                     <tr>
-                        <td style="color:var(--text-muted);">{{ $catalogo->id }}</td>
+                        <td style="color:var(--muted);">{{ $catalogo->id }}</td>
                         <td>
                             <strong style="color:#1a1a1a;">{{ $catalogo->nombre }}</strong>
                         </td>
@@ -42,7 +42,7 @@
                                     @endif
                                 </div>
                             @else
-                                <span style="font-size:12px; color:var(--text-muted);">Sin paquetes</span>
+                                <span style="font-size:12px; color:var(--muted);">Sin paquetes</span>
                             @endif
                         </td>
                         <td style="font-size:13px;">
@@ -53,7 +53,7 @@
                                 {{ $catalogo->fecha_fin_vigencia?->format('d/m/Y') ?? '—' }}
                             </span>
                             @else
-                                <span style="color:var(--text-muted);">Sin vigencia</span>
+                                <span style="color:var(--muted);">Sin vigencia</span>
                             @endif
                         </td>
                         <td>
@@ -61,7 +61,7 @@
                             {{ $catalogo->activo ? 'Activo' : 'Inactivo' }}
                         </span>
                         </td>
-                        <td style="font-size:12px; color:var(--text-muted);">
+                        <td style="font-size:12px; color:var(--muted);">
                             {{ $catalogo->created_at->format('d/m/Y') }}
                         </td>
                         <td>
@@ -78,7 +78,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" style="text-align:center; padding:48px; color:var(--text-muted);">
+                        <td colspan="7" style="text-align:center; padding:48px; color:var(--muted);">
                             No hay catálogos registrados.
                             <a href="{{ route('admin.catalogos.create') }}" style="color:var(--gold); margin-left:6px;">Crear el primero</a>
                         </td>

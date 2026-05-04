@@ -55,7 +55,7 @@
                     @method('PATCH')
                     <div class="form-group" style="margin-bottom:20px;">
                         <label>Nuevo Estado</label>
-                        <select name="estado">
+                        <select name="estado" id="estadoSelect" onchange="toggleMotivo(this.value)">
                             @foreach(['PENDIENTE','APROBADA','RECHAZADA','CANCELADA','PAGO_RECIBIDO','MODIFICACION_PROPUESTA'] as $estado)
                                 <option value="{{ $estado }}" {{ $reserva->estado === $estado ? 'selected' : '' }}>
                                     {{ $estado }}
@@ -63,6 +63,15 @@
                             @endforeach
                         </select>
                     </div>
+
+                    {{-- Campo motivo, aparece solo cuando aplica --}}
+                    <div id="motivoGroup" style="display:none; margin-bottom:20px;">
+                        <div class="form-group">
+                            <label>Motivo</label>
+                            <textarea name="motivo_rechazo" rows="3" placeholder="Describe el motivo..."></textarea>
+                        </div>
+                    </div>
+
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">Guardar Cambio</button>
                     </div>
@@ -98,3 +107,16 @@
 
     </div>
 @endsection
+@push('scripts')
+    <script>
+        const estadosConMotivo = ['RECHAZADA', 'CANCELADA', 'MODIFICACION_PROPUESTA'];
+
+        function toggleMotivo(valor) {
+            const grupo = document.getElementById('motivoGroup');
+            grupo.style.display = estadosConMotivo.includes(valor) ? 'block' : 'none';
+        }
+
+        // Ejecutar al cargar por si el estado actual ya requiere motivo
+        toggleMotivo(document.getElementById('estadoSelect').value);
+    </script>
+@endpush

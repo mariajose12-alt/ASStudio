@@ -1,7 +1,11 @@
 @extends('layouts.reserva')
 
 @section('formulario')
-    <div class="reserva-logo">AS <span>Studio</span></div>
+    <div class="reserva-logo">
+        <a href="/" class="navbar-logo">
+            <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+        </a>
+    </div>
 
     {{-- Stepper --}}
     <div class="stepper">
@@ -94,18 +98,31 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 
+            const lugarDiv = document.getElementById('lugar_div');
+            const lugarInput = document.querySelector('input[name="lugar"]');
+
+            // Manejo del cambio de tipo
             document.querySelectorAll('input[name="tipo"]').forEach(radio => {
                 radio.addEventListener('change', function () {
-                    document.getElementById('lugar_div').style.display =
-                        this.value === 'EXTERIOR' ? 'block' : 'none';
+                    if (this.value === 'EXTERIOR') {
+                        lugarDiv.style.display = 'block';
+                        lugarInput.setAttribute('required', 'required');
+                    } else {
+                        lugarDiv.style.display = 'none';
+                        lugarInput.removeAttribute('required');
+                        lugarInput.value = '';
+                    }
                 });
             });
 
-            const exteriorRadio = document.getElementById('exterior');
-            if (exteriorRadio && exteriorRadio.checked) {
-                document.getElementById('lugar_div').style.display = 'block';
+            // Verifica el estado inicial
+            const tipoSeleccionado = document.querySelector('input[name="tipo"]:checked');
+            if (tipoSeleccionado && tipoSeleccionado.value === 'EXTERIOR') {
+                lugarDiv.style.display = 'block';
+                lugarInput.setAttribute('required', 'required');
             }
 
+            //Manejo de catalogo -> paquete
             document.getElementById('catalogo_id').addEventListener('change', function () {
                 const catalogoId = this.value;
                 const paqueteSelect = document.getElementById('paquete_id');

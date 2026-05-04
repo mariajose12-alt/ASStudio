@@ -19,6 +19,8 @@ class Reserva extends Model
         'tipo',
         'precio_total',
         'estado',
+        'fotografo_id',
+        'motivo_rechazo',
     ];
 
     protected $casts = [
@@ -34,5 +36,10 @@ class Reserva extends Model
     public function paquete()
     {
         return $this->belongsTo(PaqueteFotografico::class, 'paquete_id');
+    }
+
+    public function fotografo()
+    {
+        return $this->belongsTo(Fotografo::class, 'fotografo_id');
     }
 }

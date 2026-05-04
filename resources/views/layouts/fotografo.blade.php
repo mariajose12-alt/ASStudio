@@ -9,9 +9,12 @@
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
 </head>
 <body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <aside class="sidebar">
     <div class="sidebar-logo">
-        <a href="{{ url('/') }}" class="brand">AS Studio</a>
+        <a href="/" class="navbar-logo">
+            <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+        </a>
         <div class="brand-sub">Panel Fotografo</div>
     </div>
     <div class="user-card" style="margin: 16px;">
@@ -25,7 +28,26 @@
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
             Dashboard
         </a>
+        <a href="{{ route('fotografo.calendario') }}" class="nav-link {{ request()->routeIs('fotografo.calendario') ? 'active' : '' }}">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            Calendario
+        </a>
+        <a href="{{ route('fotografo.reservas.index') }}" class="nav-link {{ request()->routeIs('fotografo.reservas.index') ? 'active' : '' }}">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+            </svg>
+            Reservas
+        </a>
+        <a href="{{ route('fotografo.upload') }}" class="nav-link {{ request()->routeIs('fotografo.upload') ? 'active' : '' }}">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 17a5 5 0 01-.916-9.916 5.002 5.002 0 019.832 0A5.002 5.002 0 0116 17m-7-5l3-3m0 0l3 3m-3-3v12"/>
+            </svg>
+            Subir Fotografias
+        </a>
     </nav>
+
     <div class="sidebar-footer">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
@@ -39,7 +61,21 @@
 
 <main class="main">
     <div class="topbar">
-        <h1 class="page-title">@yield('title', 'Dashboard')</h1>
+        <div style="display:flex; align-items:center; gap:14px;">
+            <button class="sidebar-hamburger" onclick="toggleSidebar()">
+                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <line x1="3" y1="6" x2="21" y2="6" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="3" y1="12" x2="21" y2="12" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="3" y1="18" x2="21" y2="18" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <div>
+                <h1 class="page-title">@yield('title', 'Dashboard')</h1>
+                @hasSection('subtitle')
+                    <p style="color:var(--muted); font-size:14px; margin:8px 0 0 0;">@yield('subtitle')</p>
+                @endif
+            </div>
+        </div>
         <div>@yield('topbar-actions')</div>
     </div>
     <div class="content">
@@ -56,6 +92,36 @@
         @yield('content')
     </div>
 </main>
+<style>
+    .sidebar-hamburger {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        color: var(--navy);
+        flex-shrink: 0;
+    }
+    @media (max-width: 768px) {
+        .sidebar-hamburger { display: flex; }
+    }
+</style>
+
+<script>
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+        document.body.style.overflow = document.querySelector('.sidebar').classList.contains('open') ? 'hidden' : '';
+    }
+    function closeSidebar() {
+        document.querySelector('.sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', closeSidebar);
+    });
+</script>
 @stack('scripts')
 </body>
 </html>

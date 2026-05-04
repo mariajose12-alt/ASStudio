@@ -16,7 +16,7 @@
 
                 {{-- Sección: Datos personales --}}
                 <div style="margin-bottom:24px;">
-                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:16px;">
+                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:16px;">
                         Datos Personales
                     </div>
                     <div class="form-grid">
@@ -40,7 +40,7 @@
 
                 {{-- Sección: Credenciales --}}
                 <div style="border-top:1px solid var(--border); padding-top:24px; margin-bottom:24px;">
-                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:16px;">
+                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:16px;">
                         Credenciales de Acceso
                     </div>
                     <div class="form-grid">
@@ -62,7 +62,7 @@
 
                 {{-- Sección: Rol --}}
                 <div style="border-top:1px solid var(--border); padding-top:24px; margin-bottom:24px;">
-                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:16px;">
+                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:16px;">
                         Rol y Configuración
                     </div>
                     <div class="form-grid">
@@ -87,7 +87,7 @@
                                 @error('experiencia_laboral')<span class="error-msg">{{ $message }}</span>@enderror
                             </div>
                             <div class="form-group full">
-                                <label>Certificaciones <span style="color:var(--text-muted); font-weight:400;">(separadas por coma)</span></label>
+                                <label>Certificaciones <span style="color:var(--muted); font-weight:400;">(separadas por coma)</span></label>
                                 <input type="text" name="certificaciones"
                                        value="{{ old('certificaciones') }}"
                                        placeholder="Ej: Adobe Lightroom, Sony Certified, WPPI">

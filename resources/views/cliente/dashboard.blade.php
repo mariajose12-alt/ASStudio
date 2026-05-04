@@ -15,11 +15,11 @@
             <div class="stat-label">Reservas totales</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value" style="color:#b8922a;">{{ $reservasPendientes }}</div>
+            <div class="stat-value">{{ $reservasPendientes }}</div>
             <div class="stat-label">Pendientes</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value" style="color:#2e7d52;">{{ $reservasCompletadas }}</div>
+            <div class="stat-value">{{ $reservasCompletadas }}</div>
             <div class="stat-label">Completadas</div>
         </div>
     </div>

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\DisponibilidadController;
+use App\Http\Controllers\FotografoReservaController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\LoginController;
@@ -39,6 +41,12 @@ Route::get('/api/paquetes/{catalogo}', function ($catalogoId) {
         ]);
 });
 
+
+// routes/web.php — agregar esta ruta
+Route::get('/disponibilidad/fechas',
+    [DisponibilidadController::class, 'fechasOcupadas']
+)->name('disponibilidad.fechas');
+
 // AUTENTICACIÓN
 
 Route::get('/login',    [LoginController::class, 'showForm'])->name('login');
@@ -62,6 +70,9 @@ Route::middleware(['auth', 'rol:ADMINISTRADOR'])
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/estudio',   [AdminController::class, 'estudio'])->name('estudio');
+        Route::get('/nomina',    [AdminController::class, 'nomina'])->name('nomina');
+
 
         Route::resource('empleados', EmpleadoController::class);
         Route::resource('paquetes',  PaqueteController::class);
@@ -77,39 +88,42 @@ Route::middleware(['auth', 'rol:FOTOGRAFO'])
     ->prefix('fotografo')
     ->name('fotografo.')
     ->group(function () {
-        Route::get('/dashboard', [FotografoController::class, 'dashboard'])->name('dashboard');
-        // Route::resource('sesiones', SesionController::class);
-        // Route::get('agenda', [AgendaController::class, 'index'])->name('agenda');
+        Route::get('/dashboard',                 [FotografoController::class, 'dashboard'])->name('dashboard');
+        Route::get('/calendario',                [FotografoController::class, 'calendario'])->name('calendario');
+        Route::get('/calendario/reservas',       [FotografoController::class, 'reservasJson'])->name('calendario.json');
+        Route::get('/upload',                    [FotografoController::class, 'upload'])->name('upload');
+        Route::get('reservas',                   [FotografoReservaController::class, 'index'])->name('reservas.index');
+        Route::get('reservas/{reserva}',         [FotografoReservaController::class, 'show'])->name('reservas.show');
+        Route::post('reservas/{reserva}/accion', [FotografoReservaController::class, 'procesarAccion'])->name('reservas.accion');
     });
 
 // DASHBOARD CLIENTE
-Route::middleware(['auth', 'rol:CLIENTE']) ->prefix('cliente') ->name('cliente.') ->group(function () {
+Route::middleware(['auth', 'rol:CLIENTE'])
+    ->prefix('cliente')
+    ->name('cliente.')
+    ->group(function () {
+
         Route::get('/dashboard', [ClienteController::class, 'dashboard'])->name('dashboard');
-        Route::get('/perfil',  [ClienteController::class, 'perfil'])->name('perfil');
-        Route::put('/perfil',  [ClienteController::class, 'actualizarPerfil'])->name('perfil.update');
+        Route::get('/perfil',    [ClienteController::class, 'perfil'])->name('perfil');
+        Route::put('/perfil',    [ClienteController::class, 'actualizarPerfil'])->name('perfil.update');
+        Route::get('/galeria',   [ClienteController::class, 'galeria'])->name('galeria');
 
+        // Reservas
+        Route::get('reservas/paso1',   [ReservaController::class, 'paso1'])->name('reservas.paso1');
+        Route::post('reservas/paso1',  [ReservaController::class, 'guardarPaso1'])->name('reservas.guardarPaso1');
+        Route::get('reservas/paso2',   [ReservaController::class, 'paso2'])->name('reservas.paso2');
+        Route::post('reservas/paso2',  [ReservaController::class, 'guardarPaso2'])->name('reservas.guardarPaso2');
+        Route::get('reservas/paso3',   [ReservaController::class, 'paso3'])->name('reservas.paso3');
+        Route::post('reservas/paso3',  [ReservaController::class, 'guardarPaso3'])->name('reservas.guardarPaso3');
+        Route::get('reservas/paso4',   [ReservaController::class, 'paso4'])->name('reservas.paso4');
+        Route::post('reservas/enviar', [ReservaController::class, 'enviar'])->name('reservas.enviar');
 
-        // Ver reservas (nuevo controller)
-        Route::get('reservas',          [ClienteReservaController::class, 'index'])->name('reservas.index');
-        //Route::get('reservas/{reserva}',[ClienteReservaController::class, 'show'])->name('reservas.show');
+        Route::get('reservas/{reserva}',  [ClienteReservaController::class, 'show'])->name('reservas.show');
 
+        Route::patch('reservas/{reserva}/responder-sugerencia', [ClienteReservaController::class, 'responderSugerencia'])->name('reservas.responder-sugerencia');
 
-        // Flujo de reservas (movido bajo prefijo cliente)
-        Route::get('reservas',             [ReservaController::class, 'index'])->name('reservas.index');
-
-        Route::get('reservas/paso1',       [ReservaController::class, 'paso1'])->name('reservas.paso1');
-        Route::post('reservas/paso1',      [ReservaController::class, 'guardarPaso1'])->name('reservas.guardarPaso1');
-
-        Route::get('reservas/paso2',       [ReservaController::class, 'paso2'])->name('reservas.paso2');
-        Route::post('reservas/paso2',      [ReservaController::class, 'guardarPaso2'])->name('reservas.guardarPaso2');
-
-        Route::get('reservas/paso3',       [ReservaController::class, 'paso3'])->name('reservas.paso3');
-        Route::post('reservas/paso3',      [ReservaController::class, 'guardarPaso3'])->name('reservas.guardarPaso3');
-
-        Route::get('reservas/paso4',       [ReservaController::class, 'paso4'])->name('reservas.paso4');
-        Route::post('reservas/enviar',     [ReservaController::class, 'enviar'])->name('reservas.enviar');
-
-
+        // Índice al final
+        Route::get('reservas',         [ReservaController::class, 'index'])->name('reservas.index');
     });
 
 Route::resource('admin/paquetes', PaqueteController::class)

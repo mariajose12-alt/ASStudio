@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('cliente_id')->constrained('clientes')->cascadeOnDelete();
             $table->foreignId('catalogo_id')->constrained('catalogos')->restrictOnDelete();
             $table->foreignId('paquete_id')->constrained('paquetes_fotograficos')->restrictOnDelete();
+            $table->foreignId('fotografo_id')->constrained('fotografos')->restrictOnDelete();
             $table->dateTime('fecha_inicio');
             $table->dateTime('fecha_fin');
             $table->dateTime('fecha_solicitud')->useCurrent();

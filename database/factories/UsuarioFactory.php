@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\Usuario;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Usuario>
@@ -25,21 +24,21 @@ class UsuarioFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            // Nota: persona_id no se autogenera aquí para evitar bucles si no existe PersonaFactory.
+            // Se debe pasar al llamar al factory: Usuario::factory()->create(['persona_id' => $persona->id])
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'contrasena' => static::$password ??= Hash::make('password'),
+            'estado' => 'ACTIVO',
         ];
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * Indicate that the model's status should be inactive.
      */
-    public function unverified(): static
+    public function inactivo(): static
     {
         return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+            'estado' => 'INACTIVO',
         ]);
     }
 }

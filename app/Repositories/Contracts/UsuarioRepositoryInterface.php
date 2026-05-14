@@ -5,7 +5,7 @@ namespace App\Repositories\Contracts;
 use App\Models\Usuario;
 use Illuminate\Database\Eloquent\Collection;
 
-interface UsuarioRepositoryInterface
+interface UsuarioRepositoryInterface extends RepositoryInterface
 {
     /**
      * Obtiene todos los usuarios.

@@ -5,7 +5,7 @@ namespace App\Repositories\Contracts;
 use App\Models\Cliente;
 use Illuminate\Database\Eloquent\Collection;
 
-interface ClienteRepositoryInterface
+interface ClienteRepositoryInterface extends RepositoryInterface
 {
     /**
      * Obtiene todos los clientes.

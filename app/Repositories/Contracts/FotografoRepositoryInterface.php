@@ -5,7 +5,7 @@ namespace App\Repositories\Contracts;
 use App\Models\Fotografo;
 use Illuminate\Database\Eloquent\Collection;
 
-interface FotografoRepositoryInterface
+interface FotografoRepositoryInterface extends RepositoryInterface
 {
     /**
      * Obtiene todos los fotógrafos.

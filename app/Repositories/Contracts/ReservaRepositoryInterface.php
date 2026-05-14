@@ -5,7 +5,7 @@ namespace App\Repositories\Contracts;
 use App\DTOs\ReservaCreateDTO;
 use App\Models\Reserva;
 
-interface ReservaRepositoryInterface
+interface ReservaRepositoryInterface extends RepositoryInterface
 {
     public function crear(ReservaCreateDTO $dto): Reserva;
     public function porCliente(int $cliente_id);

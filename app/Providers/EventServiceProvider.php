@@ -28,14 +28,6 @@ class EventServiceProvider extends ServiceProvider
             EnviarNotificacionReservaModificada::class,
         ],
 
-//        ReservaAprobada::class => [
-//            EnviarNotificacionReservaAprobada::class,  // al cliente
-//        ],
-//
-//        ReservaRechazada::class => [
-//            EnviarNotificacionReservaRechazada::class, // al cliente
-//        ],
-//
 //        PagoConfirmado::class => [
 //            EnviarNotificacionPagoConfirmado::class,   // al cliente
 //        ],

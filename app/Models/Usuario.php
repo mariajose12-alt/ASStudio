@@ -47,10 +47,10 @@ class Usuario extends Authenticatable
         return $this->hasOne(Empleado::class, 'usuario_id');
     }
 
-    public function notificaciones(): HasMany
-    {
-        return $this->hasMany(Notificacion::class, 'usuario_id');
-    }
+//    public function notificaciones(): HasMany
+//    {
+//        return $this->hasMany(Notificacion::class, 'usuario_id');
+//    }
 
     //  Helpers de rol
     public function esCliente(): bool

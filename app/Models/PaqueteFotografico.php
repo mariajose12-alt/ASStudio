@@ -3,16 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PaqueteFotografico extends Model
 {
     protected $table = 'paquetes_fotograficos';
 
     protected $fillable = [
-        'catalogo_id',
         'nombre',
         'descripcion',
         'precio_base',

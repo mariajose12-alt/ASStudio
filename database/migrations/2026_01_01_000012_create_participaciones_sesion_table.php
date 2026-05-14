@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('sesion_id')->constrained('sesiones')->cascadeOnDelete();
             $table->foreignId('fotografo_id')->constrained('fotografos')->cascadeOnDelete();
-            $table->foreignId('agenda_id')->nullable()->constrained('agendas')->nullOnDelete(); // ← agregado según diagrama
             $table->enum('rol', ['PRINCIPAL', 'ASISTENTE']);
             $table->decimal('porcentaje_comision', 5, 2)->default(0);
             $table->boolean('estado_participacion')->default(true);

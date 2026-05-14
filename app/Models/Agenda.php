@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Agenda extends Model
 {
@@ -23,9 +24,9 @@ class Agenda extends Model
 
     // Relaciones
 
-    public function fotografo()
+    public function fotografo(): BelongsTo
     {
-        return $this->belongsTo(Fotografo::class);
+        return $this->belongsTo(Fotografo::class, 'fotografo_id');
     }
 
     //Scopes — filtros reutilizables
@@ -36,25 +37,25 @@ class Agenda extends Model
         return $query->where('disponible', true);
     }
 
-    // Agenda::enFecha('2025-06-10')->get()
+    // Agenda::enFecha('2026-06-10')->get()
     public function scopeEnFecha($query, string $fecha)
     {
         return $query->whereDate('fecha_inicio', $fecha);
     }
 
-    // Agenda::queContiene('2025-06-10', '09:00')->get()
-    public function scopeQueContiene($query, string $fecha, string $hora)
+    // Busca slots que cubran completamente el rango dado
+    // Agenda::queCubreRango('2026-06-10 09:00', '2026-06-10 12:00')->get()
+    public function scopeQueCubreRango($query, string $inicio, string $fin)
     {
-        $fechaHora = Carbon::parse("$fecha $hora");
-
         return $query
-            ->where('fecha_inicio', '<=', $fechaHora)
-            ->where('fecha_fin',    '>=', $fechaHora);
+            ->where('fecha_inicio', '<=', Carbon::parse($inicio))
+            ->where('fecha_fin',    '>=', Carbon::parse($fin));
     }
+
 
     // Helpers
 
-    // $agenda->cubre('2025-06-10', '09:00')
+    // $agenda->cubre('2026-06-10', '09:00')
     public function cubre(string $fecha, string $hora): bool
     {
         $fechaHora = Carbon::parse("$fecha $hora");
@@ -62,4 +63,21 @@ class Agenda extends Model
         return $this->fecha_inicio <= $fechaHora
             && $this->fecha_fin    >= $fechaHora;
     }
+
+    // Marca el slot como ocupado y lo persiste
+    // $agenda->ocupar()
+    public function ocupar(): bool
+    {
+        $this->disponible = false;
+        return $this->save();
+    }
+
+    // Marca el slot como libre nuevamente (ej: cancelación)
+    // $agenda->liberar()
+    public function liberar(): bool
+    {
+        $this->disponible = true;
+        return $this->save();
+    }
+
 }

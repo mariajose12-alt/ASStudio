@@ -15,7 +15,6 @@ class Administrador extends Model
     ];
 
     //  Relaciones
-
     public function empleado(): BelongsTo
     {
         return $this->belongsTo(Empleado::class, 'empleado_id');
@@ -28,12 +27,12 @@ class Administrador extends Model
 
     //  Helpers
 
-    public function usuario(): Usuario
+    public function getUsuario(): Usuario
     {
         return $this->empleado->usuario;
     }
 
-    public function persona(): Persona
+    public function getPersona(): Persona
     {
         return $this->empleado->usuario->persona;
     }

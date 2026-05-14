@@ -27,9 +27,9 @@ class Fotografo extends Model
         return $this->belongsTo(Empleado::class, 'empleado_id');
     }
 
-    public function agenda(): HasOne
+    public function agendas(): HasMany
     {
-        return $this->hasOne(Agenda::class, 'fotografo_id');
+        return $this->hasMany(Agenda::class, 'fotografo_id');
     }
 
     public function participaciones(): HasMany

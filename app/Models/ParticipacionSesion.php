@@ -12,7 +12,6 @@ class ParticipacionSesion extends Model
     protected $fillable = [
         'sesion_id',
         'fotografo_id',
-        'agenda_id',
         'rol',
         'porcentaje_comision',
         'estado_participacion',
@@ -35,11 +34,6 @@ class ParticipacionSesion extends Model
     {
         return $this->belongsTo(Fotografo::class, 'fotografo_id');
     }
-
-//    public function agenda(): BelongsTo
-//    {
-//        return $this->belongsTo(Agenda::class, 'agenda_id');
-//    }
 
     // Helpers
     public function esPrincipal(): bool

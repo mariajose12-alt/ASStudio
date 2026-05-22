@@ -11,6 +11,8 @@ use App\Repositories\Contracts\ClienteRepositoryInterface;
 use App\Repositories\ClienteRepository;
 use App\Repositories\Contracts\FotografoRepositoryInterface;
 use App\Repositories\FotografoRepository;
+use App\Repositories\Contracts\CatalogoRepositoryInterface;
+use App\Repositories\CatalogoRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,10 +39,16 @@ class AppServiceProvider extends ServiceProvider
             ClienteRepository::class,
         );
 
-        // Registro del repositorio de Fotógrafos (Nuevo)
+        // Registro del repositorio de Fotógrafos
         $this->app->bind(
             FotografoRepositoryInterface::class,
             FotografoRepository::class,
+        );
+
+        // Registro del repositorio de Catálogos (Nuevo)
+        $this->app->bind(
+            CatalogoRepositoryInterface::class,
+            CatalogoRepository::class,
         );
     }
 

@@ -14,8 +14,7 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-        $metricas = $this->adminService->metricasDashboard();
-        return view('admin.dashboard', $metricas);
+        return view('admin.dashboard', $this->adminService->getData());
     }
 
     public function reservasIndex()

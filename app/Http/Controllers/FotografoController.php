@@ -13,13 +13,7 @@ class FotografoController extends Controller
 
     public function dashboard()
     {
-        $fotografo = Auth::user()->empleado->fotografo;
-        $metricas  = $this->fotografoService->metricasDashboard($fotografo);
-
-        return view('fotografo.dashboard', array_merge(
-            compact('fotografo'),
-            $metricas
-        ));
+        return view('fotografo.dashboard', $this->fotografoService->getData());
     }
 
     public function calendario()

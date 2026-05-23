@@ -2,26 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use App\Services\ReservaService;
 use App\Models\Catalogo;
 use App\Models\PaqueteFotografico;
-use App\Services\ReservaService;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReservaController extends Controller
 {
-    public function __construct(
-        private ReservaService $reservaService
-    ) {}
+    protected ReservaService $reservaService;
 
-    public function index()
+    public function __construct(ReservaService $reservaService)
     {
-        $reservas = $this->reservaService->reservasDelCliente(auth()->id());
-        return view('reservas.index', compact('reservas'));
+        $this->reservaService = $reservaService;
     }
 
+    /**
+     * Muestra el índice de las reservas del cliente.
+     */
+    public function index()
+    {
+        $reservas = $this->reservaService->reservasDelCliente(Auth::id());
+
+        return view('cliente.reservas.index', compact('reservas'));
+    }
+
+    /**
+     * Paso 1: Selección de Catálogo, Paquete, Tipo y Lugar.
+     */
     public function paso1()
     {
-        $catalogos = Catalogo::where('activo', true)->get();
+        // Traemos los catálogos activos junto con sus paquetes
+        $catalogos = Catalogo::with(['paquetes' => function($query) {
+            $query->where('activo', true);
+        }])->where('activo', true)->get();
+
         return view('reservas.paso1', compact('catalogos'));
     }
 
@@ -31,119 +46,111 @@ class ReservaController extends Controller
             'catalogo_id' => 'required|exists:catalogos,id',
             'paquete_id'  => 'required|exists:paquetes_fotograficos,id',
             'tipo'        => 'required|in:ESTUDIO,EXTERIOR',
-            'lugar'       => 'required_if:tipo,EXTERIOR|nullable|string|max:255',
-        ], [
-            'lugar.required_if' => 'El campo lugar es obligatorio, para sesiones en exteriores.',
+            'lugar'       => 'nullable|string|max:255|required_if:tipo,EXTERIOR',
         ]);
 
-        session(['reserva_paso1' => $request->only([
-            'catalogo_id', 'paquete_id', 'tipo', 'lugar'
-        ])]);
+        session(['reserva.paso1' => $request->only(['catalogo_id', 'paquete_id', 'tipo', 'lugar'])]);
 
         return redirect()->route('cliente.reservas.paso2');
     }
 
+    /**
+     * Paso 2: Selección de Fecha y Hora.
+     */
     public function paso2()
     {
-        if (!session('reserva_paso1')) {
-            return redirect()->route('reservas.paso1');
+        if (!session()->has('reserva.paso1')) {
+            return redirect()->route('cliente.reservas.paso1')->with('error', 'Por favor completa el primer paso.');
         }
+
         return view('reservas.paso2');
     }
 
     public function guardarPaso2(Request $request)
     {
         $request->validate([
-            'fecha'       => 'required|date|after:today',
-            'hora'        => 'required',
-            'descripcion' => 'required|string|max:1000',
+            'fecha' => 'required|date|after_or_equal:today',
+            'hora'  => 'required|date_format:H:i',
         ]);
 
-        session(['reserva_paso2' => $request->only([
-            'fecha', 'hora', 'descripcion'
-        ])]);
+        session(['reserva.paso2' => $request->only(['fecha', 'hora'])]);
 
         return redirect()->route('cliente.reservas.paso3');
     }
 
+    /**
+     * Paso 3: Confirmación de datos y adición de detalles extras.
+     */
     public function paso3()
     {
-        if (!session('reserva_paso2')) {
-            return redirect()->route('reservas.paso1');
+        if (!session()->has('reserva.paso2')) {
+            return redirect()->route('cliente.reservas.paso2')->with('error', 'Por favor selecciona la fecha y hora de tu sesión.');
         }
-        return view('reservas.paso3', ['usuario' => auth()->user()]);
+
+        $usuario = Auth::user();
+        $usuario->load('persona');
+
+        return view('reservas.paso3', compact('usuario'));
     }
 
     public function guardarPaso3(Request $request)
     {
+        // TSK-60: Se añadió la validación de 'descripcion'
         $request->validate([
-            'nombre'   => 'required|string|max:255',
-            'correo'   => 'required|email',
-            'telefono' => 'required|string|max:20',
+            'nombre'      => 'required|string|max:100',
+            'correo'      => 'required|email|max:150',
+            'telefono'    => 'required|string|max:20',
+            'descripcion' => 'nullable|string|max:1000',
         ]);
 
-        $usuario = auth()->user();
-        $persona = $usuario->persona;
-
-        // Separar nombre completo en nombre y apellido
-        $partes    = explode(' ', trim($request->nombre), 2);
-        $nombre    = $partes[0];
-        $apellido  = $partes[1] ?? $persona->apellido;
-
-        $persona->update([
-            'nombre'   => $nombre,
-            'apellido' => $apellido,
-            'telefono' => $request->telefono,
-        ]);
-
-        $usuario->update([
-            'email' => $request->correo,
-        ]);
-
-        session(['reserva_paso3' => $request->only([
-            'nombre', 'correo', 'telefono'
-        ])]);
+        // TSK-60: Se guarda la descripción en la sesión para el DTO
+        session(['reserva.paso3' => $request->only(['nombre', 'correo', 'telefono', 'descripcion'])]);
 
         return redirect()->route('cliente.reservas.paso4');
     }
 
+    /**
+     * Paso 4: Resumen final de la reserva.
+     */
     public function paso4()
     {
-        if (!session('reserva_paso3')) {
-            return redirect()->route('reservas.paso1');
+        if (!session()->has('reserva.paso3')) {
+            return redirect()->route('cliente.reservas.paso3')->with('error', 'Por favor verifica tus datos de contacto.');
         }
 
-        $paso1   = session('reserva_paso1');
-        $paso2   = session('reserva_paso2');
-        $paso3   = session('reserva_paso3');
-        $paquete = PaqueteFotografico::with('catalogos')->find($paso1['paquete_id']);
+        $paso1 = session('reserva.paso1');
+        $paso2 = session('reserva.paso2');
+        $paso3 = session('reserva.paso3');
+
+        $paquete = PaqueteFotografico::find($paso1['paquete_id']);
 
         return view('reservas.paso4', compact('paso1', 'paso2', 'paso3', 'paquete'));
     }
 
-    public function enviar(Request $request)
+    /**
+     * Procesamiento final: Envío al Servicio y persistencia en BD.
+     */
+    public function enviar()
     {
+        $paso1 = session('reserva.paso1');
+        $paso2 = session('reserva.paso2');
+        $paso3 = session('reserva.paso3', []); // TSK-60: Extraemos los datos del paso 3
+
+        if (!$paso1 || !$paso2) {
+            return redirect()->route('cliente.reservas.paso1')->with('error', 'Faltan datos para completar la reserva.');
+        }
+
         try {
-            $this->reservaService->crearReserva(
-                paso1:      session('reserva_paso1'),
-                paso2:      session('reserva_paso2'),
-                usuario_id: auth()->id(),
-            );
+            // TSK-60: Se pasa el $paso3 como cuarto parámetro al ReservaService
+            $reserva = $this->reservaService->crearReserva($paso1, $paso2, Auth::id(), $paso3);
 
-            session()->forget(['reserva_paso1', 'reserva_paso2', 'reserva_paso3']);
+            // Se limpia la sesión del wizard al terminar exitosamente
+            session()->forget('reserva');
 
-            return redirect('/')->with('success', '¡Reserva enviada! El fotógrafo revisará tu solicitud.');
+            return redirect()->route('cliente.reservas.index')->with('success', '¡Reserva solicitada exitosamente! Un fotógrafo la revisará pronto.');
 
         } catch (\Exception $e) {
-            //return back()->with('error', $e->getMessage());
-            dd([
-                'mensaje' => $e->getMessage(),
-                'archivo' => $e->getFile(),
-                'linea'   => $e->getLine(),
-                'paso1'   => session('reserva_paso1'),
-                'paso2'   => session('reserva_paso2'),
-                'usuario' => auth()->id(),
-            ]);
+            return redirect()->back()->with('error', 'Ocurrió un error: ' . $e->getMessage());
         }
     }
 }

@@ -10,7 +10,7 @@ class ReservaCreateDTO
         public readonly int     $catalogo_id,
         public readonly int     $fotografo_id,
         public readonly string  $tipo,
-        public readonly string  $descripcion,
+        public readonly ?string $descripcion,
         public readonly string  $fecha_inicio,
         public readonly string  $fecha_fin,
         public readonly float   $precio_total,
@@ -23,7 +23,8 @@ class ReservaCreateDTO
         array $paso2,
         int   $cliente_id,
         int   $fotografo_id,
-        float $precio_total
+        float $precio_total,
+        array $paso3 = []
     ): self {
         return new self(
             cliente_id:   $cliente_id,
@@ -31,7 +32,7 @@ class ReservaCreateDTO
             catalogo_id:  $paso1['catalogo_id'],
             fotografo_id: $fotografo_id,
             tipo:         $paso1['tipo'],
-            descripcion:  $paso2['descripcion'],
+            descripcion:  $paso3['descripcion'] ?? ($paso2['descripcion'] ?? null),
             fecha_inicio: $paso2['fecha'] . ' ' . $paso2['hora'],
             fecha_fin:    $paso2['fecha'] . ' ' . $paso2['hora'],
             precio_total: $precio_total,

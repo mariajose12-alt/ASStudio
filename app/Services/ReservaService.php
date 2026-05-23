@@ -18,7 +18,7 @@ class ReservaService
         private ReservaRepositoryInterface $reservaRepository
     ) {}
 
-    public function crearReserva(array $paso1, array $paso2, int $usuario_id): Reserva
+    public function crearReserva(array $paso1, array $paso2, int $usuario_id, array $paso3 = []): Reserva
     {
         $fecha = $paso2['fecha'];
         $hora  = $paso2['hora'];
@@ -55,6 +55,7 @@ class ReservaService
             cliente_id:   $cliente->id,
             fotografo_id: $fotografo->id,
             precio_total: $paquete->precio_base,
+            paso3:        $paso3
         );
 
         $reserva = $this->reservaRepository->crear($dto);

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Cliente;
 use App\Models\Reserva;
+use App\Models\Sesion;
 use App\Models\Usuario;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -19,7 +20,7 @@ class ClienteService
             'usuario'             => $this->getPerfilUsuario($usuario),
             'totalReservas'       => $this->getTotalReservas($usuario),
             'reservasPendientes'  => $this->getReservasPendientes($usuario),
-            'reservasCompletadas' => $this->getReservasCompletadas($usuario),
+            'reservasCompletadas' => $this->getSesionesCerradas($usuario),
             'proximasReservas'    => $this->getProximasReservas($usuario),
             'sesionesPorMes'      => $this->sesionesPorMes($usuario->cliente),
         ];
@@ -52,12 +53,14 @@ class ClienteService
     }
 
     /**
-     * Reservas en estado completado.
+     * Sesiones en estado completado.
      */
-    public function getReservasCompletadas(Usuario $usuario): int
+    public function getSesionesCerradas(Usuario $usuario): int
     {
-        return Reserva::where('cliente_id', $usuario->cliente->id)
-            ->where('estado', 'completada')
+        return Sesion::whereHas('reserva', function ($query) use ($usuario) {
+            $query->where('cliente_id', $usuario->cliente->id);
+        })
+            ->where('estado', 'CERRADA')
             ->count();
     }
 
@@ -68,7 +71,7 @@ class ClienteService
     {
         return Reserva::where('cliente_id', $usuario->cliente->id)
             ->where('fecha_inicio', '>=', Carbon::today())
-            ->whereNotIn('estado', ['cancelada'])
+            ->whereNotIn('estado', ['CANCELADA'])
             ->with('paquete')
             ->orderBy('fecha_inicio')
             ->limit($limit)
@@ -82,8 +85,10 @@ class ClienteService
         for ($i = 5; $i >= 0; $i--) {
             $mes     = Carbon::now()->subMonths($i);
             $meses[] = $mes->translatedFormat('M');
-            $totales[] = $cliente->reservas()
-                ->where('estado', 'completada')
+            $totales[] = Sesion::whereHas('reserva', function ($query) use ($cliente) {
+                    $query->where('cliente_id', $cliente->id);
+                })
+                ->where('estado', 'CERRADA')
                 ->whereYear('fecha_inicio', $mes->year)
                 ->whereMonth('fecha_inicio', $mes->month)
                 ->count();

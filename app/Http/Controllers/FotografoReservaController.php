@@ -37,7 +37,7 @@ class FotografoReservaController extends Controller
         $this->autorizarFotografo($reserva);
 
         $request->validate([
-            'accion'      => 'required|in:APROBADA,RECHAZADA,MODIFICACION_PROPUESTA',
+            'accion'      => 'required|in:APROBADA,RECHAZADA,MODIFICACION_PROPUESTA,CERRAR_SESION',
             'motivo'      => 'required_if:accion,RECHAZADA,MODIFICACION_PROPUESTA|nullable|string|max:500',
         ]);
 
@@ -49,6 +49,7 @@ class FotografoReservaController extends Controller
                 'APROBADA'   => 'Reserva aprobada. El cliente fue notificado.',
                 'RECHAZADA'  => 'Reserva rechazada. El cliente fue notificado.',
                 'MODIFICACION_PROPUESTA' => 'Propuesta enviada al cliente.',
+                'CERRAR_SESION'  => 'Sesión cerrada.',
             };
 
             return redirect()

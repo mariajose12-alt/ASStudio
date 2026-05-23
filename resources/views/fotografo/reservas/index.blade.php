@@ -143,6 +143,20 @@
                             </form>
                         </div>
                     @endif
+                    {{-- Acciones Despues de Aprobada y Realizada--}}
+                    @if($reserva->estado === 'APROBADA' && $reserva->sesion?->estado !== 'CERRADA')
+                        <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}">
+                            @csrf
+                            <input type="hidden" name="accion" value="CERRAR_SESION">
+                            <button type="submit" class="btn btn-primary"
+                                    style="width:100%; justify-content:center; background:#2e7d52; border-color:#2e7d52;"
+                                    onclick="return confirm('¿Marcar esta sesión como cerrada?')">
+                                ✓ Cerrar sesión
+                            </button>
+                        </form>
+                    @elseif($reserva->sesion?->estado === 'CERRADA')
+                        <span style="font-size:13px; color:#2e7d52; display:flex; justify-content: center">✓ Sesión cerrada</span>
+                    @endif
 
                 </div>
             </div>

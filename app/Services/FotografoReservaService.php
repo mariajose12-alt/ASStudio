@@ -13,10 +13,12 @@ class FotografoReservaService
 {
     public function procesarAccion(Reserva $reserva, AccionReservaDTO $dto): void
     {
+
         match ($dto->accion) {
             'APROBADA'    => $this->aprobar($reserva),
             'RECHAZADA'   => $this->rechazar($reserva, $dto->motivo),
             'MODIFICACION_PROPUESTA'  => $this->modificar($reserva, $dto),
+            'CERRAR_SESION'  => $this->cerrarSesion($reserva),
             default      => throw new \Exception('Acción no válida.'),
         };
     }
@@ -24,6 +26,15 @@ class FotografoReservaService
     private function aprobar(Reserva $reserva): void
     {
         $reserva->update(['estado' => 'APROBADA']);
+
+        // Crear la sesión automáticamente
+        $reserva->sesion()->create([
+            'fecha_inicio'  => $reserva->fecha_inicio,
+            'fecha_fin'     => $reserva->fecha_fin,
+            'lugar'         => $reserva->lugar,
+            'estado'        => 'CONFIRMADA',
+        ]);
+
         ReservaAprobada::dispatch($reserva);
     }
 
@@ -63,6 +74,15 @@ class FotografoReservaService
         ReservaModificada::dispatch($reserva);
     }
 
+    private function cerrarSesion(Reserva $reserva): void
+    {
+        if (!$reserva->sesion) {
+            throw new \Exception('Esta reserva no tiene una sesión asociada.');
+        }
+
+        $reserva->sesion->update(['estado' => 'CERRADA']);
+    }
+
     public function reservasPendientes(int $fotografo_id)
     {
         return Reserva::where('fotografo_id', $fotografo_id)
@@ -75,7 +95,7 @@ class FotografoReservaService
     public function todasLasReservas(int $fotografo_id)
     {
         return Reserva::where('fotografo_id', $fotografo_id)
-            ->with(['cliente.usuario.persona', 'paquete'])
+            ->with(['cliente.usuario.persona', 'paquete', 'sesion'])
             ->latest()
             ->paginate(10);
     }

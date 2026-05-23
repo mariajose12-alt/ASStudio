@@ -30,11 +30,11 @@
 <h4>Confirma tus datos</h4>
 
 {{--
-$usuario es el App\Models\Usuario autenticado.
-Los datos personales viven en $usuario->persona (Persona model).
+    $usuario es el App\Models\Usuario autenticado.
+    Los datos personales viven en $usuario->persona (Persona model).
 --}}
 @php
-$persona = $usuario->persona;
+    $persona = $usuario->persona;
 @endphp
 
 <div style="background:rgba(224,123,42,0.06); border:1px solid rgba(224,123,42,0.2); border-radius:8px; padding:14px 16px; margin-bottom:24px;">
@@ -77,18 +77,6 @@ $persona = $usuario->persona;
                placeholder="Ej: 809-000-0000"
                class="{{ $errors->has('telefono') ? 'is-invalid' : '' }}">
         @error('telefono')
-        <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
-
-    <div class="form-floating-modern" style="margin-top: 15px;">
-        <label>Detalles o instrucciones adicionales (Opcional)</label>
-        <textarea name="descripcion"
-                  rows="3"
-                  placeholder="Ej: Es para un cumpleaños, me gustaría fotos en blanco y negro, etc."
-                  class="{{ $errors->has('descripcion') ? 'is-invalid' : '' }}"
-                  style="width: 100%; padding: 8px; border: 1px solid #dcdcdc; border-radius: 6px; font-family: inherit; resize: vertical;">{{ old('descripcion', session('reserva.paso3.descripcion', '')) }}</textarea>
-        @error('descripcion')
         <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>

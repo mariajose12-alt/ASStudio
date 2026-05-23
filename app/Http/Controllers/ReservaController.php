@@ -24,7 +24,7 @@ class ReservaController extends Controller
     {
         $reservas = $this->reservaService->reservasDelCliente(Auth::id());
 
-        return view('cliente.reservas.index', compact('reservas'));
+        return view('reservas.index', compact('reservas'));
     }
 
     /**
@@ -46,7 +46,9 @@ class ReservaController extends Controller
             'catalogo_id' => 'required|exists:catalogos,id',
             'paquete_id'  => 'required|exists:paquetes_fotograficos,id',
             'tipo'        => 'required|in:ESTUDIO,EXTERIOR',
-            'lugar'       => 'nullable|string|max:255|required_if:tipo,EXTERIOR',
+            'lugar'       => 'required_if:tipo,EXTERIOR|nullable|string|max:255',
+        ], [
+            'lugar.required_if' => 'El campo lugar es obligatorio, para sesiones en exteriores.',
         ]);
 
         session(['reserva.paso1' => $request->only(['catalogo_id', 'paquete_id', 'tipo', 'lugar'])]);
@@ -69,11 +71,12 @@ class ReservaController extends Controller
     public function guardarPaso2(Request $request)
     {
         $request->validate([
-            'fecha' => 'required|date|after_or_equal:today',
-            'hora'  => 'required|date_format:H:i',
+            'fecha'       => 'required|date|after_or_equal:today',
+            'hora'        => 'required|date_format:H:i',
+            'descripcion' => 'required|string|max:600',
         ]);
 
-        session(['reserva.paso2' => $request->only(['fecha', 'hora'])]);
+        session(['reserva.paso2' => $request->only(['fecha', 'hora', 'descripcion'])]);
 
         return redirect()->route('cliente.reservas.paso3');
     }
@@ -100,11 +103,27 @@ class ReservaController extends Controller
             'nombre'      => 'required|string|max:100',
             'correo'      => 'required|email|max:150',
             'telefono'    => 'required|string|max:20',
-            'descripcion' => 'nullable|string|max:1000',
         ]);
 
-        // TSK-60: Se guarda la descripción en la sesión para el DTO
-        session(['reserva.paso3' => $request->only(['nombre', 'correo', 'telefono', 'descripcion'])]);
+        $usuario = auth()->user();
+        $persona = $usuario->persona;
+
+        // Separar nombre completo en nombre y apellido
+        $partes    = explode(' ', trim($request->nombre), 2);
+        $nombre    = $partes[0];
+        $apellido  = $partes[1] ?? $persona->apellido;
+
+        $persona->update([
+            'nombre'   => $nombre,
+            'apellido' => $apellido,
+            'telefono' => $request->telefono,
+        ]);
+
+        $usuario->update([
+            'email' => $request->correo,
+        ]);
+
+        session(['reserva.paso3' => $request->only(['nombre', 'correo', 'telefono'])]);
 
         return redirect()->route('cliente.reservas.paso4');
     }
@@ -122,7 +141,7 @@ class ReservaController extends Controller
         $paso2 = session('reserva.paso2');
         $paso3 = session('reserva.paso3');
 
-        $paquete = PaqueteFotografico::find($paso1['paquete_id']);
+        $paquete = PaqueteFotografico::with('catalogos')->find($paso1['paquete_id']);
 
         return view('reservas.paso4', compact('paso1', 'paso2', 'paso3', 'paquete'));
     }
@@ -134,23 +153,37 @@ class ReservaController extends Controller
     {
         $paso1 = session('reserva.paso1');
         $paso2 = session('reserva.paso2');
-        $paso3 = session('reserva.paso3', []); // TSK-60: Extraemos los datos del paso 3
+        $paso3 = session('reserva.paso3', []);
 
         if (!$paso1 || !$paso2) {
-            return redirect()->route('cliente.reservas.paso1')->with('error', 'Faltan datos para completar la reserva.');
+            return redirect()
+                ->route('cliente.reservas.paso1')
+                ->with('error', 'Faltan datos para completar la reserva.');
         }
 
         try {
-            // TSK-60: Se pasa el $paso3 como cuarto parámetro al ReservaService
-            $reserva = $this->reservaService->crearReserva($paso1, $paso2, Auth::id(), $paso3);
 
-            // Se limpia la sesión del wizard al terminar exitosamente
+            $reserva = $this->reservaService->crearReserva(
+                paso1: $paso1,
+                paso2: $paso2,
+                usuario_id: auth()->id(),
+                paso3: $paso3
+            );
+
             session()->forget('reserva');
 
-            return redirect()->route('cliente.reservas.index')->with('success', '¡Reserva solicitada exitosamente! Un fotógrafo la revisará pronto.');
+            return redirect()
+                ->route('cliente.reservas.index')
+                ->with('success', '¡Reserva solicitada exitosamente!');
 
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Ocurrió un error: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+
+            report($e);
+
+            return back()->with(
+                'error',
+                'Ocurrió un error al procesar la reserva.'
+            );
         }
     }
 }

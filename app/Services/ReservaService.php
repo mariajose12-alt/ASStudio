@@ -27,11 +27,10 @@ class ReservaService
         // Fotógrafos que tienen agenda que cubre ese horario
         // y no tienen otra reserva en ese slot
         $disponibles = Fotografo::whereDoesntHave('agenda', function ($q) use ($fechaHora) {
-            // Fotógrafos cuya agenda (bloqueo) cubre ese horario → NO disponibles
+
             $q->where('fecha_inicio', '<=', $fechaHora)
                 ->where('fecha_fin',    '>=', $fechaHora);
-        })
-            ->whereDoesntHave('reservas', function ($q) use ($fechaHora) {
+        })->whereDoesntHave('reservas', function ($q) use ($fechaHora) {
                 $q->whereIn('estado', ['PENDIENTE', 'APROBADA'])
                     ->where('fecha_inicio', $fechaHora);
             })
@@ -39,7 +38,9 @@ class ReservaService
 
 
         if ($disponibles->isEmpty()) {
-            throw new \Exception('No hay fotógrafos disponibles en esa fecha y hora.');
+            throw new Exception(
+                'No hay fotógrafos disponibles en esa fecha y hora.'
+            );
         }
 
         $fotografo = $disponibles->count() === 1
@@ -49,13 +50,22 @@ class ReservaService
         $paquete = PaqueteFotografico::findOrFail($paso1['paquete_id']);
         $cliente = Cliente::firstOrCreate(['usuario_id' => $usuario_id]);
 
+        // El usuario solo modifica en el paso3 si es necesario, si paso3 viene vacio no se actualiza nada
+        if (!empty($paso3)) {
+
+            $cliente->update([
+                'telefono' => $paso3['telefono'] ?? $cliente->telefono,
+                'direccion' => $paso3['direccion'] ?? $cliente->direccion,
+                'nombre'    => $paso3['nombre'] ?? $cliente->nombre,
+            ]);
+        }
+
         $dto = ReservaCreateDTO::fromSesion(
             paso1:        $paso1,
             paso2:        $paso2,
             cliente_id:   $cliente->id,
             fotografo_id: $fotografo->id,
             precio_total: $paquete->precio_base,
-            paso3:        $paso3
         );
 
         $reserva = $this->reservaRepository->crear($dto);

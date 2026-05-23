@@ -2307,3 +2307,412 @@ textarea { resize: vertical; min-height: 100px; }
     .certs-grid    { grid-template-columns: 1fr; }
     .sesion-meta   { display: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD — HERO SECTION
+   Reemplaza .perfil-card + .foto-kpi-grid en el dashboard.
+   Usa únicamente variables existentes del :root.
+═══════════════════════════════════════════════════════════ */
+
+.dash-hero {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.35s ease both;
+}
+
+/* ── Lado izquierdo: avatar + identidad ── */
+.dash-hero__left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 1;
+    min-width: 0;
+}
+
+.dash-hero__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue-mid), var(--blue-soft));
+    color: var(--white);
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    letter-spacing: 0.5px;
+}
+
+.dash-hero__status {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--muted);
+    border: 2px solid var(--white);
+    transition: background 0.3s;
+}
+.dash-hero__status.active { background: #10b981; }
+
+.dash-hero__identity { flex: 1; min-width: 0; }
+
+.dash-hero__name {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.dash-hero__meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ── Lado derecho: KPIs compactos ── */
+.dash-hero__kpis {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+    border-left: 1px solid var(--border);
+    padding-left: 24px;
+}
+
+.dash-hero__kpi {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 20px;
+    transition: transform 0.2s;
+}
+.dash-hero__kpi:hover { transform: translateY(-1px); }
+
+.dash-hero__kpi-divider {
+    width: 1px;
+    height: 36px;
+    background: var(--border);
+    flex-shrink: 0;
+}
+
+.dash-hero__kpi-val {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    line-height: 1;
+    color: var(--navy);
+}
+.dash-hero__kpi-val--amber { color: var(--sage); }
+.dash-hero__kpi-val--green { color: #059669; }
+
+.dash-hero__kpi-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-top: 5px;
+    white-space: nowrap;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD — GRID PRINCIPAL (gráfico + próximas sesiones)
+═══════════════════════════════════════════════════════════ */
+
+.dash-main-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* ── Card del gráfico ── */
+.dash-chart-card {
+    animation: fadeUp 0.4s ease 0.05s both;
+}
+
+.dash-chart-subtitle {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.2px;
+}
+
+.dash-chart-total {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+}
+
+.dash-chart-total__num {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    color: var(--blue-mid);
+    line-height: 1;
+}
+
+.dash-chart-total__label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-top: 3px;
+}
+
+.dash-chart-card .chart-wrap { height: 220px; }
+
+/* ── Card de próximas sesiones ── */
+.dash-proximas-card {
+    animation: fadeUp 0.4s ease 0.1s both;
+    height: 350px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   EMPTY STATE — dashboard
+═══════════════════════════════════════════════════════════ */
+
+.dash-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 36px 20px;
+    text-align: center;
+}
+
+.dash-empty-state__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--blue-pale);
+    color: var(--blue-mid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+}
+
+.dash-empty-state__text {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — dashboard
+═══════════════════════════════════════════════════════════ */
+
+/* Tablet landscape / intermediate */
+@media (max-width: 1100px) {
+    .dash-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tablet portrait */
+@media (max-width: 900px) {
+    .dash-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .dash-hero__kpis {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding-left: 0;
+        padding-top: 16px;
+        width: 100%;
+        justify-content: space-around;
+    }
+
+    .dash-hero__kpi { padding: 0 12px; }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    .dash-hero__name { font-size: 1.1rem; }
+
+    .dash-hero__kpi-val { font-size: 22px; }
+
+    .dash-hero__meta span:last-child { display: none; } /* oculta "Desde M Y" en pantallas muy pequeñas */
+
+    .dash-chart-card .chart-wrap { height: 180px; }
+}
+
+/* Mobile XS */
+@media (max-width: 400px) {
+    .dash-hero { padding: 16px; }
+    .dash-hero__kpi { padding: 0 8px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GALERÍA PREVIEW — dashboard
+═══════════════════════════════════════════════════════════ */
+
+.gal-section {
+    animation: fadeUp 0.4s ease 0.15s both;
+}
+
+.gal-eyebrow {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 3px;
+}
+
+/* ── Mosaico ── */
+.gal-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 180px 180px;
+    gap: 8px;
+}
+
+.gal-item {
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    background: var(--cloud);
+}
+
+.gal-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.gal-item:hover img { transform: scale(1.04); }
+
+.gal-item--tall { grid-row: span 2; }
+
+/* Overlay con etiqueta */
+.gal-item__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(26, 13, 0, 0);
+    transition: background 0.25s;
+    display: flex;
+    align-items: flex-end;
+    padding: 12px 14px;
+}
+
+.gal-item:hover .gal-item__overlay {
+    background: rgba(26, 13, 0, 0.3);
+}
+
+.gal-item__label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    color: transparent;
+    transition: color 0.2s 0.05s;
+}
+
+.gal-item:hover .gal-item__label {
+    color: rgba(255, 255, 255, 0.92);
+}
+
+/* Tile "más fotos" */
+.gal-item--more {
+    background: var(--cloud);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.gal-item--more:hover {
+    background: var(--blue-pale);
+    border-color: rgba(232, 119, 34, 0.25);
+}
+
+.gal-more-num {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    color: var(--navy);
+    line-height: 1;
+}
+
+.gal-more-txt {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--muted);
+}
+
+/* ── Footer de la galería ── */
+.gal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.gal-footer-meta {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.gal-footer-meta strong {
+    color: var(--navy);
+    font-weight: 600;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .gal-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 160px 160px 160px;
+    }
+    /* En tablet el tall pasa a ocupar solo 1 fila */
+    .gal-item--tall { grid-row: span 1; }
+}
+
+@media (max-width: 560px) {
+    .gal-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 130px 130px 130px;
+        gap: 6px;
+    }
+}
+
+

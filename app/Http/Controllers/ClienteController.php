@@ -14,10 +14,10 @@ class ClienteController extends Controller
 
     public function dashboard()
     {
-        $cliente  = Auth::user()->cliente;
-        $metricas = $this->clienteService->metricasDashboard($cliente);
+        $usuario = Auth::user()->load('persona');
+        $data    = $this->clienteService->getDashboardData($usuario);
 
-        return view('cliente.dashboard', $metricas);
+        return view('cliente.dashboard', $data);
     }
 
     public function perfil()

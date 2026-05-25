@@ -26,7 +26,7 @@ class ReservaService
 
         // Fotógrafos que tienen agenda que cubre ese horario
         // y no tienen otra reserva en ese slot
-        $disponibles = Fotografo::whereDoesntHave('agenda', function ($q) use ($fechaHora) {
+        $disponibles = Fotografo::whereHas('agenda', function ($q) use ($fechaHora) {
 
             $q->where('fecha_inicio', '<=', $fechaHora)
                 ->where('fecha_fin',    '>=', $fechaHora);
@@ -71,7 +71,7 @@ class ReservaService
         $reserva = $this->reservaRepository->crear($dto);
 
         //comentado por ahora -- funciona
-        //ReservaCreada::dispatch($reserva);
+        ReservaCreada::dispatch($reserva);
 
         return $reserva;
     }

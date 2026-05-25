@@ -25,7 +25,9 @@ class DisponibilidadController extends Controller
         $sesiones = Sesion::whereIn('estado', [
             'PENDIENTE', 'APROBADA', 'CONFIRMADA'
         ])
-            ->with('fotografosPrincipales')
+            // Relacion aun no implementada
+            //->with('fotografosPrincipales')
+            ->with('fotografos')
             ->get();
 
         // Para cada sesión, verificar si quedan fotógrafos libres
@@ -55,7 +57,7 @@ class DisponibilidadController extends Controller
         })
             ->whereHas('agenda', function ($q) use ($fechaHora) {
                 // Fotógrafos que tienen disponibilidad en ese horario
-                $q->where('disponible', true)
+                $q//->where('disponible', true)
                     ->where('fecha_inicio', '<=', $fechaHora)
                     ->where('fecha_fin',    '>=', $fechaHora);
             })

@@ -21,11 +21,20 @@ class DisponibilidadController extends Controller
         $ocupadas    = [];
         $habilitadas = [];
 
+        // toma las fechas de inicio y fin y guarda las fechas entre el rango en un array
         $agendas = \App\Models\Agenda::all();
         foreach ($agendas as $agenda) {
-            $fechaStr = Carbon::parse($agenda->fecha_inicio)->format('Y-m-d');
-            if (!in_array($fechaStr, $habilitadas)) {
-                $habilitadas[] = $fechaStr;
+            $inicio = Carbon::parse($agenda->fecha_inicio)->startOfDay();
+            $fin    = Carbon::parse($agenda->fecha_fin)->startOfDay();
+
+            // Copia la fecha de inicio para no alterar el objeto original y usa la copia como contador del loop
+            $current = $inicio->copy();
+            while ($current->lte($fin)) {
+                $fechaStr = $current->format('Y-m-d');
+                if (!in_array($fechaStr, $habilitadas)) {
+                    $habilitadas[] = $fechaStr;
+                }
+                $current->addDay();
             }
         }
 

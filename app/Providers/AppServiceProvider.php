@@ -13,6 +13,8 @@ use App\Repositories\Contracts\FotografoRepositoryInterface;
 use App\Repositories\FotografoRepository;
 use App\Repositories\Contracts\CatalogoRepositoryInterface;
 use App\Repositories\CatalogoRepository;
+use App\Repositories\Contracts\PaqueteRepositoryInterface;
+use App\Repositories\PaqueteRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,34 +23,34 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Registro del repositorio de Reservas
         $this->app->bind(
             ReservaRepositoryInterface::class,
             ReservaRepository::class,
         );
 
-        // Registro del repositorio de Usuarios
         $this->app->bind(
             UsuarioRepositoryInterface::class,
             UsuarioRepository::class,
         );
 
-        // Registro del repositorio de Clientes
         $this->app->bind(
             ClienteRepositoryInterface::class,
             ClienteRepository::class,
         );
 
-        // Registro del repositorio de Fotógrafos
         $this->app->bind(
             FotografoRepositoryInterface::class,
             FotografoRepository::class,
         );
 
-        // Registro del repositorio de Catálogos (Nuevo)
         $this->app->bind(
             CatalogoRepositoryInterface::class,
             CatalogoRepository::class,
+        );
+
+        $this->app->bind(
+            PaqueteRepositoryInterface::class,
+            PaqueteRepository::class,
         );
     }
 

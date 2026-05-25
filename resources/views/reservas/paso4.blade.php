@@ -97,7 +97,7 @@
 
             <p class="small text-muted mb-3">
                 Al enviar la solicitud aceptas nuestras condiciones de reserva, política de cancelación y uso del espacio.
-                <a href="#" style="color:var(--sage);">Leer términos completos →</a>
+                <a href="/terminos-condiciones" style="color:var(--sage);">Leer términos completos →</a>
             </p>
 
             <div class="terminos-condiciones">

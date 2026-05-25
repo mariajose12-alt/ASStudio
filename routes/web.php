@@ -135,3 +135,4 @@ Route::resource('admin/catalogos', CatalogoController::class)
     ->parameters(['catalogos' => 'catalogo']);
 
 require __DIR__.'/auth.php';
+Route::get('/terminos-condiciones', fn() => view('reservas.terminos-condiciones'))->name('terminos');

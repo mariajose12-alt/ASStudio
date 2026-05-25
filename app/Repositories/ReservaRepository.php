@@ -37,8 +37,12 @@ class ReservaRepository implements ReservaRepositoryInterface
 
     public function hayDisponibilidad(string $fecha, string $hora): bool
     {
-        return !Reserva::where('fecha_inicio', $fecha . ' ' . $hora)
-            ->whereIn('estado', ['PENDIENTE', 'APROBADA', 'CONFIRMADA'])
+        $fechaHora    = \Carbon\Carbon::parse("$fecha $hora");
+        $fechaHoraFin = $fechaHora->copy()->addHours(2);
+
+        return !Reserva::whereIn('estado', ['PENDIENTE', 'APROBADA'])
+            ->where('fecha_inicio', '<', $fechaHoraFin)
+            ->where('fecha_fin',    '>', $fechaHora)
             ->exists();
     }
 

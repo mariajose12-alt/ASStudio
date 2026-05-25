@@ -99,8 +99,8 @@
     <script>
         const HORAS_DISPONIBLES = [
             '08:00', '09:00', '10:00', '11:00',
-            '12:00', '13:00', '14:00', '15:00',
-            '16:00', '17:00'
+            '12:00', '01:00', '02:00', '03:00',
+            '04:00', '05:00'
         ];
 
         let horasOcupadasPorFecha = {};
@@ -110,61 +110,55 @@
         fetch('/disponibilidad/fechas')
             .then(res => res.json())
             .then(data => {
-                // Agrupar: { "2025-06-10": ["09:00", "14:00"] }
-                data.forEach(item => {
+                // data = { ocupadas: [...], habilitadas: [...] }
+                data.ocupadas.forEach(item => {
                     if (!horasOcupadasPorFecha[item.fecha]) {
                         horasOcupadasPorFecha[item.fecha] = [];
                     }
                     horasOcupadasPorFecha[item.fecha].push(item.hora);
                 });
 
-                // Fechas donde todas las horas están ocupadas
-                fechasCompletas = Object.keys(horasOcupadasPorFecha)
-                    .filter(f =>
-                        horasOcupadasPorFecha[f].length >= HORAS_DISPONIBLES.length
-                    );
-
-                // 2. Inicializar Flatpickr
                 flatpickr('#fecha-picker', {
                     locale:        'es',
                     dateFormat:    'Y-m-d',
                     minDate:       'today',
-                    disable:       fechasCompletas,
+                    enable:        data.habilitadas,
                     disableMobile: true,
                     onChange: function(selectedDates, dateStr) {
                         actualizarHoras(dateStr);
                     }
                 });
 
-                // Si hay un valor previo (old), cargar sus horas
                 const valorPrevio = document.getElementById('fecha-picker').value;
                 if (valorPrevio) actualizarHoras(valorPrevio);
             });
 
         // 3. Llenar el select de horas según la fecha elegida
         function actualizarHoras(fecha) {
-            const select  = document.getElementById('hora-select');
+            const select   = document.getElementById('hora-select');
             const ocupadas = horasOcupadasPorFecha[fecha] || [];
 
             select.innerHTML = '';
 
-            HORAS_DISPONIBLES.forEach(hora => {
-                const opt = document.createElement('option');
-                opt.value = hora;
+            const libres = HORAS_DISPONIBLES.filter(h => !ocupadas.includes(h));
 
-                if (ocupadas.includes(hora)) {
-                    opt.text     = hora + ' — ocupado';
-                    opt.disabled = true;
-                } else {
-                    opt.text = hora;
-                }
+            if (libres.length === 0) {
+                const opt  = document.createElement('option');
+                opt.value  = '';
+                opt.text   = 'No hay horas disponibles';
+                opt.disabled = true;
+                select.appendChild(opt);
+                return;
+            }
 
+            libres.forEach(hora => {
+                const opt  = document.createElement('option');
+                opt.value  = hora;
+                opt.text   = hora;
                 select.appendChild(opt);
             });
 
-            // Seleccionar la primera hora libre automáticamente
-            const primera = select.querySelector('option:not([disabled])');
-            if (primera) primera.selected = true;
+            select.options[0].selected = true;
         }
     </script>
 @endsection

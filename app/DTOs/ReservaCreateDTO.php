@@ -33,7 +33,9 @@ class ReservaCreateDTO
             tipo:         $paso1['tipo'],
             descripcion:  $paso2['descripcion'],
             fecha_inicio: $paso2['fecha'] . ' ' . $paso2['hora'],
-            fecha_fin:    $paso2['fecha'] . ' ' . $paso2['hora'],
+            fecha_fin:    \Carbon\Carbon::parse($paso2['fecha'] . ' ' . $paso2['hora'])
+                ->addHours(2)
+                ->format('Y-m-d H:i:s'),
             precio_total: $precio_total,
             lugar:        $paso1['lugar'] ?? null,
         );

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Fotografo;
+use App\Models\Reserva;
 use App\Models\Sesion;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
@@ -11,53 +12,66 @@ class DisponibilidadController extends Controller
 {
     public function fechasOcupadas(): JsonResponse
     {
-        // Horas donde NINGÚN fotógrafo está disponible
-        $horas = [];
-
-        // Todas las horas posibles del sistema
         $horasDisponibles = [
             '08:00', '09:00', '10:00', '11:00',
-            '12:00', '13:00', '14:00', '15:00',
-            '16:00', '17:00'
+            '12:00', '01:00', '02:00', '03:00',
+            '04:00', '05:00'
         ];
 
-        // Obtener sesiones ya asignadas (ocupan a un fotógrafo)
-        $sesiones = Sesion::whereIn('estado', [
-            'PENDIENTE', 'APROBADA', 'CONFIRMADA'
-        ])
-            ->with('fotografosPrincipales')
-            ->get();
+        $ocupadas    = [];
+        $habilitadas = [];
 
-        // Para cada sesión, verificar si quedan fotógrafos libres
-        foreach ($sesiones as $sesion) {
-            $fecha = Carbon::parse($sesion->fecha_inicio)->format('Y-m-d');
-            $hora  = Carbon::parse($sesion->fecha_inicio)->format('H:i');
-
-            $disponibles = $this->fotografosDisponibles($fecha, $hora);
-
-            // Si no hay ninguno disponible, bloquear ese slot
-            if ($disponibles->isEmpty()) {
-                $horas[] = ['fecha' => $fecha, 'hora' => $hora];
+        $agendas = \App\Models\Agenda::all();
+        foreach ($agendas as $agenda) {
+            $fechaStr = Carbon::parse($agenda->fecha_inicio)->format('Y-m-d');
+            if (!in_array($fechaStr, $habilitadas)) {
+                $habilitadas[] = $fechaStr;
             }
         }
 
-        return response()->json($horas);
+        $reservas = Reserva::whereIn('estado', ['PENDIENTE', 'APROBADA'])->get();
+
+        foreach ($reservas as $reserva) {
+            $fechaInicio = Carbon::parse($reserva->fecha_inicio);
+            $fechaFin    = Carbon::parse($reserva->fecha_fin);
+            $fecha       = $fechaInicio->format('Y-m-d');
+
+            foreach ($horasDisponibles as $hora) {
+                $slotInicio = Carbon::parse("$fecha $hora");
+                $slotFin    = $slotInicio->copy()->addHours(2);
+
+                if ($slotInicio->lt($fechaFin) && $slotFin->gt($fechaInicio)) {
+                    $disponibles = $this->fotografosDisponibles($fecha, $hora);
+                    if ($disponibles->isEmpty()) {
+                        if (!in_array(['fecha' => $fecha, 'hora' => $hora], $ocupadas)) {
+                            $ocupadas[] = ['fecha' => $fecha, 'hora' => $hora];
+                        }
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'ocupadas'    => $ocupadas,
+            'habilitadas' => $habilitadas,
+        ]);
     }
 
     public function fotografosDisponibles(string $fecha, string $hora)
     {
-        $fechaHora = Carbon::parse("$fecha $hora");
+        $fechaHora    = Carbon::parse("$fecha $hora");
+        $fechaHoraFin = $fechaHora->copy()->addHours(2);
 
-        return Fotografo::whereDoesntHave('sesiones', function ($q) use ($fechaHora) {
-            // Fotógrafos que YA tienen sesión en ese horario
-            $q->whereIn('estado', ['PENDIENTE', 'APROBADA', 'CONFIRMADA'])
-                ->where('fecha_inicio', $fechaHora);
+        return Fotografo::whereHas('agenda', function ($q) use ($fechaHora) {
+            // El fotógrafo trabaja ese día
+            $q->where('fecha_inicio', '<=', $fechaHora)
+                ->where('fecha_fin',    '>=', $fechaHora);
         })
-            ->whereHas('agenda', function ($q) use ($fechaHora) {
-                // Fotógrafos que tienen disponibilidad en ese horario
-                $q->where('disponible', true)
-                    ->where('fecha_inicio', '<=', $fechaHora)
-                    ->where('fecha_fin',    '>=', $fechaHora);
+            ->whereDoesntHave('reservas', function ($q) use ($fechaHora, $fechaHoraFin) {
+                // No tiene reserva que se solape con el rango de 2 horas
+                $q->whereIn('estado', ['PENDIENTE', 'APROBADA'])
+                    ->where('fecha_inicio', '<', $fechaHoraFin)
+                    ->where('fecha_fin',    '>', $fechaHora);
             })
             ->get();
     }

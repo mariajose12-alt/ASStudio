@@ -23,18 +23,18 @@ class ReservaService
         $fecha = $paso2['fecha'];
         $hora  = $paso2['hora'];
         $fechaHora = \Carbon\Carbon::parse("$fecha $hora");
+        $fechaHoraFin = $fechaHora->copy()->addHours(2); // Por ahora 2 horas fijas
 
-        // Fotógrafos que tienen agenda que cubre ese horario
-        // y no tienen otra reserva en ese slot
-        $disponibles = Fotografo::whereDoesntHave('agenda', function ($q) use ($fechaHora) {
-
+        $disponibles = Fotografo::whereHas('agenda', function ($q) use ($fechaHora) {
+            // El fotografo trabaja ese día y hora
             $q->where('fecha_inicio', '<=', $fechaHora)
                 ->where('fecha_fin',    '>=', $fechaHora);
-        })->whereDoesntHave('reservas', function ($q) use ($fechaHora) {
-                $q->whereIn('estado', ['PENDIENTE', 'APROBADA'])
-                    ->where('fecha_inicio', $fechaHora);
-            })
-            ->get();
+        })->whereDoesntHave('reservas', function ($q) use ($fechaHora, $fechaHoraFin) {
+            // No tiene reserva que se solape con el rango de 2 horas
+            $q->whereIn('estado', ['PENDIENTE', 'APROBADA'])
+                ->where('fecha_inicio', '<', $fechaHoraFin)
+                ->where('fecha_fin',    '>', $fechaHora);
+        })->get();
 
 
         if ($disponibles->isEmpty()) {

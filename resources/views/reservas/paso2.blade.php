@@ -43,7 +43,7 @@
         }
     </style>
 
-    <form method="POST" action="{{ route('cliente.reservas.guardarPaso2') }}">
+    <form method="POST" action="{{ route('cliente.reservas.guardarPaso2') }}"novalidate>
         @csrf
 
         {{-- Campo fecha — Flatpickr se monta aquí --}}

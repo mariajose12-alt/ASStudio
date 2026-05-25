@@ -2715,4 +2715,20 @@ textarea { resize: vertical; min-height: 100px; }
     }
 }
 
-
+/* ── Errores de validación del flujo de reserva ── */
+.reserva-form .form-floating-modern .invalid-feedback::before {
+    content: '⚠ ';
+}
+@keyframes shake-field {
+    0%   { transform: translateX(0); }
+    25%  { transform: translateX(-4px); }
+    50%  { transform: translateX(4px); }
+    75%  { transform: translateX(-3px); }
+    100% { transform: translateX(0); }
+}
+.reserva-form .form-floating-modern input.is-invalid,
+.reserva-form .form-floating-modern select.is-invalid,
+.reserva-form .form-floating-modern textarea.is-invalid {
+    border-bottom-color: #dc2626 !important;
+    animation: shake-field 0.3s ease;
+}

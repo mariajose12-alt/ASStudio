@@ -44,7 +44,7 @@
     </p>
 </div>
 
-<form method="POST" action="{{ route('cliente.reservas.guardarPaso3') }}">
+<form method="POST" action="{{ route('cliente.reservas.guardarPaso3') }}" novalidate>
     @csrf
 
     <div class="form-floating-modern">

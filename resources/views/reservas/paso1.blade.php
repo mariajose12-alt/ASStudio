@@ -33,7 +33,7 @@
     <h5>Paso 1 de 4</h5>
     <h4>Especificaciones de la Sesión</h4>
 
-    <form method="POST" action="{{ route('cliente.reservas.guardarPaso1') }}">
+    <form method="POST" action="{{ route('cliente.reservas.guardarPaso1') }}" novalidate>
         @csrf
 
         <div class="form-floating-modern">

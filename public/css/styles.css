@@ -2716,9 +2716,6 @@ textarea { resize: vertical; min-height: 100px; }
 }
 
 /* ── Errores de validación del flujo de reserva ── */
-.reserva-form .form-floating-modern .invalid-feedback::before {
-    content: '⚠ ';
-}
 @keyframes shake-field {
     0%   { transform: translateX(0); }
     25%  { transform: translateX(-4px); }

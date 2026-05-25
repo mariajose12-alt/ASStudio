@@ -26,6 +26,8 @@ class ReservaService
 
         // Fotógrafos que tienen agenda que cubre ese horario
         // y no tienen otra reserva en ese slot
+        //$disponibles = Fotografo::whereDoesntHave('agenda', function ($q) use ($fechaHora) { //<-- decía que no tiene so
+        // el comentario y lo que hacía se contradecían y no permitía finalizar la reserva
         $disponibles = Fotografo::whereHas('agenda', function ($q) use ($fechaHora) {
 
             $q->where('fecha_inicio', '<=', $fechaHora)

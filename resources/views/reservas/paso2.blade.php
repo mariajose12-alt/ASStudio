@@ -121,7 +121,7 @@
                 flatpickr('#fecha-picker', {
                     locale:        'es',
                     dateFormat:    'Y-m-d',
-                    minDate:       'today',
+                    minDate:       new Date().fp_incr(1),
                     enable:        data.habilitadas,
                     disableMobile: true,
                     onChange: function(selectedDates, dateStr) {

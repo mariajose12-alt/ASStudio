@@ -71,7 +71,7 @@ class ReservaController extends Controller
     public function guardarPaso2(Request $request)
     {
         $request->validate([
-            'fecha'       => 'required|date|after_or_equal:today',
+            'fecha'       => 'required|date|after:today',
             'hora'        => 'required|date_format:H:i',
             'descripcion' => 'required|string|max:600',
         ]);

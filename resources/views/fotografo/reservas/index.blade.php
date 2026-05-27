@@ -132,15 +132,10 @@
                             </button>
 
                             {{-- Rechazar --}}
-                            <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}" id="formRechazar{{ $reserva->id }}">
-                                @csrf
-                                <input type="hidden" name="accion" value="RECHAZADA">
-                                <input type="hidden" name="motivo" value="">
-                                <button type="button" class="btn btn-danger" style="width:100%; justify-content:center;"
-                                        onclick="rechazarConMotivo({{ $reserva->id }})">
-                                    ✗ Rechazar
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-danger" style="width:100%; justify-content:center;"
+                                    onclick="toggleRechazo({{ $reserva->id }})">
+                                ✗ Rechazar
+                            </button>
                         </div>
                     @endif
                     {{-- Acciones Despues de Aprobada y Realizada--}}
@@ -158,6 +153,30 @@
                         <span style="font-size:13px; color:#2e7d52; display:flex; justify-content: center">✓ Sesión cerrada</span>
                     @endif
 
+                    {{-- Panel de rechazo (oculto por defecto) --}}
+                    <div id="rechazo-{{ $reserva->id }}" style="display:none; border-top:1px solid var(--border); padding-top:20px; margin-top:4px; margin-bottom:20px;">
+                        <div style="font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:12px;">Motivo del Rechazo</div>
+                        <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}">
+                            @csrf
+                            <input type="hidden" name="accion" value="RECHAZADA">
+                            <div class="form-group" style="margin-bottom:16px;">
+                                <label style="display:block; margin-bottom:8px; font-weight:500;">Indica el motivo *</label>
+                                <textarea
+                                    name="motivo"
+                                    rows="4"
+                                    placeholder="Explica por qué no puedes aceptar esta reserva..."
+                                    style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; font-size:14px;"
+                                    required></textarea>
+                            </div>
+                            <div style="display:flex; gap:10px;">
+                                <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
+                                <button type="button" class="btn btn-outline"
+                                        onclick="document.getElementById('rechazo-{{ $reserva->id }}').style.display='none'">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         @endforeach
@@ -180,25 +199,14 @@
             }
         }
 
-        function rechazarConMotivo(reservaId) {
-            const motivo = prompt('Por favor, indica el motivo del rechazo:');
+        function toggleRechazo(id) {
+            const panel = document.getElementById('rechazo-' + id);
+            const isHidden = panel.style.display === 'none' || panel.style.display === '';
+            panel.style.display = isHidden ? 'block' : 'none';
 
-            if (motivo === null) {
-                // Usuario canceló
-                return;
+            if (isHidden) {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
-
-            if (motivo.trim() === '') {
-                alert('Debes proporcionar un motivo para rechazar la reserva.');
-                return;
-            }
-
-            // Setear el motivo en el formulario
-            const form = document.getElementById('formRechazar' + reservaId);
-            form.querySelector('input[name="motivo"]').value = motivo.trim();
-
-            // Enviar el formulario
-            form.submit();
         }
     </script>
 @endpush

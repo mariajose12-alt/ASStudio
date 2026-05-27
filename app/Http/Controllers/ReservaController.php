@@ -177,13 +177,8 @@ class ReservaController extends Controller
                 ->with('success', '¡Reserva solicitada exitosamente!');
 
         } catch (\Throwable $e) {
-
             report($e);
-
-            return back()->with(
-                'error',
-                'Ocurrió un error al procesar la reserva.'
-            );
+            return back()->with('error', $e->getMessage()); // ← muestra el error real
         }
     }
 }

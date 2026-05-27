@@ -30,6 +30,12 @@
     <h5>Paso 4 de 4</h5>
     <h4>Resumen de tu Reserva</h4>
 
+    @if(session('error'))
+        <div style="background:#fdf0ef; border:1px solid #e8b4b0; border-radius:8px; padding:14px 16px; margin-bottom:16px; font-size:13px; color:#c0392b;">
+            {{ session('error') }}
+        </div>
+    @endif
+
     {{-- Info de fecha y tipo --}}
     <div class="d-flex gap-2 mb-3">
         <span class="badge bg-light text-dark border">{{ \Carbon\Carbon::parse($paso2['fecha'])->format('d/m/Y') }}</span>

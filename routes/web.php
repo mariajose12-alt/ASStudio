@@ -47,6 +47,9 @@ Route::get('/disponibilidad/fechas',
     [DisponibilidadController::class, 'fechasOcupadas']
 )->name('disponibilidad.fechas');
 
+Route::get('/catalogo', function () {
+    return view('catalogo');
+})->name('catalogo');
 // AUTENTICACIÓN
 
 Route::get('/login',    [LoginController::class, 'showForm'])->name('login');

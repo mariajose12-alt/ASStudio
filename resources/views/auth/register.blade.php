@@ -37,6 +37,7 @@
 
         <form method="POST" action="{{ route('register') }}">
             @csrf
+            <input type="hidden" name="redirect" value="{{ request('redirect') }}">
 
             <div class="form-row">
                 <div class="form-group">
@@ -109,8 +110,9 @@
         </div>
 
         <div class="bottom-links">
-            <span>¿Ya tienes cuenta? <a href="{{ route('login') }}">Inicia sesión</a></span>
-            <a href="{{ url('/') }}" class="back-link">← Volver al sitio</a>
+            <span>¿Ya tienes cuenta?
+                <a href="{{ route('login', ['redirect' => request('redirect')]) }}">Inicia sesión</a>
+            </span>
         </div>
     </div>
 </div>

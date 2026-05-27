@@ -36,6 +36,7 @@
 
         <form method="POST" action="{{ route('login') }}">
             @csrf
+            <input type="hidden" name="redirect" value="{{ request('redirect') }}">
 
             <div class="form-group">
                 <label for="email">Correo electrónico</label>
@@ -61,8 +62,9 @@
         </form>
 
         <div class="bottom-links">
-            <span>¿No tienes cuenta? <a href="{{ route('register') }}">Regístrate</a></span>
-            <a href="{{ url('/') }}" class="back-link">← Volver al sitio</a>
+            <span>¿No tienes cuenta?
+                <a href="{{ route('register', ['redirect' => request('redirect')]) }}">Regístrate</a>
+            </span>
         </div>
     </div>
 </div>

@@ -97,7 +97,7 @@
 
             <p class="small text-muted mb-3">
                 Al enviar la solicitud aceptas nuestras condiciones de reserva, política de cancelación y uso del espacio.
-                <a href="/terminos-condiciones" style="color:var(--sage);">Leer términos completos →</a>
+                <a href="javascript:void(0)" onclick="document.getElementById('modalTerminos').style.display='flex'" style="color:var(--sage);">Leer términos completos →</a>
             </p>
 
             <div class="terminos-condiciones">
@@ -124,7 +124,40 @@
             </div>
         </div>
     </div>
-
+    {{-- MODAL TÉRMINOS --}}
+    <div id="modalTerminos" style="
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+">
+        <div style="
+        background: #fff;
+        border-radius: 16px;
+        max-height: 85vh;
+        max-width: 680px;
+        width: 90%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    ">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                <strong>Términos y Condiciones</strong>
+                <button onclick="document.getElementById('modalTerminos').style.display='none'"
+                        style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#888;">&times;</button>
+            </div>
+            <div style="overflow-y: auto; padding: 1.5rem; flex:1;">
+                @include('partials.terms-content')
+            </div>
+            <div style="padding: 1rem 1.5rem; border-top: 1px solid #eee; text-align:right;">
+                <button onclick="document.getElementById('modalTerminos').style.display='none'"
+                        class="btn btn-outline-secondary btn-sm">Cerrar</button>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')

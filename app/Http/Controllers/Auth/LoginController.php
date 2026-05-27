@@ -35,7 +35,6 @@ class LoginController extends Controller
             ]);
         }
 
-        /** @var \App\Models\Usuario $usuario */
         $usuario = Auth::user();
 
         // Bloquear usuarios inactivos
@@ -48,7 +47,9 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        return $this->redirigirPorRol($usuario);
+        $redirect = $request->input('redirect') ?? session('url.intended');
+
+        return $this->redirigirPorRol($usuario, $redirect);
     }
 
     //Cerrar sesión.
@@ -62,8 +63,13 @@ class LoginController extends Controller
     }
 
     //Redirige al dashboard correspondiente según el rol del usuario.
-    private function redirigirPorRol(\App\Models\Usuario $usuario): RedirectResponse
+    private function redirigirPorRol(\App\Models\Usuario $usuario, ?string $redirect = null): RedirectResponse
     {
+        // Si viene un redirect válido y el usuario es CLIENTE, usarlo
+        if ($redirect && $usuario->getRol() === 'CLIENTE' && $this->esRedirectSeguro($redirect)) {
+            return redirect($redirect);
+        }
+
         return match ($usuario->getRol()) {
             'ADMINISTRADOR' => redirect()->route('admin.dashboard'),
             'FOTOGRAFO'     => redirect()->route('fotografo.dashboard'),
@@ -71,4 +77,24 @@ class LoginController extends Controller
             default         => redirect('/'),
         };
     }
+
+    // Valida que la URL de redirect sea interna y esté en la whitelist.
+    private function esRedirectSeguro(string $url): bool
+    {
+        if (! str_starts_with($url, '/')) {
+            return false;
+        }
+
+        $permitidas = [
+            '/cliente/reservas/paso1',
+            '/cliente/reservas/paso2',
+            '/cliente/reservas/paso3',
+            '/cliente/reservas',
+            '/cliente/dashboard',
+            '/catalogo',
+        ];
+
+        return in_array($url, $permitidas);
+    }
+
 }

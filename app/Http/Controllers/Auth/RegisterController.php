@@ -55,6 +55,31 @@ class RegisterController extends Controller
 
         Auth::login($usuario);
 
+        $redirect = $request->input('redirect');
+        if ($redirect && $this->esRedirectSeguro($redirect)) {
+            return redirect($redirect);
+        }
+
         return redirect()->route('cliente.dashboard');
     }
+
+    // Valida que la URL de redirect sea interna y esté en la whitelist.
+    private function esRedirectSeguro(string $url): bool
+    {
+        if (! str_starts_with($url, '/')) {
+            return false;
+        }
+
+        $permitidas = [
+            '/cliente/reservas/paso1',
+            '/cliente/reservas/paso2',
+            '/cliente/reservas/paso3',
+            '/cliente/reservas',
+            '/cliente/dashboard',
+            '/catalogo',
+        ];
+
+        return in_array($url, $permitidas);
+    }
+
 }

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\DTOs\ReservaCreateDTO;
 use App\Events\ReservaCreada;
+use App\Http\Controllers\DisponibilidadController;
 use App\Models\Cliente;
 use App\Models\Fotografo;
 use App\Models\PaqueteFotografico;

@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\ReservaCreada;
 use App\Mail\NuevaReservaFotografo;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class EnviarNotificacionNuevaReserva
@@ -12,7 +13,13 @@ class EnviarNotificacionNuevaReserva
     {
         $reserva   = $event->reserva;
         $fotografo = $reserva->fotografo;
-        $email     = $fotografo->getUsuario()->email;
+
+        if (!$fotografo) {
+            Log::warning("ReservaCreada sin fotógrafo asignado. reserva_id={$reserva->id}");
+            return;
+        }
+
+        $email = $fotografo->getUsuario()->email;
 
         Mail::to($email)->send(new NuevaReservaFotografo($reserva));
     }

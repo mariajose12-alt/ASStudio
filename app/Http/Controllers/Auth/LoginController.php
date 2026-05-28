@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
+// NO QUITAR EL REDIRECT PARA QUE FUNCIONE EL BOTON DE RESERVAR DEL LANDING
 class LoginController extends Controller
 {
     public function showForm()
@@ -52,7 +53,9 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        return $this->redirigirPorRol($usuario);
+        $redirect = $request->input('redirect') ?? session('url.intended');
+
+        return $this->redirigirPorRol($usuario, $redirect);
     }
 
     public function logout(Request $request): RedirectResponse
@@ -64,13 +67,38 @@ class LoginController extends Controller
         return redirect()->route('login');
     }
 
-    private function redirigirPorRol(Usuario $usuario): RedirectResponse
+    //Redirige al dashboard correspondiente según el rol del usuario.
+    private function redirigirPorRol(\App\Models\Usuario $usuario, ?string $redirect = null): RedirectResponse
     {
+        // Si viene un redirect válido y el usuario es CLIENTE, usarlo
+        if ($redirect && $usuario->getRol() === 'CLIENTE' && $this->esRedirectSeguro($redirect)) {
+            return redirect($redirect);
+        }
+
         return match ($usuario->getRol()) {
             'ADMINISTRADOR' => redirect()->route('admin.dashboard'),
             'FOTOGRAFO'     => redirect()->route('fotografo.dashboard'),
             'CLIENTE'       => redirect()->route('cliente.dashboard'),
             default         => redirect('/'),
         };
+    }
+
+    // Valida que la URL de redirect sea interna y esté en la whitelist.
+    private function esRedirectSeguro(string $url): bool
+    {
+        if (! str_starts_with($url, '/')) {
+            return false;
+        }
+
+        $permitidas = [
+            '/cliente/reservas/paso1',
+            '/cliente/reservas/paso2',
+            '/cliente/reservas/paso3',
+            '/cliente/reservas',
+            '/cliente/dashboard',
+            '/catalogo',
+        ];
+
+        return in_array($url, $permitidas);
     }
 }

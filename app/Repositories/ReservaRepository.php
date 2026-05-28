@@ -27,7 +27,7 @@ class ReservaRepository implements ReservaRepositoryInterface
         ]);
     }
 
-    public function porCliente(int $cliente_id)
+    public function porCliente(int $cliente_id): Collection
     {
         return Reserva::where('cliente_id', $cliente_id)
             ->with('paquete')
@@ -37,13 +37,33 @@ class ReservaRepository implements ReservaRepositoryInterface
 
     public function hayDisponibilidad(string $fecha, string $hora): bool
     {
-        $fechaHora    = \Carbon\Carbon::parse("$fecha $hora");
-        $fechaHoraFin = $fechaHora->copy()->addHours(2);
-
-        return !Reserva::whereIn('estado', ['PENDIENTE', 'APROBADA'])
-            ->where('fecha_inicio', '<', $fechaHoraFin)
-            ->where('fecha_fin',    '>', $fechaHora)
+        return !Reserva::where('fecha_inicio', $fecha . ' ' . $hora)
+            ->whereIn('estado', ['PENDIENTE', 'APROBADA', 'CONFIRMADA'])
             ->exists();
+    }
+
+    public function porEstado(string $estado): Collection
+    {
+        return Reserva::where('estado', $estado)
+            ->with(['cliente.usuario.persona', 'paquete', 'fotografo.empleado.usuario.persona'])
+            ->latest()
+            ->get();
+    }
+
+    public function porFotografo(int $fotografoId): Collection
+    {
+        return Reserva::where('fotografo_id', $fotografoId)
+            ->with(['cliente.usuario.persona', 'paquete', 'sesion'])
+            ->latest()
+            ->get();
+    }
+
+    public function porFecha(string $fecha): Collection
+    {
+        return Reserva::whereDate('fecha_inicio', $fecha)
+            ->with(['cliente.usuario.persona', 'paquete', 'fotografo.empleado.usuario.persona'])
+            ->orderBy('fecha_inicio')
+            ->get();
     }
 
     public function all(): Collection
@@ -70,5 +90,4 @@ class ReservaRepository implements ReservaRepositoryInterface
     {
         return Reserva::destroy($id) > 0;
     }
-
 }

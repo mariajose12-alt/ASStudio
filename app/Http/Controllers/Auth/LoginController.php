@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -10,22 +11,26 @@ use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
-    // Mostrar formulario de login.
     public function showForm()
     {
+        if (Auth::check()) {
+            /** @var Usuario $usuario */
+            $usuario = Auth::user();
+            return $this->redirigirPorRol($usuario);
+        }
+
         return view('auth.login');
     }
 
-    // Procesar login.
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email'     => ['required', 'email'],
-            'password'  => ['required', 'string'],
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'string'],
         ]);
 
         $attempt = Auth::attempt([
-            'email'     => $credentials['email'],
+            'email'    => $credentials['email'],
             'password' => $credentials['password'],
         ], $request->boolean('remember'));
 
@@ -35,9 +40,9 @@ class LoginController extends Controller
             ]);
         }
 
+        /** @var Usuario $usuario */
         $usuario = Auth::user();
 
-        // Bloquear usuarios inactivos
         if (! $usuario->estaActivo()) {
             Auth::logout();
             throw ValidationException::withMessages([
@@ -47,12 +52,9 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        $redirect = $request->input('redirect') ?? session('url.intended');
-
-        return $this->redirigirPorRol($usuario, $redirect);
+        return $this->redirigirPorRol($usuario);
     }
 
-    //Cerrar sesión.
     public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
@@ -62,14 +64,8 @@ class LoginController extends Controller
         return redirect()->route('login');
     }
 
-    //Redirige al dashboard correspondiente según el rol del usuario.
-    private function redirigirPorRol(\App\Models\Usuario $usuario, ?string $redirect = null): RedirectResponse
+    private function redirigirPorRol(Usuario $usuario): RedirectResponse
     {
-        // Si viene un redirect válido y el usuario es CLIENTE, usarlo
-        if ($redirect && $usuario->getRol() === 'CLIENTE' && $this->esRedirectSeguro($redirect)) {
-            return redirect($redirect);
-        }
-
         return match ($usuario->getRol()) {
             'ADMINISTRADOR' => redirect()->route('admin.dashboard'),
             'FOTOGRAFO'     => redirect()->route('fotografo.dashboard'),
@@ -77,24 +73,4 @@ class LoginController extends Controller
             default         => redirect('/'),
         };
     }
-
-    // Valida que la URL de redirect sea interna y esté en la whitelist.
-    private function esRedirectSeguro(string $url): bool
-    {
-        if (! str_starts_with($url, '/')) {
-            return false;
-        }
-
-        $permitidas = [
-            '/cliente/reservas/paso1',
-            '/cliente/reservas/paso2',
-            '/cliente/reservas/paso3',
-            '/cliente/reservas',
-            '/cliente/dashboard',
-            '/catalogo',
-        ];
-
-        return in_array($url, $permitidas);
-    }
-
 }

@@ -3,22 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AS Studio — @yield('title', 'Panel Fotografo')</title>
+    <title>AS Studio — @yield('title', 'Panel Fotógrafo')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    @stack('styles')
 </head>
 <body>
+
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <aside class="sidebar">
     <div class="sidebar-logo">
         <a href="/" class="navbar-logo">
             <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
         </a>
-        <div class="brand-sub">Panel Fotografo</div>
+        <div class="brand-sub">Panel Fotógrafo</div>
     </div>
     <div class="user-card" style="margin: 16px;">
-        <div class="user-name">{{ Auth::user()->name ?? 'Fotografo' }}</div>
+        <div class="user-name">
+            {{ Auth::user()->persona->nombre ?? '' }} {{ Auth::user()->persona->apellido ?? '' }}
+        </div>
         <div class="user-email">{{ Auth::user()->email ?? '' }}</div>
     </div>
 
@@ -34,7 +38,7 @@
             </svg>
             Calendario
         </a>
-        <a href="{{ route('fotografo.reservas.index') }}" class="nav-link {{ request()->routeIs('fotografo.reservas.index') ? 'active' : '' }}">
+        <a href="{{ route('fotografo.reservas.index') }}" class="nav-link {{ request()->routeIs('fotografo.reservas*') ? 'active' : '' }}">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
             </svg>
@@ -44,7 +48,7 @@
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 17a5 5 0 01-.916-9.916 5.002 5.002 0 019.832 0A5.002 5.002 0 0116 17m-7-5l3-3m0 0l3 3m-3-3v12"/>
             </svg>
-            Subir Fotografias
+            Subir Fotografías
         </a>
     </nav>
 
@@ -72,7 +76,7 @@
             <div>
                 <h1 class="page-title">@yield('title', 'Dashboard')</h1>
                 @hasSection('subtitle')
-                    <p style="color:var(--muted); font-size:14px; margin:8px 0 0 0;">@yield('subtitle')</p>
+                <p style="color:var(--muted); font-size:14px; margin:8px 0 0 0;">@yield('subtitle')</p>
                 @endif
             </div>
         </div>
@@ -80,18 +84,19 @@
     </div>
     <div class="content">
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success">{{ session('success') }}</div>
         @endif
         @if($errors->any())
-            <div class="alert alert-error">
-                @foreach($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
+        <div class="alert alert-error">
+            @foreach($errors->all() as $error)
+            <div>{{ $error }}</div>
+            @endforeach
+        </div>
         @endif
         @yield('content')
     </div>
 </main>
+
 <style>
     .sidebar-hamburger {
         display: none;

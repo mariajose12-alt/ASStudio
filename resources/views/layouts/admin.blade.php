@@ -20,7 +20,9 @@
         <div class="brand-sub">Panel Administrativo</div>
     </div>
     <div class="user-card" style="margin: 16px;">
-        <div class="user-name">{{ Auth::user()->name ?? 'Administrador' }}</div>
+        <div class="user-name">
+            {{ Auth::user()->persona->nombre ?? '' }} {{ Auth::user()->persona->apellido ?? '' }}
+        </div>
         <div class="user-email">{{ Auth::user()->email ?? '' }}</div>
     </div>
 
@@ -59,8 +61,8 @@
             </svg>
             Nomina
         </a>
-
     </nav>
+
     <div class="sidebar-footer">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
@@ -85,7 +87,7 @@
             <div>
                 <h1 class="page-title">@yield('title', 'Dashboard')</h1>
                 @hasSection('subtitle')
-                    <p style="color:var(--muted); font-size:14px; margin:8px 0 0 0;">@yield('subtitle')</p>
+                <p style="color:var(--muted); font-size:14px; margin:8px 0 0 0;">@yield('subtitle')</p>
                 @endif
             </div>
         </div>
@@ -93,18 +95,19 @@
     </div>
     <div class="content">
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success">{{ session('success') }}</div>
         @endif
         @if($errors->any())
-            <div class="alert alert-error">
-                @foreach($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
+        <div class="alert alert-error">
+            @foreach($errors->all() as $error)
+            <div>{{ $error }}</div>
+            @endforeach
+        </div>
         @endif
         @yield('content')
     </div>
 </main>
+
 <style>
     .sidebar-hamburger {
         display: none;

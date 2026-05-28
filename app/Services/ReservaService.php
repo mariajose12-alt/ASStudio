@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\DTOs\ReservaCreateDTO;
 use App\Events\ReservaCreada;
-use App\Http\Controllers\DisponibilidadController;
 use App\Models\Cliente;
 use App\Models\Fotografo;
 use App\Models\PaqueteFotografico;
@@ -20,27 +19,20 @@ class ReservaService
 
     public function crearReserva(array $paso1, array $paso2, int $usuario_id, array $paso3 = []): Reserva
     {
-        $fecha = $paso2['fecha'];
-        $hora  = $paso2['hora'];
+        $fecha     = $paso2['fecha'];
+        $hora      = $paso2['hora'];
         $fechaHora = \Carbon\Carbon::parse("$fecha $hora");
-        $fechaHoraFin = $fechaHora->copy()->addHours(2); // Por ahora 2 horas fijas
 
-        $disponibles = Fotografo::whereHas('agenda', function ($q) use ($fechaHora) {
-            // El fotografo trabaja ese día y hora
+        $disponibles = Fotografo::whereDoesntHave('agenda', function ($q) use ($fechaHora) {
             $q->where('fecha_inicio', '<=', $fechaHora)
                 ->where('fecha_fin',    '>=', $fechaHora);
-        })->whereDoesntHave('reservas', function ($q) use ($fechaHora, $fechaHoraFin) {
-            // No tiene reserva que se solape con el rango de 2 horas
+        })->whereDoesntHave('reservas', function ($q) use ($fechaHora) {
             $q->whereIn('estado', ['PENDIENTE', 'APROBADA'])
-                ->where('fecha_inicio', '<', $fechaHoraFin)
-                ->where('fecha_fin',    '>', $fechaHora);
+                ->where('fecha_inicio', $fechaHora);
         })->get();
 
-
         if ($disponibles->isEmpty()) {
-            throw new Exception(
-                'No hay fotógrafos disponibles en esa fecha y hora.'
-            );
+            throw new Exception('No hay fotógrafos disponibles en esa fecha y hora.');
         }
 
         $fotografo = $disponibles->count() === 1
@@ -50,13 +42,11 @@ class ReservaService
         $paquete = PaqueteFotografico::findOrFail($paso1['paquete_id']);
         $cliente = Cliente::firstOrCreate(['usuario_id' => $usuario_id]);
 
-        // El usuario solo modifica en el paso3 si es necesario, si paso3 viene vacio no se actualiza nada
         if (!empty($paso3)) {
-
             $cliente->update([
                 'telefono' => $paso3['telefono'] ?? $cliente->telefono,
                 'direccion' => $paso3['direccion'] ?? $cliente->direccion,
-                'nombre'    => $paso3['nombre'] ?? $cliente->nombre,
+                'nombre'    => $paso3['nombre']    ?? $cliente->nombre,
             ]);
         }
 
@@ -70,8 +60,7 @@ class ReservaService
 
         $reserva = $this->reservaRepository->crear($dto);
 
-        //comentado por ahora -- funciona
-        //ReservaCreada::dispatch($reserva);
+        ReservaCreada::dispatch($reserva);
 
         return $reserva;
     }

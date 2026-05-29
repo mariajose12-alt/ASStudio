@@ -37,7 +37,9 @@ class ReservaController extends Controller
             $query->where('activo', true);
         }])->where('activo', true)->get();
 
-        return view('reservas.paso1', compact('catalogos'));
+        $p1 = session('reserva.paso1', []);
+
+        return view('reservas.paso1', compact('catalogos', 'p1'));
     }
 
     public function guardarPaso1(Request $request)
@@ -71,7 +73,7 @@ class ReservaController extends Controller
     public function guardarPaso2(Request $request)
     {
         $request->validate([
-            'fecha'       => 'required|date|after:today',
+            'fecha' => 'required|date|after_or_equal:' . now()->addDay()->format('Y-m-d'),
             'hora'        => 'required|date_format:H:i',
             'descripcion' => 'required|string|max:600',
         ]);
@@ -96,31 +98,13 @@ class ReservaController extends Controller
         return view('reservas.paso3', compact('usuario'));
     }
 
+    // Solo guardar en sesion, al enviar se actualiza la BD
     public function guardarPaso3(Request $request)
     {
-        // TSK-60: Se añadió la validación de 'descripcion'
         $request->validate([
             'nombre'      => 'required|string|max:100',
             'correo'      => 'required|email|max:150',
             'telefono'    => 'required|string|max:20',
-        ]);
-
-        $usuario = auth()->user();
-        $persona = $usuario->persona;
-
-        // Separar nombre completo en nombre y apellido
-        $partes    = explode(' ', trim($request->nombre), 2);
-        $nombre    = $partes[0];
-        $apellido  = $partes[1] ?? $persona->apellido;
-
-        $persona->update([
-            'nombre'   => $nombre,
-            'apellido' => $apellido,
-            'telefono' => $request->telefono,
-        ]);
-
-        $usuario->update([
-            'email' => $request->correo,
         ]);
 
         session(['reserva.paso3' => $request->only(['nombre', 'correo', 'telefono'])]);
@@ -159,6 +143,20 @@ class ReservaController extends Controller
             return redirect()
                 ->route('cliente.reservas.paso1')
                 ->with('error', 'Faltan datos para completar la reserva.');
+        }
+
+        // Actualizar datos del usuario SOLO al confirmar
+        if (!empty($paso3)) {
+            $usuario = Auth::user();
+            $persona = $usuario->persona;
+
+            $partes   = explode(' ', trim($paso3['nombre']), 2);
+            $persona->update([
+                'nombre'   => $partes[0],
+                'apellido' => $partes[1] ?? $persona->apellido,
+                'telefono' => $paso3['telefono'],
+            ]);
+            $usuario->update(['email' => $paso3['correo']]);
         }
 
         try {

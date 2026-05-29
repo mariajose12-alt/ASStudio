@@ -5,9 +5,9 @@
     </a>
 
     <ul class="navbar-links">
-        <li><a href="#galeria">Galería</a></li>
-        <li><a href="#paquetes">Paquetes</a></li>
         <li><a href="#fotografo">Nosotros</a></li>
+        <li><a href="#galeria">Galería</a></li>
+        <li><a href="#proceso">Proceso</a></li>
         <li><a href="#contacto">Contacto</a></li>
     </ul>
 
@@ -38,9 +38,8 @@
 
 {{-- Mobile drawer --}}
 <div class="navbar-mobile-menu" id="mobileMenu">
-    <a href="#galeria"  onclick="closeMobileMenu()">Galería</a>
-    <a href="#paquetes" onclick="closeMobileMenu()">Paquetes</a>
     <a href="#fotografo" onclick="closeMobileMenu()">Nosotros</a>
+    <a href="#galeria"  onclick="closeMobileMenu()">Galería</a>
     <a href="#proceso"  onclick="closeMobileMenu()">Proceso</a>
     <a href="#contacto" onclick="closeMobileMenu()">Contacto</a>
     @auth

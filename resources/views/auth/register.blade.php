@@ -14,8 +14,14 @@
     <!-- Panel izquierdo -->
     <div class="panel-left">
         <div>
-            <div class="brand">AS Studio</div>
-            <div class="brand-sub">Fotografía profesional</div>
+            <div>
+                <div style="filter: brightness(0) invert(1);">
+                    <a href="/" class="navbar-logo">
+                        <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+                    </a>
+                </div>
+                <div class="brand-sub">Fotografía profesional</div>
+            </div>
         </div>
         <div>
             <div class="left-quote">

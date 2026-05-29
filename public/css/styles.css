@@ -431,7 +431,7 @@ tr:hover td { background: var(--blue-pale); }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .form-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-top: 15px;}
 .form-group.full { grid-column: 1 / -1; }
 
 label {
@@ -1227,7 +1227,7 @@ textarea { resize: vertical; min-height: 100px; }
 .form-sub {
     font-size: 14px;
     color: var(--muted);
-    margin-bottom: 32px;
+    margin-bottom: 30px;
 }
 
 /* Inputs auth */
@@ -1257,6 +1257,7 @@ textarea { resize: vertical; min-height: 100px; }
     align-items: center;
     gap: 8px;
     margin-bottom: 24px;
+    margin-top: 15px;
 }
 .remember-row input[type="checkbox"] {
     width: 15px;
@@ -3027,4 +3028,227 @@ textarea { resize: vertical; min-height: 100px; }
 .reserva-form .form-floating-modern textarea.is-invalid {
     border-bottom-color: #dc2626 !important;
     animation: shake-field 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PASO 4 — RESUMEN DE RESERVA
+═══════════════════════════════════════════════════════════ */
+
+/* ── Strip de metadata (fecha / hora / lugar) ── */
+.resumen-meta-strip {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--snow);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    row-gap: 10px;
+}
+
+.resumen-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink);
+    flex: 1;
+    min-width: 120px;
+}
+
+.resumen-meta-item svg {
+    width: 15px;
+    height: 15px;
+    color: var(--blue-mid);
+    flex-shrink: 0;
+}
+
+.resumen-meta-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+    flex-shrink: 0;
+    margin: 0 12px;
+}
+
+/* ── Card sesión ── */
+.resumen-card-sesion {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 14px;
+    position: relative;
+}
+
+.resumen-card-sesion::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(90deg, var(--sage), var(--blue-mid));
+}
+
+.resumen-card-sesion__header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.resumen-card-sesion__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--blue-pale);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.resumen-card-sesion__icon svg {
+    width: 20px;
+    height: 20px;
+    color: var(--blue-mid);
+}
+
+.resumen-card-sesion__eyebrow {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin: 0 0 2px;
+}
+
+.resumen-card-sesion__title {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+}
+
+.resumen-card-sesion__body {
+    padding: 14px 20px 16px;
+}
+
+.resumen-card-sesion__fotos {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--sage);
+    background: var(--blue-pale);
+    border: 1px solid rgba(201,96,21,0.18);
+    border-radius: 20px;
+    padding: 3px 10px;
+    margin-bottom: 10px;
+}
+
+.resumen-card-sesion__fotos svg {
+    width: 13px;
+    height: 13px;
+}
+
+.resumen-card-sesion__desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ── Card precio ── */
+.resumen-card-precio {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--blue-pale);
+    border: 1px solid rgba(232,119,34,0.22);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    gap: 16px;
+}
+
+.resumen-card-precio__label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--sage);
+    margin: 0 0 3px;
+}
+
+.resumen-card-precio__note {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin: 0;
+}
+
+.resumen-card-precio__amount {
+    display: flex;
+    align-items: flex-start;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.resumen-card-precio__currency {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--sage);
+    margin-top: 5px;
+    letter-spacing: 0.05em;
+}
+
+.resumen-card-precio__value {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--sage);
+    line-height: 1;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+    /* Strip metadata: apila verticalmente */
+    .resumen-meta-strip {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .resumen-meta-item {
+        flex: none;
+        min-width: unset;
+    }
+    .resumen-meta-divider { display: none; }
+
+    /* Card sesión: header apila ícono + textos */
+    .resumen-card-sesion__header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .resumen-card-sesion__header > div {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .resumen-card-sesion__fotos {
+        margin-left: 0;
+    }
+
+    /* Card precio: apila label y monto */
+    .resumen-card-precio {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
 }

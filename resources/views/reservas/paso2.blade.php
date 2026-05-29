@@ -1,7 +1,11 @@
 @extends('layouts.reserva')
 
 @section('formulario')
-    <div class="reserva-logo">AS <span>Studio</span></div>
+    <div class="reserva-logo">
+        <a href="/" class="navbar-logo">
+            <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+        </a>
+    </div>
 
     {{-- Stepper --}}
     <div class="stepper">
@@ -29,34 +33,31 @@
     <h5>Paso 2 de 4</h5>
     <h4>Fecha, Hora y Descripción</h4>
 
-    {{-- Flatpickr CSS (Esto es para la parte del calendario) --}}
+    {{-- Flatpickr CSS --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
-        /* Que Flatpickr herede el estilo de tus inputs */
         .flatpickr-input {
             width: 100%;
             cursor: pointer;
         }
-        /* Horas ocupadas en el select */
         option:disabled {
             color: #ccc;
         }
     </style>
 
-    <form method="POST" action="{{ route('cliente.reservas.guardarPaso2') }}"novalidate>
+    <form method="POST" action="{{ route('cliente.reservas.guardarPaso2') }}" novalidate>
         @csrf
 
         {{-- Campo fecha — Flatpickr se monta aquí --}}
         <div class="form-floating-modern">
             <label>Fecha de la sesión</label>
+            @php $p2 = session('reserva.paso2', []); @endphp
+
             <input type="text"
                    id="fecha-picker"
                    name="fecha"
-                   value="{{ old('fecha') }}"
-                   placeholder="Selecciona una fecha"
-                   autocomplete="off"
-                   readonly
-                   class="{{ $errors->has('fecha') ? 'is-invalid' : '' }}">
+                   value="{{ old('fecha', $p2['fecha'] ?? '') }}"
+                   readonly autocomplete="off">
             @error('fecha')
             <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -79,9 +80,9 @@
             <label>Descripción de la sesión</label>
             <textarea name="descripcion" rows="4"
                       placeholder="Cuéntanos qué tienes en mente, el ambiente que buscas, ocasión especial..."
-                      class="{{ $errors->has('descripcion') ? 'is-invalid' : '' }}">{{ old('descripcion') }}</textarea>
+                      class="{{ $errors->has('descripcion') ? 'is-invalid' : '' }}">{{ old('descripcion', $p2['descripcion'] ?? '') }}</textarea>
             @error('descripcion')
-                <div class="invalid-feedback">{{ $message }}</div>
+            <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
 
@@ -92,73 +93,70 @@
             <button type="submit" class="btn-reserva">Siguiente →</button>
         </div>
     </form>
+
     {{-- Flatpickr JS --}}
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
     <script>
-        const HORAS_DISPONIBLES = [
-            '08:00', '09:00', '10:00', '11:00',
-            '12:00', '13:00', '14:00', '15:00',
-            '16:00', '17:00'
-        ];
+        // Hora guardada en sesión (para repoblar tras validación)
+        const horaGuardada = @json(old('hora', $p2['hora'] ?? null));
 
-        let horasOcupadasPorFecha = {};
-        let fechasCompletas       = [];
+        // horasPorFecha: { 'YYYY-MM-DD': ['08:00', '09:00', ...], ... }
+        // Se llena con la respuesta del backend; el backend ya filtra
+        // los slots sin fotógrafos disponibles, así que aquí solo pintamos.
+        let horasPorFecha = {};
 
-        // 1. Cargar disponibilidad desde la BD
         fetch('/disponibilidad/fechas')
             .then(res => res.json())
             .then(data => {
-                // data = { ocupadas: [...], habilitadas: [...] }
-                data.ocupadas.forEach(item => {
-                    if (!horasOcupadasPorFecha[item.fecha]) {
-                        horasOcupadasPorFecha[item.fecha] = [];
-                    }
-                    horasOcupadasPorFecha[item.fecha].push(item.hora);
-                });
+                horasPorFecha = data.horasPorFecha;
 
                 flatpickr('#fecha-picker', {
                     locale:        'es',
                     dateFormat:    'Y-m-d',
-                    minDate:       new Date().fp_incr(1),
+                    minDate:       new Date(new Date().setHours(0, 0, 0, 0) + 86400000),
                     enable:        data.habilitadas,
                     disableMobile: true,
-                    onChange: function(selectedDates, dateStr) {
+                    onChange(_, dateStr) {
                         actualizarHoras(dateStr);
-                    }
+                    },
                 });
 
+                // Si ya hay una fecha guardada en sesión, poblar las horas
                 const valorPrevio = document.getElementById('fecha-picker').value;
                 if (valorPrevio) actualizarHoras(valorPrevio);
             });
 
-        // 3. Llenar el select de horas según la fecha elegida
         function actualizarHoras(fecha) {
-            const select   = document.getElementById('hora-select');
-            const ocupadas = horasOcupadasPorFecha[fecha] || [];
+            const select = document.getElementById('hora-select');
+            const horas  = horasPorFecha[fecha] ?? [];
 
             select.innerHTML = '';
 
-            const libres = HORAS_DISPONIBLES.filter(h => !ocupadas.includes(h));
-
-            if (libres.length === 0) {
+            if (horas.length === 0) {
                 const opt  = document.createElement('option');
                 opt.value  = '';
                 opt.text   = 'No hay horas disponibles';
-                opt.disabled = true;
                 select.appendChild(opt);
                 return;
             }
 
-            libres.forEach(hora => {
-                const opt  = document.createElement('option');
-                opt.value  = hora;
-                opt.text   = hora;
+            horas.forEach(hora => {
+                const opt    = document.createElement('option');
+                opt.value    = hora;
+                opt.text     = a12h(hora);
+                opt.selected = hora === horaGuardada;
                 select.appendChild(opt);
             });
+        }
 
-            select.options[0].selected = true;
+        function a12h(hora24) {
+            const [hStr, mStr] = hora24.split(':');
+            let h = parseInt(hStr, 10);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${h}:${mStr} ${ampm}`;
         }
     </script>
 @endsection

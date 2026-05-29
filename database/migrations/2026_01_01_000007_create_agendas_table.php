@@ -15,8 +15,12 @@ return new class extends Migration
             $table->dateTime('fecha_fin');
             $table->text('descripcion')->nullable();
             $table->timestamps();
+
+            // Índice para acelerar las consultas de solapamiento
+            $table->index(['fotografo_id', 'fecha_inicio', 'fecha_fin']);
         });
     }
+
 
     public function down(): void
     {

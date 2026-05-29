@@ -18,15 +18,15 @@
             <div class="carousel-inner h-100">
 
                 <div class="carousel-item active">
-                    <img src="https://images.unsplash.com/photo-1773609108583-4f0040c75e7f?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Foto 1">
+                    <img src="{{ asset('images/medium/grad.webp') }}" alt="Foto 1">
                 </div>
 
                 <div class="carousel-item">
-                    <img src="https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Foto 3">
+                    <img src="{{ asset('images/medium/mate.webp') }}" alt="Foto 3">
                 </div>
 
                 <div class="carousel-item">
-                    <img src="https://images.unsplash.com/photo-1773613007146-650c070ffc59?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Foto 4">
+                    <img src="{{ asset('images/medium/grad2.webp') }}" alt="Foto 4">
                 </div>
 
             </div>

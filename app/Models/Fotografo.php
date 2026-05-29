@@ -37,6 +37,11 @@ class Fotografo extends Model
         return $this->hasMany(ParticipacionSesion::class, 'fotografo_id');
     }
 
+    public function horarios()
+    {
+        return $this->hasMany(HorarioFotografo::class);
+    }
+
     public function detallesNomina(): HasMany
     {
         return $this->hasMany(DetalleNomina::class, 'fotografo_id');
@@ -49,6 +54,8 @@ class Fotografo extends Model
             ->withPivot(['rol', 'porcentaje_comision', 'horas_trabajadas', 'estado_participacion'])
             ->withTimestamps();
     }
+
+
 
     //  Helpers
     public function getUsuario(): Usuario

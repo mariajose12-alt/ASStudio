@@ -1,7 +1,11 @@
 @extends('layouts.reserva')
 
 @section('formulario')
-<div class="reserva-logo">AS <span>Studio</span></div>
+<div class="reserva-logo">
+    <a href="/" class="navbar-logo">
+        <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+    </a>
+</div>
 
 {{-- Stepper --}}
 <div class="stepper">
@@ -34,6 +38,7 @@
     Los datos personales viven en $usuario->persona (Persona model).
 --}}
 @php
+    $p3     = session('reserva.paso3', []);
     $persona = $usuario->persona;
 @endphp
 
@@ -51,8 +56,8 @@
         <label>Nombre completo</label>
         {{-- Navega persona->nombre y persona->apellido --}}
         <input type="text" name="nombre"
-               value="{{ old('nombre', $persona->nombre . ' ' . $persona->apellido) }}"
-               class="{{ $errors->has('nombre') ? 'is-invalid' : '' }}">
+               value="{{ old('nombre', $p3['nombre'] ?? ($persona->nombre . ' ' . $persona->apellido)) }}">
+
         @error('nombre')
         <div class="invalid-feedback">{{ $message }}</div>
         @enderror
@@ -61,9 +66,9 @@
     <div class="form-floating-modern">
         <label>Correo electrónico</label>
         {{-- El email vive en usuario, no en persona --}}
+
         <input type="email" name="correo"
-               value="{{ old('correo', $usuario->email) }}"
-               class="{{ $errors->has('correo') ? 'is-invalid' : '' }}">
+               value="{{ old('correo', $p3['correo'] ?? $usuario->email) }}">
         @error('correo')
         <div class="invalid-feedback">{{ $message }}</div>
         @enderror
@@ -73,9 +78,7 @@
         <label>Teléfono</label>
         {{-- El teléfono vive en persona --}}
         <input type="text" name="telefono"
-               value="{{ old('telefono', $persona->telefono) }}"
-               placeholder="Ej: 809-000-0000"
-               class="{{ $errors->has('telefono') ? 'is-invalid' : '' }}">
+               value="{{ old('telefono', $p3['telefono'] ?? $persona->telefono) }}">
         @error('telefono')
         <div class="invalid-feedback">{{ $message }}</div>
         @enderror

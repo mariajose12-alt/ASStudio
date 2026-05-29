@@ -35,25 +35,6 @@ class UsuariosSeeder extends Seeder
             'rol' => 'ADMINISTRADOR',
         ]);
 
-        // 2. Crear Fotógrafo
-        $personaFotografo = Persona::create([
-            'nombre' => 'Juan',
-            'apellido' => 'Fotógrafo',
-            'telefono' => '0987654321',
-        ]);
-
-        $usuarioFotografo = Usuario::create([
-            'persona_id' => $personaFotografo->id,
-            'email' => 'fotografo@asstudio.com',
-            'contrasena' => Hash::make('password'),
-            'estado' => 'ACTIVO',
-        ]);
-
-        Empleado::create([
-            'usuario_id' => $usuarioFotografo->id,
-            'rol' => 'FOTOGRAFO',
-        ]);
-
         // 3. Crear Cliente
         $personaCliente = Persona::create([
             'nombre' => 'María',

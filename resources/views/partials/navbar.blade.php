@@ -1,14 +1,26 @@
 {{-- ── NAVBAR ── --}}
 <nav class="navbar-landing" id="navbar">
     <a href="/" class="navbar-logo">
-        <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="40">
+        <img src="{{ asset('images/' . ($logoOverride ?? 'logo.png')) }}"
+             alt="AS Studio"
+             height="40"
+             @if(!empty($logoOverride)) style="filter: brightness(0);" @endif>
     </a>
 
+    @php
+        $navLinks ??= [
+            ['href' => '#fotografo', 'label' => 'Nosotros'],
+            ['href' => '#galeria',   'label' => 'Galería'],
+            ['href' => '#proceso',   'label' => 'Proceso'],
+            ['href' => '#estudio',   'label' => 'Estudio'],
+            ['href' => '#contacto',  'label' => 'Contacto'],
+        ];
+    @endphp
+
     <ul class="navbar-links">
-        <li><a href="#fotografo">Nosotros</a></li>
-        <li><a href="#galeria">Galería</a></li>
-        <li><a href="#proceso">Proceso</a></li>
-        <li><a href="#contacto">Contacto</a></li>
+        @foreach($navLinks as $link)
+            <li><a href="{{ $link['href'] }}">{{ $link['label'] }}</a></li>
+        @endforeach
     </ul>
 
     @auth
@@ -30,7 +42,6 @@
         </div>
     @endauth
 
-    {{-- Hamburger mobile --}}
     <button class="navbar-hamburger" id="hamburger" aria-label="Menú">
         <span></span><span></span><span></span>
     </button>
@@ -38,10 +49,9 @@
 
 {{-- Mobile drawer --}}
 <div class="navbar-mobile-menu" id="mobileMenu">
-    <a href="#fotografo" onclick="closeMobileMenu()">Nosotros</a>
-    <a href="#galeria"  onclick="closeMobileMenu()">Galería</a>
-    <a href="#proceso"  onclick="closeMobileMenu()">Proceso</a>
-    <a href="#contacto" onclick="closeMobileMenu()">Contacto</a>
+    @foreach($navLinks as $link)
+        <a href="{{ $link['href'] }}" onclick="closeMobileMenu()">{{ $link['label'] }}</a>
+    @endforeach
     @auth
         <a href="{{ $dashboardRoute }}" onclick="closeMobileMenu()">Mi cuenta</a>
     @else

@@ -41,8 +41,6 @@ Route::get('/api/paquetes/{catalogo}', function ($catalogoId) {
         ]);
 });
 
-
-// routes/web.php — agregar esta ruta
 Route::get('/disponibilidad/fechas',
     [DisponibilidadController::class, 'fechasOcupadas']
 )->name('disponibilidad.fechas');
@@ -50,6 +48,11 @@ Route::get('/disponibilidad/fechas',
 Route::get('/catalogo', function () {
     return view('catalogo');
 })->name('catalogo');
+
+Route::get('/estudio', function () {
+    return view('estudio');
+})->name('estudio');
+
 // AUTENTICACIÓN
 
 Route::get('/login',    [LoginController::class, 'showForm'])->name('login');
@@ -137,5 +140,6 @@ Route::resource('admin/catalogos', CatalogoController::class)
     ->names('admin.catalogos')
     ->parameters(['catalogos' => 'catalogo']);
 
-require __DIR__.'/auth.php';
 Route::get('/terminos-condiciones', fn() => view('reservas.terminos-condiciones'))->name('terminos');
+
+require __DIR__.'/auth.php';

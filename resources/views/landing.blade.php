@@ -182,7 +182,7 @@
         </div>
     </section>
 
-    {{-- 6 ── GRATITUD / TESTIMONIO ── --}}
+    {{-- 6 ── GRATITUD / TESTIMONIO ──
     <section class="section-gratitud" id="gratitud">
         <div class="container">
             <div class="gratitud-box reveal">
@@ -198,6 +198,55 @@
                     No solo capturaron imágenes, nos regalaron recuerdos que vamos a atesorar toda la vida.
                 </blockquote>
                 <p class="gratitud-author"> </p>
+            </div>
+        </div>
+    </section>
+    --}}
+
+    {{-- 6 ── ESTUDIO PARA RENTA ── --}}
+    <section class="section-estudio" id="estudio">
+
+        {{-- Encabezado --}}
+        <div class="estudio-intro reveal">
+            <p class="section-eyebrow">Espacio disponible para rentar</p>
+            <div class="estudio-intro-row">
+                <h2 class="section-heading estudio-heading">
+                    Nuestro estudio, tu <em>escenario</em>
+                </h2>
+                <a href="estudio" class="btn-estudio-outline js-open-estudio-modal">
+                    Ver tarifas y reglas completas
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        {{-- Hero split: imagen + texto --}}
+        <div class="estudio-hero">
+            <div class="estudio-hero-img">
+                <img src="{{ asset('images/medium/studio-set2.webp') }}" alt="Interior de Zehcnas Studio">
+            </div>
+            <div class="estudio-hero-text">
+                <p class="section-eyebrow">Zehcnas Studio</p>
+                <h3 class="estudio-subheading">
+                    Un espacio equipado<br>para <em>tu visión</em>
+                </h3>
+                <div class="estudio-divider"></div>
+                <p class="estudio-desc">
+                    Renta el estudio por horas con fondos de colores, ciclograma,
+                    iluminación profesional y un encargado presente durante toda tu sesión.
+                </p>
+                <div class="estudio-pills">
+                    <span class="estudio-pill">Fotografía</span>
+                    <span class="estudio-pill">Videografía</span>
+                    <span class="estudio-pill">Ciclograma</span>
+                    <span class="estudio-pill">Fondos de color</span>
+                    <span class="estudio-pill">Iluminación</span>
+                    <span class="estudio-pill">Props &amp; Sets</span>
+                </div>
             </div>
         </div>
     </section>
@@ -405,5 +454,7 @@
             render();
             setInterval(() => go(1), 5500);
         })();
+
+
     </script>
 @endpush

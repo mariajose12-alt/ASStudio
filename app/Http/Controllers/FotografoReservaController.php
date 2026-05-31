@@ -39,6 +39,7 @@ class FotografoReservaController extends Controller
         $request->validate([
             'accion'      => 'required|in:APROBADA,RECHAZADA,MODIFICACION_PROPUESTA,CERRAR_SESION',
             'motivo'      => 'required_if:accion,RECHAZADA,MODIFICACION_PROPUESTA|nullable|string|max:500',
+            'duracion_horas' => 'nullable|numeric|min:0.5|max:12',
         ]);
 
         try {

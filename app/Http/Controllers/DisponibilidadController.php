@@ -84,7 +84,7 @@ class DisponibilidadController extends Controller
                 if (!in_array($horaStr, $slots)) {
                     $slots[] = $horaStr;
                 }
-                $slot->addHour();
+                $slot->addMinutes(30);
             }
         }
 

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('paquete_id')->constrained('paquetes_fotograficos')->restrictOnDelete();
             $table->foreignId('fotografo_id')->constrained('fotografos')->restrictOnDelete();
             $table->dateTime('fecha_inicio');
-            $table->dateTime('fecha_fin');
+            $table->dateTime('fecha_fin')->nullable();
             $table->dateTime('fecha_solicitud')->useCurrent();
             $table->enum('tipo', ['ESTUDIO', 'EXTERIOR']);
             $table->string('lugar', 255)->nullable();

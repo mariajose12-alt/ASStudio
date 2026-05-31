@@ -24,6 +24,7 @@ class ReservaRepository implements ReservaRepositoryInterface
             'fecha_fin'    => $dto->fecha_fin,
             'estado'       => 'PENDIENTE',
             'precio_total' => $dto->precio_total,
+            'duracion_horas' => 2.0,
         ]);
     }
 

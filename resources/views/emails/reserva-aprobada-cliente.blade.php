@@ -1,46 +1,86 @@
-<!DOCTYPE html>
-<html>
-<body style="font-family:sans-serif; color:#333; padding:20px; max-width:600px; margin:auto;">
+@extends('layouts.email')
 
-<h2 style="color:#2e7d32;">¡Tu reserva fue aprobada! ✓</h2>
-<p>Hola <strong>{{ $reserva->cliente->usuario->persona->nombre }} {{ $reserva->cliente->usuario->persona->apellido }} </strong>, tu sesión fotográfica ha sido confirmada.</p>
+@section('email_title', 'Reserva aprobada')
 
-<table style="width:100%; border-collapse:collapse; margin-top:16px;">
-    <tr>
-        <td style="padding:10px; background:#f5f5f5; width:140px;"><strong>Paquete</strong></td>
-        <td style="padding:10px;">{{ $reserva->paquete->nombre }}</td>
-    </tr>
-    <tr>
-        <td style="padding:10px; background:#f5f5f5;"><strong>Fecha</strong></td>
-        <td style="padding:10px;">
-            {{ \Carbon\Carbon::parse($reserva->fecha_inicio)->format('d/m/Y H:i') }}
-        </td>
-    </tr>
-    <tr>
-        <td style="padding:10px; background:#f5f5f5;"><strong>Tipo</strong></td>
-        <td style="padding:10px;">{{ $reserva->tipo }}</td>
-    </tr>
-    <tr>
-        <td style="padding:10px; background:#f5f5f5;"><strong>Precio</strong></td>
-        <td style="padding:10px;">${{ number_format($reserva->precio_total, 0, ',', '.') }}</td>
-    </tr>
-</table>
+@section('content')
 
-<div style="background:#fff3cd; border-left:4px solid #f59e0b;
-                padding:12px 16px; border-radius:0 8px 8px 0; margin-top:20px;">
-    <strong>Próximo paso:</strong> Debes realizar el pago para confirmar tu sesión.
-    Tienes un plazo establecido para completarlo.
-</div>
+    <h1 style="
+    margin:0 0 16px;
+    font-size:28px;
+    font-weight:700;
+    color:#1a0d00;
+">
+        ¡Tu reserva ha sido aprobada!
+    </h1>
 
-<a href="{{ url('/cliente/reservas') }}"
-   style="display:inline-block; margin-top:24px; padding:12px 28px;
-              background:#f59e0b; color:#fff; border-radius:8px;
-              text-decoration:none; font-weight:bold;">
-    Ir a mis reservas →
-</a>
+    <p style="
+    margin:0 0 24px;
+    font-size:15px;
+    line-height:1.7;
+    color:#4b5563;
+">
+        Hola {{ $reserva->cliente->usuario->persona->nombre }},
+        nos complace informarte que tu solicitud de reserva fue aprobada.
+    </p>
 
-<p style="margin-top:32px; font-size:12px; color:#999;">
-    AS Studio · Mensaje automático, por favor no responder.
-</p>
-</body>
-</html>
+    <div class="email-info-block" style="margin-top:0;">
+        <p class="email-info-block__title">
+            Detalles de la reserva
+        </p>
+
+        <div class="email-info-grid">
+            <div class="email-info-item">
+                <span class="email-info-item__label">Paquete</span>
+                <span class="email-info-item__value">
+                {{ $reserva->paquete->nombre }}
+            </span>
+            </div>
+
+            <div class="email-info-item">
+                <span class="email-info-item__label">Fecha</span>
+                <span class="email-info-item__value">
+                {{ $reserva->fecha_inicio->format('d/m/Y') }}
+            </span>
+            </div>
+
+            <div class="email-info-item">
+                <span class="email-info-item__label">Tipo</span>
+                <span class="email-info-item__value">
+                {{ $reserva->tipo }}
+            </span>
+            </div>
+
+            <div class="email-info-item">
+                <span class="email-info-item__label">Estado</span>
+                <span class="email-info-item__value">
+                Aprobada
+            </span>
+            </div>
+        </div>
+    </div>
+
+    <p style="
+    margin:32px 0 24px;
+    font-size:15px;
+    line-height:1.7;
+    color:#4b5563;
+">
+        Ya puedes acceder a tu reserva y revisar toda la información desde la plataforma.
+    </p>
+
+    <div style="text-align:center;">
+        <a href="{{ route('cliente.reservas.show', $reserva->id) }}"
+           style="
+            display:inline-block;
+            padding:14px 28px;
+            background:#e87722;
+            color:#ffffff;
+            text-decoration:none;
+            border-radius:12px;
+            font-weight:600;
+       ">
+            Ver mi reserva
+        </a>
+    </div>
+
+@endsection

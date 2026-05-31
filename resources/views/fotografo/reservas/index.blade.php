@@ -1,212 +1,253 @@
 @extends('layouts.fotografo')
 @section('title', 'Reservas Pendientes')
-@section('subtitle', 'Revisa y gestiona las solicitudes de reserva de tus clientes.')
 
 @section('content')
     @if($reservas->isEmpty())
-        <div class="card" style="text-align:center; padding:60px; color:var(--muted);">
+        <div class="reserva-empty">
             No hay reservas registradas.
         </div>
     @endif
 
-    <div style="display:flex; flex-direction:column; gap:16px;">
+    <div class="reserva-lista">
         @foreach($reservas as $reserva)
             @php
                 $badgeClass = match($reserva->estado) {
-                    'APROBADA'    => 'badge-active',
-                    'RECHAZADA', 'CANCELADA' => 'badge-inactive',
-                    'PAGO_RECIBIDO' => 'badge-admin',
-                    default       => 'badge-foto',
+                    'APROBADA'             => 'badge-active',
+                    'RECHAZADA','CANCELADA'=> 'badge-inactive',
+                    'PAGO_RECIBIDO'        => 'badge-admin',
+                    default                => 'badge-foto',
                 };
             @endphp
 
-            <div class="card" style="border-radius:14px; overflow:visible;">
-                <div class="card-body" style="padding:28px;">
+            <div class="card reserva-card-f">
+                <div class="card-body reserva-card-f-body">
 
-                    {{-- Header de la card --}}
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+                    {{-- Header --}}
+                    <div class="reserva-header">
                         <div>
-                            <h3 style="font-family:'Playfair Display',serif; font-size:18px; font-weight:400; margin-bottom:4px;">
+                            <h3 class="reserva-titulo">
                                 {{ $reserva->paquete->nombre ?? 'Paquete' }} · {{ $reserva->tipo }}
                             </h3>
-                            <span style="font-size:12px; color:var(--muted);">#ID-{{ $reserva->id }}</span>
+                            <span class="badge {{ $badgeClass }}">{{ $reserva->estado }}</span>
                         </div>
-                        <span class="badge {{ $badgeClass }}" style="font-size:11px; padding:5px 14px;">
-                            {{ $reserva->estado }}
-                        </span>
                     </div>
 
-                    <hr style="border:none; border-top:1px solid var(--border); margin-bottom:20px;">
+                    <hr class="reserva-divider">
 
                     {{-- Datos principales --}}
-                    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px;">
-                        <div>
-                            <div style="font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Fecha</div>
-                            <div style="font-size:14px;">{{ $reserva->fecha_inicio->format('d \d\e F, Y') }}</div>
+                    <div class="reserva-grid-datos">
+                        <div class="reserva-dato">
+                            <span class="dato-label">Fecha</span>
+                            <span class="dato-valor">{{ $reserva->fecha_inicio->format('d \d\e F, Y') }}</span>
                         </div>
-                        <div>
-                            <div style="font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Horario</div>
-                            <div style="font-size:14px;">{{ $reserva->fecha_inicio->format('H:i') }} hrs</div>
+                        <div class="reserva-dato">
+                            <span class="dato-label">Horario</span>
+                            <span class="dato-valor">{{ $reserva->fecha_inicio->format('H:i') }} hrs</span>
                         </div>
-                        <div>
-                            <div style="font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Ubicación</div>
-                            <div style="font-size:14px;">{{ $reserva->lugar ?? 'Estudio' }}</div>
+                        <div class="reserva-dato">
+                            <span class="dato-label">Ubicación</span>
+                            <span class="dato-valor">{{ $reserva->lugar ?? 'Estudio' }}</span>
                         </div>
-                        <div>
-                            <div style="font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Precio</div>
-                            <div style="font-size:14px; color:var(--navy)">RD$ {{ number_format($reserva->precio_total, 2) }}</div>
+                        <div class="reserva-dato">
+                            <span class="dato-label">Precio</span>
+                            <span class="dato-valor dato-valor--precio">RD$ {{ number_format($reserva->precio_total, 2) }}</span>
                         </div>
                     </div>
 
                     {{-- Descripción --}}
                     @if($reserva->descripcion)
-                        <div style="background:var(--cloud); border-radius:10px; padding:16px; margin-bottom:20px;">
-                            <div style="font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:8px;">Descripción de la sesión</div>
-                            <p style="font-size:13px; color:#555; margin:0; line-height:1.6;">{{ $reserva->descripcion }}</p>
+                        <div class="reserva-descripcion">
+                            <span class="dato-label">Descripción de la sesión</span>
+                            <p class="reserva-descripcion-texto">{{ $reserva->descripcion }}</p>
                         </div>
                     @endif
 
                     {{-- Info del cliente --}}
-                    <div style="margin-bottom:20px;">
-                        <div style="font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:12px;">Información del Cliente</div>
-                        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
-                            <div>
-                                <div style="font-size:12px; color:var(--muted);">Nombre y Apellido</div>
-                                <div style="font-size:14px; margin-top:2px;">
-                                    {{ $reserva->cliente->usuario->persona->nombre ?? '—' }} {{ $reserva->cliente->usuario->persona->apellido ?? '' }}
-                                </div>
+                    <div class="reserva-cliente">
+                        <span class="dato-label">Información del Cliente</span>
+                        <div class="reserva-grid-cliente">
+                            <div class="reserva-dato">
+                                <span class="dato-sublabel">Nombre y Apellido</span>
+                                <span class="dato-valor">
+                                    {{ $reserva->cliente->usuario->persona->nombre ?? '—' }}
+                                    {{ $reserva->cliente->usuario->persona->apellido ?? '' }}
+                                </span>
                             </div>
-                            <div>
-                                <div style="font-size:12px; color:var(--muted);">Correo</div>
-                                <div style="font-size:14px; margin-top:2px;">{{ $reserva->cliente->usuario->email ?? '—' }}</div>
+                            <div class="reserva-dato">
+                                <span class="dato-sublabel">Correo</span>
+                                <span class="dato-valor">{{ $reserva->cliente->usuario->email ?? '—' }}</span>
                             </div>
-                            <div>
-                                <div style="font-size:12px; color:var(--muted);">Número Telefónico</div>
-                                <div style="font-size:14px; margin-top:2px;">{{ $reserva->cliente->usuario->persona->telefono ?? '—' }}</div>
+                            <div class="reserva-dato">
+                                <span class="dato-sublabel">Número Telefónico</span>
+                                <span class="dato-valor">{{ $reserva->cliente->usuario->persona->telefono ?? '—' }}</span>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Panel de proponer cambios (oculto por defecto) --}}
-                    <div id="propuesta-{{ $reserva->id }}" style="display:none; border-top:1px solid var(--border); padding-top:20px; margin-top:4px; margin-bottom:20px;">
-                        <div style="font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:12px;">Proponer Cambios en la Descripción</div>
-                        <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}">
+                    {{-- Panel de aprobación con duración --}}
+                    <div id="aprobar-{{ $reserva->id }}" class="reserva-panel" style="display:none;">
+                        <span class="dato-label">Confirmar Duración de la Sesión</span>
+                        <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}" class="reserva-panel-form">
                             @csrf
-                            <input type="hidden" name="accion" value="MODIFICACION_PROPUESTA">
-                            <div class="form-group" style="margin-bottom:16px;">
-                                <label style="display:block; margin-bottom:8px; font-weight:500;">Motivo de la modificación *</label>
-                                <textarea
-                                    name="motivo"
-                                    rows="4"
-                                    placeholder="Describe qué cambios propones en la descripción de la sesión..."
-                                    style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; font-size:14px;"
-                                    required></textarea>
+                            <input type="hidden" name="accion" value="APROBADA">
+
+                            <div class="form-group" >
+                                <label class="panel-label">Duración *</label>
+                                <div style="display:flex; align-items:center; gap:2rem;">
+                                    <label style="display:flex; align-items:center; gap:.4rem; cursor:pointer;">
+                                        <input type="radio"
+                                               name="duracion_tipo"
+                                               value="estandar"
+                                               checked
+                                               onchange="toggleDuracionCustom({{ $reserva->id }}, false)">
+                                        <span>2 horas (estándar)</span>
+                                    </label>
+
+                                    <label style="display:flex; align-items:center; gap:.4rem; cursor:pointer;">
+                                        <input type="radio"
+                                               name="duracion_tipo"
+                                               value="personalizada"
+                                               onchange="toggleDuracionCustom({{ $reserva->id }}, true)">
+                                        <span>Personalizada</span>
+                                    </label>
+                                </div>
+
+                                <div id="duracion-custom-{{ $reserva->id }}" style="display:none; margin-top:.75rem;">
+                                    <input type="number" name="duracion_horas" value="2" min="0.5" max="12" step="0.5"
+                                           class="panel-textarea" style="width:120px;"
+                                           placeholder="ej: 3.5">
+                                    <span style="margin-left:.5rem;">horas</span>
+                                </div>
+                                {{-- Campo oculto para cuando selecciona estándar --}}
+                                <input type="hidden" name="duracion_horas_estandar" value="2">
                             </div>
-                            <div style="display:flex; gap:10px;">
-                                <button type="submit" class="btn btn-primary">Enviar Propuesta</button>
+
+                            <div class="panel-actions">
+                                <button type="submit" class="btn btn-primary">✓ Confirmar y Aprobar</button>
                                 <button type="button" class="btn btn-outline"
-                                        onclick="document.getElementById('propuesta-{{ $reserva->id }}').style.display='none'">
-                                    Cancelar
-                                </button>
+                                        onclick="toggleAprobar({{ $reserva->id }})">Cancelar</button>
                             </div>
                         </form>
                     </div>
 
-                    {{-- Acciones --}}
+                    {{-- Panel proponer cambios --}}
+                    <div id="propuesta-{{ $reserva->id }}" class="reserva-panel" style="display:none;">
+                        <span class="dato-label">Proponer Cambios en la Descripción</span>
+                        <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}" class="reserva-panel-form">
+                            @csrf
+                            <input type="hidden" name="accion" value="MODIFICACION_PROPUESTA">
+                            <div class="form-group">
+                                <label class="panel-label">Motivo de la modificación *</label>
+                                <textarea name="motivo" rows="4" class="panel-textarea"
+                                          placeholder="Describe qué cambios propones en la descripción de la sesión..."
+                                          required></textarea>
+                            </div>
+                            <div class="panel-actions">
+                                <button type="submit" class="btn btn-primary">Enviar Propuesta</button>
+                                <button type="button" class="btn btn-outline" onclick="togglePropuesta({{ $reserva->id }})">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {{-- Panel rechazo --}}
+                    <div id="rechazo-{{ $reserva->id }}" class="reserva-panel" style="display:none;">
+                        <span class="dato-label">Motivo del Rechazo</span>
+                        <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}" class="reserva-panel-form">
+                            @csrf
+                            <input type="hidden" name="accion" value="RECHAZADA">
+                            <div class="form-group">
+                                <label class="panel-label">Indica el motivo *</label>
+                                <textarea name="motivo" rows="4" class="panel-textarea"
+                                          placeholder="Explica por qué no puedes aceptar esta reserva..."
+                                          required></textarea>
+                            </div>
+                            <div class="panel-actions">
+                                <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
+                                <button type="button" class="btn btn-outline" onclick="toggleRechazo({{ $reserva->id }})">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {{-- Acciones PENDIENTE --}}
                     @if($reserva->estado === 'PENDIENTE')
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
-                            {{-- Aprobar --}}
+                        <div id="actions-{{ $reserva->id }}" class="reserva-actions">
                             <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}">
                                 @csrf
                                 <input type="hidden" name="accion" value="APROBADA">
-                                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; background:#2e7d52; border-color:#2e7d52;">
+                                <button type="button" class="btn btn-aprobar" onclick="toggleAprobar({{ $reserva->id }})">
                                     ✓ Aprobar Reserva
                                 </button>
                             </form>
-
-                            {{-- Sugerir Modificación --}}
-                            <button type="button" class="btn btn-primary"
-                                    style="width:100%; justify-content:center; background:var(--blue-mid); border-color:var(--blue-mid);"
-                                    onclick="togglePropuesta({{ $reserva->id }})">
+                            <button type="button" class="btn btn-sugerir" onclick="togglePropuesta({{ $reserva->id }})">
                                 ✎ Sugerir Modificación
                             </button>
-
-                            {{-- Rechazar --}}
-                            <button type="button" class="btn btn-danger" style="width:100%; justify-content:center;"
-                                    onclick="toggleRechazo({{ $reserva->id }})">
+                            <button type="button" class="btn btn-rechazar" onclick="toggleRechazo({{ $reserva->id }})">
                                 ✗ Rechazar
                             </button>
                         </div>
                     @endif
-                    {{-- Acciones Despues de Aprobada y Realizada--}}
+
+                    {{-- Acciones APROBADA --}}
                     @if($reserva->estado === 'APROBADA' && $reserva->sesion?->estado !== 'CERRADA')
                         <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}">
                             @csrf
                             <input type="hidden" name="accion" value="CERRAR_SESION">
-                            <button type="submit" class="btn btn-primary"
-                                    style="width:100%; justify-content:center; background:#2e7d52; border-color:#2e7d52;"
+                            <button type="submit" class="btn btn-aprobar btn-full"
                                     onclick="return confirm('¿Marcar esta sesión como cerrada?')">
                                 ✓ Cerrar sesión
                             </button>
                         </form>
                     @elseif($reserva->sesion?->estado === 'CERRADA')
-                        <span style="font-size:13px; color:#2e7d52; display:flex; justify-content: center">✓ Sesión cerrada</span>
+                        <span class="reserva-cerrada">✓ Sesión cerrada</span>
                     @endif
 
-                    {{-- Panel de rechazo (oculto por defecto) --}}
-                    <div id="rechazo-{{ $reserva->id }}" style="display:none; border-top:1px solid var(--border); padding-top:20px; margin-top:4px; margin-bottom:20px;">
-                        <div style="font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:12px;">Motivo del Rechazo</div>
-                        <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}">
-                            @csrf
-                            <input type="hidden" name="accion" value="RECHAZADA">
-                            <div class="form-group" style="margin-bottom:16px;">
-                                <label style="display:block; margin-bottom:8px; font-weight:500;">Indica el motivo *</label>
-                                <textarea
-                                    name="motivo"
-                                    rows="4"
-                                    placeholder="Explica por qué no puedes aceptar esta reserva..."
-                                    style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; font-size:14px;"
-                                    required></textarea>
-                            </div>
-                            <div style="display:flex; gap:10px;">
-                                <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
-                                <button type="button" class="btn btn-outline"
-                                        onclick="document.getElementById('rechazo-{{ $reserva->id }}').style.display='none'">
-                                    Cancelar
-                                </button>
-                            </div>
-                        </form>
-                    </div>
                 </div>
             </div>
         @endforeach
     </div>
 
-    {{-- Agregar Paginacion Aqui --}}
+    {{-- Paginación --}}
 
 @endsection
 
 @push('scripts')
     <script>
+        function toggleAprobar(id) {
+            const panel = document.getElementById('aprobar-' + id);
+            const isHidden = panel.style.display === 'none' || panel.style.display === '';
+            panel.style.display = isHidden ? 'block' : 'none';
+            toggleActionButtons(id, isHidden);
+            if (isHidden) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function toggleDuracionCustom(id, show) {
+            document.getElementById('duracion-custom-' + id).style.display = show ? 'block' : 'none';
+        }
+
         function togglePropuesta(id) {
             const panel = document.getElementById('propuesta-' + id);
             const isHidden = panel.style.display === 'none' || panel.style.display === '';
             panel.style.display = isHidden ? 'block' : 'none';
-
-            // Scroll suave hacia el panel cuando se abre
-            if (isHidden) {
-                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+            toggleActionButtons(id, isHidden);
+            if (isHidden) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function toggleRechazo(id) {
             const panel = document.getElementById('rechazo-' + id);
             const isHidden = panel.style.display === 'none' || panel.style.display === '';
             panel.style.display = isHidden ? 'block' : 'none';
+            toggleActionButtons(id, isHidden);
+            if (isHidden) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
 
-            if (isHidden) {
-                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+        function toggleActionButtons(id, disable) {
+            const actionGroup = document.getElementById('actions-' + id);
+            if (!actionGroup) return;
+            actionGroup.querySelectorAll('button, input[type="submit"]').forEach(btn => {
+                btn.disabled = disable;
+                btn.style.opacity = disable ? '0.4' : '1';
+                btn.style.pointerEvents = disable ? 'none' : 'auto';
+            });
         }
     </script>
 @endpush

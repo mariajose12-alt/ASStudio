@@ -12,7 +12,7 @@ class ReservaCreateDTO
         public readonly string  $tipo,
         public readonly string  $descripcion, // La descripcion nunca puede ser null
         public readonly string  $fecha_inicio,
-        public readonly string  $fecha_fin,
+        public readonly ?string $fecha_fin = null,
         public readonly float   $precio_total,
         public readonly ?string $lugar = null,
     ) {}
@@ -33,9 +33,7 @@ class ReservaCreateDTO
             tipo:         $paso1['tipo'],
             descripcion:  $paso2['descripcion'],
             fecha_inicio: $paso2['fecha'] . ' ' . $paso2['hora'],
-            fecha_fin:    \Carbon\Carbon::parse($paso2['fecha'] . ' ' . $paso2['hora'])
-                ->addHours(2)
-                ->format('Y-m-d H:i:s'),
+            fecha_fin:    null,
             precio_total: $precio_total,
             lugar:        $paso1['lugar'] ?? null,
         );

@@ -4091,3 +4091,334 @@ textarea { resize: vertical; min-height: 100px; }
         flex-direction: column;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   RESERVAS — estilos completos controlados desde CSS
+═══════════════════════════════════════════════════════════ */
+
+/* Lista contenedora */
+.reserva-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Card vacía */
+.reserva-empty {
+    text-align: center;
+    padding: 60px;
+    color: var(--muted);
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+/* Card principal */
+.reserva-card-f {
+    border-radius: 14px;
+}
+
+.reserva-card-f-body {
+    padding: 28px;
+}
+
+/* ── Header ── */
+.reserva-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.reserva-titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 4px;
+    color: var(--navy);
+}
+
+.reserva-id {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.reserva-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+
+/* ── Labels reutilizables ── */
+.dato-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+.dato-sublabel {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 2px;
+}
+
+.dato-valor {
+    display: block;
+    font-size: 14px;
+    color: var(--ink);
+}
+
+.dato-valor--precio {
+    color: var(--navy);
+    font-weight: 500;
+}
+
+/* ── Grid datos principales ── */
+.reserva-grid-datos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.reserva-dato {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Descripción ── */
+.reserva-descripcion {
+    background: var(--cloud);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.reserva-descripcion .dato-label {
+    margin-bottom: 8px;
+}
+
+.reserva-descripcion-texto {
+    font-size: 13px;
+    color: #555;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ── Info del cliente ── */
+.reserva-cliente {
+    margin-bottom: 20px;
+}
+
+.reserva-cliente > .dato-label {
+    margin-bottom: 12px;
+}
+
+.reserva-grid-cliente {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+/* ── Paneles (propuesta / rechazo) ── */
+.reserva-panel {
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+    margin-top: 4px;
+    margin-bottom: 20px;
+}
+
+.reserva-panel > .dato-label {
+    margin-bottom: 12px;
+}
+
+.reserva-panel-form .form-group {
+    margin-bottom: 16px;
+}
+
+.panel-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--navy);
+}
+
+.panel-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.panel-textarea:focus {
+    outline: none;
+    border-color: var(--blue-mid);
+}
+
+.panel-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ── Botones de acción ── */
+.reserva-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.reserva-actions form {
+    display: contents; /* el form no rompe el grid */
+}
+
+.btn-aprobar {
+    width: 100%;
+    justify-content: center;
+    background: #2e7d52;
+    border-color: #2e7d52;
+    color: #fff;
+}
+
+.btn-aprobar:hover {
+    background: #246643;
+    border-color: #246643;
+}
+
+.btn-sugerir {
+    width: 100%;
+    justify-content: center;
+    background: var(--blue-mid);
+    border-color: var(--blue-mid);
+    color: #fff;
+}
+
+.btn-sugerir:hover {
+    background: var(--sage);
+    border-color: var(--sage);
+}
+
+.btn-rechazar {
+    width: 100%;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+.btn-rechazar:hover {
+    background: #fef2f2;
+}
+
+.btn-full {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Sesión cerrada */
+.reserva-cerrada {
+    font-size: 13px;
+    color: #2e7d52;
+    display: flex;
+    justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE MOBILE
+═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+    /* Menos padding en mobile */
+    .reserva-card-f-body {
+        padding: 16px;
+    }
+
+    /* Header: badge debajo del título */
+    .reserva-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .reserva-titulo {
+        font-size: 20px;
+    }
+
+    .reserva-id {
+        font-size: 13px;
+    }
+
+    /* Labels más legibles */
+    .dato-label {
+        font-size: 11px;
+        letter-spacing: 1px;
+    }
+
+    .dato-sublabel {
+        font-size: 13px;
+    }
+
+    /* Valores más grandes */
+    .dato-valor {
+        font-size: 15px;
+    }
+
+    /* Grid datos: 2 columnas */
+    .reserva-grid-datos {
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    /* Grid cliente: 1 columna */
+    .reserva-grid-cliente {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    /* Descripción */
+    .reserva-descripcion-texto {
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    /* Textarea: font-size 16px evita zoom automático en iOS */
+    .panel-textarea {
+        font-size: 16px;
+        min-height: 120px;
+    }
+
+    .panel-label {
+        font-size: 15px;
+    }
+
+    /* Botones de acción: 1 columna, más altos para touch */
+    .reserva-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .reserva-actions .btn,
+    .btn-aprobar,
+    .btn-sugerir {
+        min-height: 52px;
+        font-size: 15px;
+    }
+
+    /* Botones de panel también más grandes */
+    .panel-actions {
+        flex-direction: column;
+    }
+
+    .panel-actions .btn {
+        min-height: 48px;
+        font-size: 15px;
+        justify-content: center;
+    }
+}

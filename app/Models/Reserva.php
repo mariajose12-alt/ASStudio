@@ -23,6 +23,7 @@ class Reserva extends Model
         'estado',
         'fotografo_id',
         'motivo_rechazo',
+        'duracion_horas'
     ];
 
     protected $casts = [

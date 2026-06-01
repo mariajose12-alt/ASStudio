@@ -23,7 +23,7 @@ class FotografoController extends Controller
 
     public function upload()
     {
-        return view('fotografo.upload');
+        return view('fotografo.fotografias');
     }
 
     public function reservasJson()

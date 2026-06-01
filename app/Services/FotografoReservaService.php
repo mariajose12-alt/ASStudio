@@ -15,7 +15,7 @@ class FotografoReservaService
     {
 
         match ($dto->accion) {
-            'APROBADA'    => $this->aprobar($reserva),
+            'APROBADA'    => $this->aprobar($reserva, $dto->duracion_horas),
             'RECHAZADA'   => $this->rechazar($reserva, $dto->motivo),
             'MODIFICACION_PROPUESTA'  => $this->modificar($reserva, $dto),
             'CERRAR_SESION'  => $this->cerrarSesion($reserva),
@@ -23,16 +23,35 @@ class FotografoReservaService
         };
     }
 
-    private function aprobar(Reserva $reserva): void
+    private function aprobar(Reserva $reserva, float $duracionHoras = 2.0): void
     {
-        $reserva->update(['estado' => 'APROBADA']);
+        // Calcular fecha_fin real según la duración confirmada por el fotógrafo
+        $fechaFin = \Carbon\Carbon::parse($reserva->fecha_inicio)
+            ->addHours($duracionHoras);
 
-        // Crear la sesión automáticamente
+        // Verificar que no haya conflicto con otra reserva del mismo fotógrafo
+        $conflicto = Reserva::where('fotografo_id', $reserva->fotografo_id)
+            ->where('id', '!=', $reserva->id)
+            ->whereIn('estado', ['PENDIENTE', 'APROBADA'])
+            ->where('fecha_inicio', '<', $fechaFin)
+            ->where('fecha_fin',    '>', $reserva->fecha_inicio)
+            ->exists();
+
+        if ($conflicto) {
+            throw new \Exception('La duración elegida genera un conflicto con otra reserva existente.');
+        }
+
+        $reserva->update([
+            'estado'         => 'APROBADA',
+            'duracion_horas' => $duracionHoras,
+            'fecha_fin'      => $fechaFin,
+        ]);
+
         $reserva->sesion()->create([
-            'fecha_inicio'  => $reserva->fecha_inicio,
-            'fecha_fin'     => $reserva->fecha_fin,
-            'lugar'         => $reserva->lugar,
-            'estado'        => 'CONFIRMADA',
+            'fecha_inicio' => $reserva->fecha_inicio,
+            'fecha_fin'    => $fechaFin,
+            'lugar'        => $reserva->lugar,
+            'estado'       => 'CONFIRMADA',
         ]);
 
         ReservaAprobada::dispatch($reserva);
@@ -80,7 +99,7 @@ class FotografoReservaService
             throw new \Exception('Esta reserva no tiene una sesión asociada.');
         }
 
-        $reserva->sesion->update(['estado' => 'CERRADA']);
+        $reserva->sesion->update(['estado' => 'EN_PROCESO']);
     }
 
     public function reservasPendientes(int $fotografo_id)

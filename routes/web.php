@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\DisponibilidadController;
+use App\Http\Controllers\FotografiaController;
 use App\Http\Controllers\FotografoReservaController;
+use App\Http\Controllers\SesionController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\LoginController;
@@ -16,6 +18,7 @@ use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\FotografoController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\ClienteReservaController;
+use App\Http\Controllers\GaleriaController;
 
 // PÚBLICAS
 
@@ -52,6 +55,13 @@ Route::get('/catalogo', function () {
 Route::get('/estudio', function () {
     return view('estudio');
 })->name('estudio');
+
+//pruebas para los emails
+Route::get('/preview-mail', function () {
+    $reserva = App\Models\Reserva::first();
+
+    return new App\Mail\ReservaAprobadaCliente($reserva);
+});
 
 // AUTENTICACIÓN
 
@@ -98,9 +108,19 @@ Route::middleware(['auth', 'rol:FOTOGRAFO'])
         Route::get('/calendario',                [FotografoController::class, 'calendario'])->name('calendario');
         Route::get('/calendario/reservas',       [FotografoController::class, 'reservasJson'])->name('calendario.json');
         Route::get('/upload',                    [FotografoController::class, 'upload'])->name('upload');
+
         Route::get('reservas',                   [FotografoReservaController::class, 'index'])->name('reservas.index');
         Route::get('reservas/{reserva}',         [FotografoReservaController::class, 'show'])->name('reservas.show');
         Route::post('reservas/{reserva}/accion', [FotografoReservaController::class, 'procesarAccion'])->name('reservas.accion');
+
+        // Sesiones
+        Route::get('sesiones',                   [SesionController::class, 'index'])->name('sesiones.index');
+        Route::post('sesiones/{id}/iniciar',     [SesionController::class, 'iniciar'])->name('sesiones.iniciar');
+
+        // Fotografías
+        Route::get('sesiones/{id}/fotografias/create', [FotografiaController::class, 'create'])->name('fotografias.create');
+        Route::post('sesiones/{id}/fotografias',       [FotografiaController::class, 'store'])->name('fotografias.store');
+        Route::post('sesiones/{id}/fotografias',       [FotografiaController::class, 'store']) ->name('fotografias.store');
     });
 
 // DASHBOARD CLIENTE
@@ -124,6 +144,13 @@ Route::middleware(['auth', 'rol:CLIENTE'])
         Route::get('reservas/paso4',   [ReservaController::class, 'paso4'])->name('reservas.paso4');
         Route::post('reservas/enviar', [ReservaController::class, 'enviar'])->name('reservas.enviar');
 
+        Route::get('galeria',                          [GaleriaController::class, 'index'])             ->name('galeria');
+        Route::get('galeria/{id}',                     [GaleriaController::class, 'show'])              ->name('galeria.show');
+        Route::post('galeria/{id}/confirmar',          [GaleriaController::class, 'confirmar'])         ->name('galeria.confirmar');
+        Route::get('galeria/{id}/final',               [GaleriaController::class, 'final'])             ->name('galeria.final');
+        Route::post('galeria/{id}/recepcion',          [GaleriaController::class, 'confirmarRecepcion'])->name('galeria.recepcion');
+        Route::get('galeria/foto/{id}/descargar',      [GaleriaController::class, 'descargar'])         ->name('galeria.descargar');
+        Route::get('galeria/{id}/zip/{tipo}',          [GaleriaController::class, 'descargarZip'])      ->name('galeria.zip');
         Route::get('reservas/{reserva}',  [ClienteReservaController::class, 'show'])->name('reservas.show');
 
         Route::patch('reservas/{reserva}/responder-sugerencia', [ClienteReservaController::class, 'responderSugerencia'])->name('reservas.responder-sugerencia');

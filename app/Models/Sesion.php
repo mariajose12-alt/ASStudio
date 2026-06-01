@@ -43,6 +43,11 @@ class Sesion extends Model
             ->withTimestamps();
     }
 
+    public function fotografias(): HasMany
+    {
+        return $this->hasMany(Fotografia::class, 'sesion_id');
+    }
+
     // Helpers
     public function estaActiva(): bool
     {

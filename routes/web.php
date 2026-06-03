@@ -19,6 +19,7 @@ use App\Http\Controllers\FotografoController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\ClienteReservaController;
 use App\Http\Controllers\GaleriaController;
+use App\Http\Controllers\Auth\GoogleController;
 
 // PÚBLICAS
 
@@ -70,6 +71,8 @@ Route::post('/login',   [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout',  [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
 Route::post('/register',[RegisterController::class, 'register'])->name('register.post');
+Route::get('/auth/google',          [GoogleController::class, 'redirect'])->name('google.redirect');
+Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 
 // AUTENTICADO — sin rol específico (perfil + reservas cliente)
 Route::middleware('auth')->group(function () {

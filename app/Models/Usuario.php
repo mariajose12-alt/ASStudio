@@ -19,12 +19,15 @@ class Usuario extends Authenticatable
         'persona_id',
         'email',
         'contrasena',
+        'google_id',
+        'avatar',
         'estado',
     ];
 
     protected $hidden = [
         'contrasena',
     ];
+
 
     public function getAuthPassword(): string
     {

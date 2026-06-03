@@ -1352,6 +1352,43 @@ textarea { resize: vertical; min-height: 100px; }
     margin-top: 4px;
 }
 
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: #bbb;
+    font-size: 13px;
+}
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e8e4dc;
+}
+
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #e0dbd2;
+    border-radius: 8px;
+    background: #fff;
+    color: #3d3d3a;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+}
+.btn-google:hover {
+    background: #f7f5f0;
+    border-color: #c8c3ba;
+}
+
 /* Terms */
 .terms {
     font-size: 11px;

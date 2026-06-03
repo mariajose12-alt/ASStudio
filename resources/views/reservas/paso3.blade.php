@@ -56,6 +56,7 @@
         <label>Nombre completo</label>
         {{-- Navega persona->nombre y persona->apellido --}}
         <input type="text" name="nombre"
+               class="{{ $errors->has('nombre') ? 'is-invalid' : ''}}"
                value="{{ old('nombre', $p3['nombre'] ?? ($persona->nombre . ' ' . $persona->apellido)) }}">
 
         @error('nombre')
@@ -68,6 +69,7 @@
         {{-- El email vive en usuario, no en persona --}}
 
         <input type="email" name="correo"
+               class="{{ $errors->has('correo') ? 'is-invalid' : ''}}"
                value="{{ old('correo', $p3['correo'] ?? $usuario->email) }}">
         @error('correo')
         <div class="invalid-feedback">{{ $message }}</div>
@@ -78,6 +80,7 @@
         <label>Teléfono</label>
         {{-- El teléfono vive en persona --}}
         <input type="text" name="telefono"
+               class="{{ $errors->has('telefono') ? 'is-invalid' : ''}}"
                value="{{ old('telefono', $p3['telefono'] ?? $persona->telefono) }}">
         @error('telefono')
         <div class="invalid-feedback">{{ $message }}</div>

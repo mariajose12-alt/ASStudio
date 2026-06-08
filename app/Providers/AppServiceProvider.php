@@ -13,14 +13,11 @@ use App\Repositories\Contracts\FotografoRepositoryInterface;
 use App\Repositories\FotografoRepository;
 use App\Repositories\Contracts\CatalogoRepositoryInterface;
 use App\Repositories\CatalogoRepository;
-use App\Repositories\Contracts\PaqueteRepositoryInterface;
-use App\Repositories\PaqueteRepository;
+use App\Repositories\Contracts\SesionRepositoryInterface;
+use App\Repositories\SesionRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         $this->app->bind(
@@ -49,16 +46,10 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            PaqueteRepositoryInterface::class,
-            PaqueteRepository::class,
+            SesionRepositoryInterface::class,
+            SesionRepository::class,
         );
     }
 
-    /**
-     * Bootstrap any application services.
-     */
-    public function boot(): void
-    {
-        //
-    }
+    public function boot(): void {}
 }

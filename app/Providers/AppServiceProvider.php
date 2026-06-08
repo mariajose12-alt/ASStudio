@@ -15,6 +15,8 @@ use App\Repositories\Contracts\CatalogoRepositoryInterface;
 use App\Repositories\CatalogoRepository;
 use App\Repositories\Contracts\SesionRepositoryInterface;
 use App\Repositories\SesionRepository;
+use App\Repositories\Contracts\FotografiaRepositoryInterface;
+use App\Repositories\FotografiaRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -48,6 +50,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             SesionRepositoryInterface::class,
             SesionRepository::class,
+        );
+
+        $this->app->bind(
+            FotografiaRepositoryInterface::class,
+            FotografiaRepository::class,
         );
     }
 

@@ -38,19 +38,20 @@
                 $alto  = $altos[$i % count($altos)];
             @endphp
             <div class="foto-item foto-sel" data-id="{{ $foto->id }}" onclick="toggleFavorito(this)">
-                <img src="https://picsum.photos/seed/sel{{ $foto->id }}/400/{{ $alto }}"
-                     alt="Foto {{ $foto->id }}" loading="lazy">
-                <div class="foto-check" id="check-{{ $foto->id }}">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 12 12" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="2,6 5,9 10,3"/>
-                    </svg>
-                </div>
-                <div class="foto-num" id="num-{{ $foto->id }}"></div>
+                <img src="{{ $foto->url_firmada }}"
+                {{--src="https://picsum.photos/seed/sel{{ $foto->id }}/400/{{ $alto }}"--}}
+                 alt="Foto {{ $foto->id }}" loading="lazy">
+            <div class="foto-check" id="check-{{ $foto->id }}">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 12 12" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="2,6 5,9 10,3"/>
+                </svg>
             </div>
-        @endforeach
-    </div>
+            <div class="foto-num" id="num-{{ $foto->id }}"></div>
+        </div>
+    @endforeach
+</div>
 
-    {{-- Modal de confirmación (bottom-sheet en móvil, centrado en desktop) --}}
+{{-- Modal de confirmación (bottom-sheet en móvil, centrado en desktop) --}}
     <div class="modal-gal" id="modalOverlay" aria-hidden="true">
         <div class="modal-gal__sheet">
             <div class="modal-gal__pill"></div>

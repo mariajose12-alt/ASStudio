@@ -49,7 +49,10 @@ class GaleriaController extends Controller
             return redirect()->route('cliente.galeria.final', $id);
         }
 
-        $fotos  = $sesion->fotografias->where('estado', 'ORIGINAL')->values();
+        $fotos  = $sesion->fotografias->where('estado', 'ORIGINAL')->values()->map(function ($foto) {
+            $foto->url_firmada =  Storage::disk('r2')->temporaryUrl($foto->url, now()->addMinutes(60));
+            return $foto;
+        });
         $limite = $sesion->reserva->paquete->cantidad_fotos_incluidas;
 
         return view('cliente.galeria.seleccion', compact('sesion', 'fotos', 'limite'));

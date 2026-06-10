@@ -638,21 +638,23 @@
 
                     completados++;
                     progressBar.style.width = Math.round((completados / selectedFiles.length) * 100) + '%';
-                    progressText.textContent = '¡Todas las fotos fueron subidas!';
-                    btn.disabled = false;
 
-                    // Calcular stats
-                    const totalMB = selectedFiles.reduce((acc, f) => acc + f.size, 0) / 1024 / 1024;
-                    document.getElementById('statArchivos').textContent = selectedFiles.length;
-                    document.getElementById('statTamano').textContent   = totalMB.toFixed(1) + ' MB';
-
-                    // Mostrar modal
-                    document.getElementById('successModal').classList.add('open');
                 }
+                // mostrar el mensaje de exito cuando el proceso de subida termina
+                progressText.textContent = '¡Todas las fotos fueron subidas!';
+                btn.disabled = false;
+
+                // Calcular stats
+                const totalMB = selectedFiles.reduce((acc, f) => acc + f.size, 0) / 1024 / 1024;
+                document.getElementById('statArchivos').textContent = selectedFiles.length;
+                document.getElementById('statTamano').textContent   = totalMB.toFixed(1) + ' MB';
+
+                // Mostrar modal
+                document.getElementById('successModal').classList.add('open');
 
                 progressText.textContent = '¡Todas las fotos fueron subidas!';
                 btn.disabled = false;
-                setTimeout(() => window.location.reload(), 1500);
+                //setTimeout(() => window.location.reload(), 1500);
             }
 
             function cerrarModalYSubirMas() {

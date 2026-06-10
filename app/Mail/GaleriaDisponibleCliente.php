@@ -9,12 +9,17 @@ use Illuminate\Mail\Mailables\Envelope;
 
 class GaleriaDisponibleCliente extends Mailable
 {
-    public function __construct(public Sesion $sesion) {}
+    public function __construct(
+        public Sesion $sesion,
+        public string $tipo = 'seleccion' // seleccion o final
+    ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Tu galería de fotos está lista — AS Studio',
+            subject: $this->tipo === 'seleccion'
+                ? 'Tu galería de fotos está lista — AS Studio'
+                : 'Tu galería final está lista — AS Studio'
         );
     }
 

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Mail\GaleriaDisponibleCliente;
 use App\Models\Fotografia;
 use App\Models\Sesion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Mail;
 
 class FotografiaController extends Controller
 {
@@ -56,9 +58,19 @@ class FotografiaController extends Controller
             ]);
         }
 
-        // Cambio de estado automático según lo que se subió
+
+        // Cambio de estado y notificación según lo que se subió
         if ($estado === 'ORIGINAL' && $sesion->estado === 'EN_PROCESO') {
+            // Primera vez que se suben originales: galería disponible para selección
             $sesion->update(['estado' => 'GALERIA_DISPONIBLE']);
+            $emailCliente = $sesion->reserva->cliente->usuario->email;
+            Mail::to($emailCliente)->send(new GaleriaDisponibleCliente($sesion, 'seleccion'));
+
+        } elseif ($estado === 'EDITADA' && $sesion->estado === 'EN_EDICION') {
+            // Fotógrafo sube editadas: galería final disponible, notificar al cliente
+            $sesion->update(['estado' => 'GALERIA_DISPONIBLE']);
+            $emailCliente = $sesion->reserva->cliente->usuario->email;
+            Mail::to($emailCliente)->send(new GaleriaDisponibleCliente($sesion, 'final'));
         }
 
         return response()->json([

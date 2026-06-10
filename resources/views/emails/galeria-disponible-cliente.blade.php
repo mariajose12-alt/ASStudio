@@ -3,10 +3,21 @@
 @section('email_title', 'Galería Disponible')
 
 @section('content')
-    <h2 style="color:#e87722;">Tu galería de fotos está lista</h2>
+    <h2 style="color:#e87722;">
+        @if($tipo === 'seleccion')
+            Tu galería está lista para selección
+        @else
+            Tu galería final está lista
+        @endif
+    </h2>
 
     <p>Hola <strong>{{ $sesion->reserva->cliente->usuario->persona->nombre }} {{ $sesion->reserva->cliente->usuario->persona->apellido }}</strong>,
-        tu fotógrafo ya subió las fotografías de tu sesión. ¡Ingresa y elige tus favoritas!</p>
+        @if($tipo === 'seleccion')
+            tu fotógrafo ya subió las fotografías de tu sesión. ¡Ingresa y elige tus favoritas!
+        @else
+            tus fotos editadas ya están listas. ¡Ingresa y descárgalas!
+        @endif
+    </p>
 
     <table style="width:100%; border-collapse:collapse; margin-top:16px;">
         <tr>
@@ -24,8 +35,13 @@
     </table>
 
     <div style="background:#fff3e8; border-left:4px solid #e87722;
-                padding:12px 16px; border-radius:0 8px 8px 0; margin-top:20px;">
-        <strong>Próximo paso:</strong> Ingresa a tu galería, revisa todas las fotos y confirma tu selección final.
+            padding:12px 16px; border-radius:0 8px 8px 0; margin-top:20px;">
+        <strong>Próximo paso:</strong>
+        @if($tipo === 'seleccion')
+            Ingresa a tu galería, revisa todas las fotos y confirma tu selección final.
+        @else
+            Ingresa a tu galería final y descarga tus fotos editadas.
+        @endif
     </div>
 
     <a href="{{ url('/cliente/galeria') }}"

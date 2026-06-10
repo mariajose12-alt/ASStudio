@@ -158,7 +158,6 @@ class GaleriaController extends Controller
         foreach ($fotos as $foto) {
             // URL firmada de corta duración solo para descarga interna
             $url = Storage::disk('r2')->temporaryUrl($foto->url, now()->addMinutes(10));
-
             $contenido = Http::timeout(30)->get($url)->body();
 
             if ($contenido) {

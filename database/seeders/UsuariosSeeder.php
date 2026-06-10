@@ -8,6 +8,7 @@ use App\Models\Persona;
 use App\Models\Usuario;
 use App\Models\Empleado;
 use App\Models\Cliente;
+use App\Models\Fotografo;
 
 class UsuariosSeeder extends Seeder
 {
@@ -33,6 +34,29 @@ class UsuariosSeeder extends Seeder
         Empleado::create([
             'usuario_id' => $usuarioAdmin->id,
             'rol' => 'ADMINISTRADOR',
+        ]);
+
+        // 2. Crear Fotógrafo
+        $personaFotografo = Persona::create([
+            'nombre'   => 'Carlos',
+            'apellido' => 'Fotógrafo',
+            'telefono' => '5559998888',
+        ]);
+
+        $usuarioFotografo = Usuario::create([
+            'persona_id' => $personaFotografo->id,
+            'email'      => 'fotografo@asstudio.com',
+            'contrasena' => Hash::make('password'),
+            'estado'     => 'ACTIVO',
+        ]);
+
+        $empleadoFotografo = Empleado::create([
+            'usuario_id' => $usuarioFotografo->id,
+            'rol'        => 'FOTOGRAFO',
+        ]);
+
+        Fotografo::create([
+            'empleado_id' => $empleadoFotografo->id,
         ]);
 
         // 3. Crear Cliente

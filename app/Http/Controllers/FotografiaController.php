@@ -68,7 +68,7 @@ class FotografiaController extends Controller
 
         } elseif ($estado === 'EDITADA' && $sesion->estado === 'EN_EDICION') {
             // Fotógrafo sube editadas: galería final disponible, notificar al cliente
-            $sesion->update(['estado' => 'GALERIA_DISPONIBLE']);
+            $sesion->update(['estado' => 'FINALIZADA']);
             $emailCliente = $sesion->reserva->cliente->usuario->email;
             Mail::to($emailCliente)->send(new GaleriaDisponibleCliente($sesion, 'final'));
         }

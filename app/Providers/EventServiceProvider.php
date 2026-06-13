@@ -42,5 +42,8 @@ class EventServiceProvider extends ServiceProvider
         SeleccionConfirmada::class => [
             EnviarNotificacionSeleccion::class,
         ],
+        ZipGaleriaListo::class => [
+            EnviarNotificacionZipListo::class,
+        ],
     ];
 }

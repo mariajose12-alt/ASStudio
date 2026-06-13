@@ -613,13 +613,8 @@ body {
     width: 100%;
     aspect-ratio: 18 / 7;
     min-height: clamp(380px, 50vh, 620px);
-    overflow: hidden;
     border-radius: var(--radius-lg);
     perspective: 1400px;
-    background: linear-gradient(135deg,
-    rgba(240,146,74,0.04) 0%,
-    rgba(232,119,34,0.02) 50%,
-    rgba(200,96,21,0.02) 100%);
     box-shadow: inset 0 1px 2px rgba(255,255,255,0.5);
 }
 
@@ -648,7 +643,7 @@ body {
 
 /* ━━━ PEEK LEFT (muy pequeño - esquina izquierda) ━━━ */
 .galeria-card-premium.peek.left {
-    width: 6.5%;
+    width: 20%;
     height: 50%;
     left: 1.2%;
     top: 50%;
@@ -658,11 +653,12 @@ body {
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
     z-index: 2;
     pointer-events: none;
+    clip-path: inset(0 27% 0 0);
 }
 
 /* ━━━ ADJACENT LEFT (mediano izquierdo) ━━━ */
 .galeria-card-premium.adjacent.left {
-    width: 21%;
+    width: 30%;
     height: 85%;
     left: 10%;
     top: 50%;
@@ -692,7 +688,7 @@ body {
 
 /* ━━━ ADJACENT RIGHT (mediano derecho) ━━━ */
 .galeria-card-premium.adjacent.right {
-    width: 21%;
+    width: 30%;
     height: 85%;
     right: 10%;
     top: 50%;
@@ -705,7 +701,7 @@ body {
 
 /* ━━━ PEEK RIGHT (muy pequeño - esquina derecha) ━━━ */
 .galeria-card-premium.peek.right {
-    width: 6.5%;
+    width: 20%;
     height: 50%;
     right: 1.2%;
     top: 50%;
@@ -715,6 +711,7 @@ body {
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
     z-index: 2;
     pointer-events: none;
+    clip-path: inset(0 0 0 27%);
 }
 
 /* ── Imagen interior ── */
@@ -889,13 +886,13 @@ body {
     }
 
     /* Ajustar anchos para tablet */
-    .galeria-card-premium.peek.left { left: 2%; }
-    .galeria-card-premium.peek.right { right: 2%; }
+    .galeria-card-premium.peek.left { left: 3.8%; }
+    .galeria-card-premium.peek.right { right: 3.8%; }
 
     .galeria-card-premium.adjacent.left { left: 12%; width: 20%; }
     .galeria-card-premium.adjacent.right { right: 12%; width: 20%; }
 
-    .galeria-card-premium.center { width: 32%; }
+    .galeria-card-premium.center { width: 45%; }
 
     .galeria-nav-btn {
         width: 46px;
@@ -944,7 +941,7 @@ body {
     }
 
     .galeria-card-premium.center {
-        width: 48%;
+        width: 65%;
         height: 100%;
     }
 

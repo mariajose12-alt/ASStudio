@@ -24,7 +24,7 @@ class ReservaController extends Controller
     {
         $reservas = $this->reservaService->reservasDelCliente(Auth::id());
 
-        return view('reservas.index', compact('reservas'));
+        return view('cliente.reservas.index', compact('reservas'));
     }
 
     /**

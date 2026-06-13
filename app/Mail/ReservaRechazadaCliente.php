@@ -14,7 +14,7 @@ class ReservaRechazadaCliente extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Tu reserva no pudo ser aprobada — AS Studio',
+            subject: 'Tu reserva no pudo ser aprobada · ' . config('app.name')
         );
     }
 

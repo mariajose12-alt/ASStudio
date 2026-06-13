@@ -3,51 +3,116 @@
 @section('email_title', 'Galería Disponible')
 
 @section('content')
-    <h2 style="color:#e87722;">
-        @if($tipo === 'seleccion')
-            Tu galería está lista para selección
-        @else
-            Tu galería final está lista
-        @endif
-    </h2>
 
-    <p>Hola <strong>{{ $sesion->reserva->cliente->usuario->persona->nombre }} {{ $sesion->reserva->cliente->usuario->persona->apellido }}</strong>,
-        @if($tipo === 'seleccion')
-            tu fotógrafo ya subió las fotografías de tu sesión. ¡Ingresa y elige tus favoritas!
-        @else
-            tus fotos editadas ya están listas. ¡Ingresa y descárgalas!
-        @endif
-    </p>
-
-    <table style="width:100%; border-collapse:collapse; margin-top:16px;">
+    {{-- Ícono de estado --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-            <td style="padding:10px; background:#f5f5f5; width:140px;"><strong>Paquete</strong></td>
-            <td style="padding:10px;">{{ $sesion->reserva->paquete->nombre }}</td>
-        </tr>
-        <tr>
-            <td style="padding:10px; background:#f5f5f5;"><strong>Fecha de sesión</strong></td>
-            <td style="padding:10px;">{{ \Carbon\Carbon::parse($sesion->fecha_inicio)->format('d/m/Y') }}</td>
-        </tr>
-        <tr>
-            <td style="padding:10px; background:#f5f5f5;"><strong>Lugar</strong></td>
-            <td style="padding:10px;">{{ $sesion->lugar }}</td>
+            <td align="center" style="padding-bottom:24px;">
+                <div style="display:inline-block;width:56px;height:56px;border-radius:50%;background-color:#fff3e8;border:2px solid rgba(232,119,34,0.3);text-align:center;line-height:56px;font-size:24px;">
+                    🖼️
+                </div>
+            </td>
         </tr>
     </table>
 
-    <div style="background:#fff3e8; border-left:4px solid #e87722;
-            padding:12px 16px; border-radius:0 8px 8px 0; margin-top:20px;">
-        <strong>Próximo paso:</strong>
-        @if($tipo === 'seleccion')
-            Ingresa a tu galería, revisa todas las fotos y confirma tu selección final.
-        @else
-            Ingresa a tu galería final y descarga tus fotos editadas.
-        @endif
-    </div>
+    {{-- Título --}}
+    <h1 style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:700;color:#1a0d00;line-height:1.3;text-align:center;">
+        Tu galería de fotos está lista
+    </h1>
 
-    <a href="{{ url('/cliente/galeria') }}"
-       style="display:inline-block; margin-top:24px; padding:12px 28px;
-              background:#e87722; color:#fff; border-radius:8px;
-              text-decoration:none; font-weight:bold;">
-        Ver mi galería →
-    </a>
+    {{-- Subtítulo --}}
+    <p style="margin:0 0 32px;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;color:#4b5563;text-align:center;">
+        Hola <strong style="color:#1a0d00;">{{ $sesion->reserva->cliente->usuario->persona->nombre }} {{ $sesion->reserva->cliente->usuario->persona->apellido }}</strong>,
+        tu fotógrafo ya subió las fotografías de tu sesión. ¡Ingresa y elige tus favoritas!
+    </p>
+
+    {{-- Divisor --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+        <tr>
+            <td style="height:1px;background-color:#e8e8e8;font-size:1px;line-height:1px;">&nbsp;</td>
+        </tr>
+    </table>
+
+    {{-- Etiqueta sección --}}
+    <p style="margin:0 0 14px;font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;">
+        Detalles de la sesión
+    </p>
+
+    {{-- Tabla de detalles --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;">
+        <tr>
+            <td style="padding:14px 20px;background-color:#fafafa;border-bottom:1px solid #e8e8e8;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="140" valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Paquete</span>
+                        </td>
+                        <td valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:600;">{{ $sesion->reserva->paquete->nombre }}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:14px 20px;background-color:#ffffff;border-bottom:1px solid #e8e8e8;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="140" valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Fecha de sesión</span>
+                        </td>
+                        <td valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:500;">{{ \Carbon\Carbon::parse($sesion->fecha_inicio)->format('d/m/Y') }}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:14px 20px;background-color:#fafafa;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="140" valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Lugar</span>
+                        </td>
+                        <td valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:500;">{{ $sesion->lugar }}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- Banner próximo paso --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
+        <tr>
+            <td style="background-color:#fff3e8;border-left:4px solid #e87722;padding:14px 18px;border-radius:0 8px 8px 0;">
+                <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;line-height:1.6;">
+                    <strong>Próximo paso:</strong> Ingresa a tu galería, revisa todas las fotos y confirma tu selección final.
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    {{-- CTA --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:32px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td style="border-radius:12px;background-color:#e87722;">
+                            <a href="{{ url('/cliente/galeria') }}"
+                               target="_blank"
+                               style="display:inline-block;padding:14px 32px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;">
+                                Ver mi galería &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
 @endsection

@@ -18,8 +18,8 @@ class GaleriaDisponibleCliente extends Mailable
     {
         return new Envelope(
             subject: $this->tipo === 'seleccion'
-                ? 'Tu galería de fotos está lista — AS Studio'
-                : 'Tu galería final está lista — AS Studio'
+                ? 'Tu galería de fotos está lista · ' . config('app.name')
+                : 'Tu galería final está lista · ' . config('app.name')
         );
     }
 

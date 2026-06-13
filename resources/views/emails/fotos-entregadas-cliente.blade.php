@@ -1,6 +1,6 @@
 @extends('layouts.email')
 
-@section('email_title', 'Reserva No Aprobada')
+@section('email_title', 'Fotos Entregadas')
 
 @section('content')
 
@@ -8,22 +8,22 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
             <td align="center" style="padding-bottom:24px;">
-                <div style="display:inline-block;width:56px;height:56px;border-radius:50%;background-color:#fdecea;border:2px solid rgba(198,40,40,0.25);text-align:center;line-height:56px;font-size:24px;">
-                    ✕
+                <div style="display:inline-block;width:56px;height:56px;border-radius:50%;background-color:#fff3e8;border:2px solid rgba(232,119,34,0.3);text-align:center;line-height:56px;font-size:24px;">
+                    🎉
                 </div>
             </td>
         </tr>
     </table>
 
     {{-- Título --}}
-    <h1 style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:700;color:#c62828;line-height:1.3;text-align:center;">
-        Tu reserva no pudo ser aprobada
+    <h1 style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:700;color:#1a0d00;line-height:1.3;text-align:center;">
+        Tus fotos editadas están listas
     </h1>
 
     {{-- Subtítulo --}}
     <p style="margin:0 0 32px;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;color:#4b5563;text-align:center;">
-        Hola <strong style="color:#1a0d00;">{{ $reserva->cliente->usuario->persona->nombre }} {{ $reserva->cliente->usuario->persona->apellido }}</strong>,
-        lamentablemente tu solicitud no pudo ser aceptada en este momento.
+        Hola <strong style="color:#1a0d00;">{{ $sesion->reserva->cliente->usuario->persona->nombre }} {{ $sesion->reserva->cliente->usuario->persona->apellido }}</strong>,
+        tu fotógrafo finalizó la edición y ya puedes descargar tus fotografías.
     </p>
 
     {{-- Divisor --}}
@@ -35,7 +35,7 @@
 
     {{-- Etiqueta sección --}}
     <p style="margin:0 0 14px;font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;">
-        Detalles de la solicitud
+        Detalles de la sesión
     </p>
 
     {{-- Tabla de detalles --}}
@@ -49,7 +49,7 @@
                             <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Paquete</span>
                         </td>
                         <td valign="top">
-                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:600;">{{ $reserva->paquete->nombre }}</span>
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:600;">{{ $sesion->reserva->paquete->nombre }}</span>
                         </td>
                     </tr>
                 </table>
@@ -60,12 +60,10 @@
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                     <tr>
                         <td width="140" valign="top">
-                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Fecha solicitada</span>
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Fecha de sesión</span>
                         </td>
                         <td valign="top">
-                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:500;">
-                                {{ \Carbon\Carbon::parse($reserva->fecha_inicio)->format('d/m/Y H:i') }}
-                            </span>
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:500;">{{ \Carbon\Carbon::parse($sesion->fecha_inicio)->format('d/m/Y') }}</span>
                         </td>
                     </tr>
                 </table>
@@ -76,12 +74,10 @@
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                     <tr>
                         <td width="140" valign="top">
-                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Estado</span>
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Lugar</span>
                         </td>
                         <td valign="top">
-                            <span style="display:inline-block;padding:3px 12px;background-color:#fdecea;border-radius:20px;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#c62828;letter-spacing:0.5px;">
-                                No aprobada
-                            </span>
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:500;">{{ $sesion->lugar }}</span>
                         </td>
                     </tr>
                 </table>
@@ -89,28 +85,12 @@
         </tr>
     </table>
 
-    {{-- Motivo de rechazo (condicional) --}}
-    @if($reserva->motivo_rechazo)
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;">
-            <tr>
-                <td style="background-color:#fdecea;border-left:4px solid #c62828;padding:14px 18px;border-radius:0 8px 8px 0;">
-                    <p style="margin:0 0 4px;font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#c62828;">
-                        Motivo
-                    </p>
-                    <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;line-height:1.6;">
-                        {{ $reserva->motivo_rechazo }}
-                    </p>
-                </td>
-            </tr>
-        </table>
-    @endif
-
-    {{-- Mensaje alentador --}}
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;">
+    {{-- Banner próximo paso --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
         <tr>
             <td style="background-color:#fff3e8;border-left:4px solid #e87722;padding:14px 18px;border-radius:0 8px 8px 0;">
                 <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;line-height:1.6;">
-                    <strong>¿Qué puedes hacer?</strong> Puedes intentar reservar en otra fecha disponible. Estamos felices de atenderte.
+                    <strong>¡A disfrutar!</strong> Ingresa a tu galería para descargar tus fotografías editadas.
                 </p>
             </td>
         </tr>
@@ -123,10 +103,10 @@
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                     <tr>
                         <td style="border-radius:12px;background-color:#e87722;">
-                            <a href="{{ url('/cliente/reservas/paso1') }}"
+                            <a href="{{ url('/cliente/galeria') }}"
                                target="_blank"
                                style="display:inline-block;padding:14px 32px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;">
-                                Hacer nueva reserva &rarr;
+                                Ver mi galería &rarr;
                             </a>
                         </td>
                     </tr>

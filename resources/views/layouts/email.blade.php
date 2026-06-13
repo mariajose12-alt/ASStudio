@@ -7,370 +7,206 @@
     <meta name="x-apple-disable-message-reformatting">
     <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
     <title>@yield('email_title', config('app.name'))</title>
-
     <!--[if mso]>
-    <noscript>
-        <xml>
-            <o:OfficeDocumentSettings>
-                <o:PixelsPerInch>96</o:PixelsPerInch>
-            </o:OfficeDocumentSettings>
-        </xml>
-    </noscript>
+    <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
     <![endif]-->
-
-    <style>
-        /* ── Reset ── */
-        * { box-sizing: border-box; }
-        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-        img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
-        body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
-
-        /* ── Fuentes ── */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600&display=swap');
-
-        /* ── Variables de color ── */
-        :root {
-            --brand-primary:   #e87722;
-            --brand-dark:      #1a0d00;
-            --brand-accent:    #c96015;
-            --brand-light:     #fff3e8;
-            --brand-soft:      #f5c49a;
-            --text-primary:    #1a1a1a;
-            --text-secondary:  #6b6b6b;
-            --text-muted:      #9ca3af;
-            --bg-body:         #f4f4f5;
-            --bg-card:         #ffffff;
-            --bg-header:       #1a0d00;
-            --border-color:    #e8e8e8;
-            --success:         #059669;
-            --success-bg:      #ecfdf5;
-            --warning:         #d97706;
-            --warning-bg:      #fffbeb;
-            --danger:          #dc2626;
-            --danger-bg:       #fef2f2;
-            --info:            #2563eb;
-            --info-bg:         #eff6ff;
-        }
-
-        /* ── Base ── */
-        body {
-            background-color: #f4f4f5;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: #1a1a1a;
-        }
-
-        .email-wrapper {
-            width: 100%;
-            background-color: #f4f4f5;
-            padding: 32px 16px;
-        }
-
-        .email-container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* ── Header ── */
-        .email-header {
-            background: linear-gradient(135deg, #1a0d00 0%, #2d1500 60%, #3d1f00 100%);
-            border-radius: 20px 20px 0 0;
-            padding: 40px 48px 36px;
-            text-align: center;
-        }
-
-        .email-header__logo {
-            display: block;
-            margin: 0 auto 24px;
-            max-height: 48px;
-            width: auto;
-        }
-
-        .email-header__divider {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
-        .email-header__line {
-            height: 1px;
-            width: 60px;
-            background: linear-gradient(90deg, transparent, rgba(232,119,34,0.6));
-        }
-
-        .email-header__line--right {
-            background: linear-gradient(90deg, rgba(232,119,34,0.6), transparent);
-        }
-
-        .email-header__dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #e87722;
-        }
-
-        /* ── Card principal ── */
-        .email-card {
-            background: #ffffff;
-            padding: 48px;
-            border-left: 1px solid #e8e8e8;
-            border-right: 1px solid #e8e8e8;
-        }
-
-        /* ── Info block ── */
-        .email-info-block {
-            background: #fff3e8;
-            border: 1px solid rgba(232,119,34,0.2);
-            border-radius: 14px;
-            padding: 24px 28px;
-            margin: 32px 0 0;
-        }
-
-        .email-info-block__title {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-size: 15px;
-            font-weight: 600;
-            color: #1a0d00;
-            margin: 0 0 16px;
-            letter-spacing: 0.3px;
-        }
-
-        .email-info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .email-info-item {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .email-info-item__label {
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #9ca3af;
-        }
-
-        .email-info-item__value {
-            font-size: 13px;
-            color: #1a1a1a;
-            font-weight: 500;
-        }
-
-        .email-info-item__value a {
-            color: #e87722;
-            text-decoration: none;
-        }
-
-        .email-company-info {
-            margin-top: 40px;
-            padding-top: 24px;
-            border-top: 1px solid #e8e8e8;
-        }
-
-        /* ── Footer ── */
-        .email-footer {
-            background: #111111;
-            border-radius: 0 0 20px 20px;
-            padding: 36px 48px 32px;
-            text-align: center;
-            border: 1px solid #222;
-            border-top: none;
-        }
-
-        .email-footer__social {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .email-footer__social-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.08);
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-
-        .email-footer__social-link:hover {
-            background: rgba(232,119,34,0.2);
-        }
-
-        .email-footer__social-link img,
-        .email-footer__social-link svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        .email-footer__contact {
-            font-size: 13px;
-            color: #9ca3af;
-            line-height: 1.8;
-            margin-bottom: 20px;
-        }
-
-        .email-footer__contact a {
-            color: #e87722;
-            text-decoration: none;
-        }
-
-        .email-footer__divider {
-            border: none;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            margin: 20px 0;
-        }
-
-        .email-footer__legal {
-            font-size: 11px;
-            color: #6b6b6b;
-            line-height: 1.7;
-        }
-
-        .email-footer__legal a {
-            color: #9ca3af;
-            text-decoration: underline;
-        }
-
-        /* ── Sombra exterior ── */
-        .email-shadow {
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 20px 60px -10px rgba(0,0,0,0.12);
-            border-radius: 20px;
-        }
-
-        /* ── Responsive ── */
-        @media (max-width: 620px) {
-            .email-wrapper { padding: 16px 12px; }
-            .email-header  { padding: 28px 24px 24px; border-radius: 16px 16px 0 0; }
-            .email-card    { padding: 28px 24px; }
-            .email-footer  { padding: 28px 24px 24px; border-radius: 0 0 16px 16px; }
-            .email-info-grid { grid-template-columns: 1fr; }
-            .email-info-block { padding: 20px; }
+    {{-- Solo estilos que Gmail respeta: reset básico y media queries para móvil --}}
+    <style type="text/css">
+        body, table, td, p, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse; }
+        img { -ms-interpolation-mode: bicubic; border: 0; display: block; outline: none; text-decoration: none; }
+        body { margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #f2f2f2; }
+        a { color: #e87722; text-decoration: none; }
+        @media screen and (max-width: 620px) {
+            .email-container { width: 100% !important; }
+            .mobile-padding  { padding: 28px 20px !important; }
+            .mobile-full     { width: 100% !important; display: block !important; }
+            .mobile-hide     { display: none !important; }
         }
     </style>
 </head>
-<body>
-<div class="email-wrapper">
-    <div class="email-container email-shadow">
+<body style="margin:0;padding:0;background-color:#f2f2f2;">
 
-        {{-- ══ HEADER ══ --}}
-        <div class="email-header">
-            <img src="{{ isset($message) ? $message->embed(public_path('images/logo.png')) : asset('images/logo.png') }}"
-                 alt="AStudio"
-                 class="email-header__logo"
-                 style="display:block; margin:0 auto 24px; max-height:48px; width:auto; filter: invert(1);">
+{{-- Wrapper externo --}}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background-color:#f2f2f2;">
+    <tr>
+        <td align="center" style="padding:32px 16px;">
 
-            <div class="email-header__divider">
-                <div class="email-header__line"   style="height:1px;width:60px;background:linear-gradient(90deg,transparent,rgba(232,119,34,0.6));"></div>
-                <div class="email-header__dot"    style="width:6px;height:6px;border-radius:50%;background:#e87722;"></div>
-                <div class="email-header__line email-header__line--right" style="height:1px;width:60px;background:linear-gradient(90deg,rgba(232,119,34,0.6),transparent);"></div>
-            </div>
-        </div>
+            {{-- Contenedor de 600px --}}
+            <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0"
+                   style="width:600px;max-width:600px;">
 
-        {{-- ══ CARD PRINCIPAL ══ --}}
-        <div class="email-card">
-            @yield('content')
+                {{-- ══ HEADER ══ --}}
+                <tr>
+                    <td style="background-color:#1a0d00;border-radius:16px 16px 0 0;padding:36px 48px 28px;text-align:center;">
 
-            {{-- ══ BLOQUE INFO EMPRESA ══ --}}
-            <div class="email-company-info"
-                @unless(View::hasSection('hide_info'))
-                    <div class="email-info-block">
-                        <p class="email-info-block__title">AStudio</p>
-                        <div class="email-info-grid">
-                            <div class="email-info-item">
-                                <span class="email-info-item__label">Correo</span>
-                                <span class="email-info-item__value">
-                            <a href="mailto:{{ config('mail.from.address') }}">{{ config('mail.from.address') }}</a>
-                        </span>
-                            </div>
-                            <div class="email-info-item">
-                                <span class="email-info-item__label">Teléfono</span>
-                                <span class="email-info-item__value">
-                            <a href="tel:{{ config('company.phone', '+1 000 000 0000') }}">{{ config('company.phone', '+1 000 000 0000') }}</a>
-                        </span>
-                            </div>
-                            <div class="email-info-item">
-                                <span class="email-info-item__label">Horario</span>
-                                <span class="email-info-item__value">{{ config('company.hours', 'Lun – Sáb, 9am – 7pm') }}</span>
-                            </div>
-                            <div class="email-info-item">
-                                <span class="email-info-item__label">Sitio web</span>
-                                <span class="email-info-item__value">
-                            <a href="{{ config('app.url') }}" target="_blank">{{ str_replace(['https://','http://'], '', config('app.url')) }}</a>
-                        </span>
-                            </div>
-                        </div>
-                    </div>
-                @endunless
-            </div>
-        {{-- ══ FOOTER ══ --}}
-        <div class="email-footer">
+                        {{-- Logo --}}
+                        <img src="{{ isset($message) ? $message->embed(public_path('images/logo.png')) : asset('images/logo.png') }}"
+                             alt="AStudio"
+                             width="140"
+                             style="display:block;margin:0 auto 20px;max-height:48px;width:auto;filter:brightness(0) invert(1);">
 
-            {{-- Redes sociales --}}
-            <div class="email-footer__social">
-                @if(config('company.social.instagram'))
-                    <a href="{{ config('company.social.instagram') }}" class="email-footer__social-link" target="_blank" title="Instagram"
-                       style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.08);text-decoration:none;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="2" y="2" width="20" height="20" rx="5" stroke="#9ca3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37Z" stroke="#9ca3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                    </a>
-                @endif
+                        {{-- Línea decorativa: tabla de 3 celdas --}}
+                        <table role="presentation" width="160" cellpadding="0" cellspacing="0" border="0"
+                               style="margin:0 auto;">
+                            <tr>
+                                <td width="60" style="height:1px;background-color:rgba(232,119,34,0.5);font-size:1px;line-height:1px;">&nbsp;</td>
+                                <td width="10" align="center" style="padding:0 6px;">
+                                    <div style="width:6px;height:6px;border-radius:50%;background-color:#e87722;margin:0 auto;font-size:1px;line-height:1px;">&nbsp;</div>
+                                </td>
+                                <td width="60" style="height:1px;background-color:rgba(232,119,34,0.5);font-size:1px;line-height:1px;">&nbsp;</td>
+                            </tr>
+                        </table>
 
-                @if(config('company.social.whatsapp'))
-                    <a href="https://wa.me/{{ preg_replace('/\D/', '', config('company.social.whatsapp')) }}" class="email-footer__social-link" target="_blank" title="WhatsApp"
-                       style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.08);text-decoration:none;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" stroke="#9ca3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </a>
-                @endif
+                    </td>
+                </tr>
 
-                @if(config('company.social.tiktok'))
-                    <a href="{{ config('company.social.tiktok') }}" class="email-footer__social-link" target="_blank" title="TikTok"
-                       style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.08);text-decoration:none;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" stroke="#9ca3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </a>
-                @endif
-            </div>
+                {{-- ══ CARD PRINCIPAL ══ --}}
+                <tr>
+                    <td class="mobile-padding"
+                        style="background-color:#ffffff;padding:44px 48px;border-left:1px solid #e8e8e8;border-right:1px solid #e8e8e8;">
 
-            {{-- Contacto --}}
-            <div class="email-footer__contact">
-                <a href="mailto:{{ config('mail.from.address') }}">{{ config('mail.from.address') }}</a>
-                &nbsp;·&nbsp;
-                <a href="tel:{{ config('company.phone', '') }}">{{ config('company.phone', '') }}</a>
-                @if(config('company.address'))
-                    <br>{{ config('company.address') }}
-                @endif
-            </div>
+                        @yield('content')
 
-            <hr class="email-footer__divider" style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:20px 0;">
+                        {{-- ══ BLOQUE INFO EMPRESA ══ --}}
+                        @unless(View::hasSection('hide_company_info'))
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                                   style="margin-top:36px;border-top:1px solid #e8e8e8;">
+                                <tr>
+                                    <td style="padding-top:28px;">
+                                        {{-- Título del bloque --}}
+                                        <p style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:15px;font-weight:600;color:#1a0d00;letter-spacing:0.3px;">
+                                            AStudio
+                                        </p>
+                                        {{-- Grid de 2 columnas con tabla --}}
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                                               style="background-color:#fff3e8;border:1px solid rgba(232,119,34,0.2);border-radius:10px;">
+                                            <tr>
+                                                <td style="padding:20px 24px;">
+                                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                                        <tr>
+                                                            {{-- Columna izquierda --}}
+                                                            <td class="mobile-full" width="50%" valign="top"
+                                                                style="padding-right:12px;">
+                                                                <p style="margin:0 0 12px;font-family:Arial,sans-serif;">
+                                                                    <span style="display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:3px;">Correo</span>
+                                                                    <a href="mailto:{{ config('mail.from.address') }}"
+                                                                       style="font-size:13px;color:#e87722;text-decoration:none;font-weight:500;">{{ config('mail.from.address') }}</a>
+                                                                </p>
+                                                                <p style="margin:0;font-family:Arial,sans-serif;">
+                                                                    <span style="display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:3px;">Horario</span>
+                                                                    <span style="font-size:13px;color:#1a1a1a;font-weight:500;">{{ config('company.hours', 'Lun – Sáb, 9am – 7pm') }}</span>
+                                                                </p>
+                                                            </td>
+                                                            {{-- Columna derecha --}}
+                                                            <td class="mobile-full" width="50%" valign="top"
+                                                                style="padding-left:12px;">
+                                                                <p style="margin:0 0 12px;font-family:Arial,sans-serif;">
+                                                                    <span style="display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:3px;">Teléfono</span>
+                                                                    <a href="tel:{{ config('company.phone', '') }}"
+                                                                       style="font-size:13px;color:#e87722;text-decoration:none;font-weight:500;">{{ config('company.phone', '+1 000 000 0000') }}</a>
+                                                                </p>
+                                                                <p style="margin:0;font-family:Arial,sans-serif;">
+                                                                    <span style="display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:3px;">Sitio web</span>
+                                                                    <a href="{{ config('app.url') }}" target="_blank"
+                                                                       style="font-size:13px;color:#e87722;text-decoration:none;font-weight:500;">{{ str_replace(['https://','http://'], '', config('app.url')) }}</a>
+                                                                </p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        @endunless
 
-            {{-- Legal --}}
-            <div class="email-footer__legal">
-                Este correo fue enviado automáticamente, por favor no respondas a este mensaje.<br>
-                Si tienes dudas, contáctanos en
-                <a href="mailto:{{ config('mail.from.address') }}">{{ config('mail.from.address') }}</a>
-                o visita nuestro
-                <a href="{{ config('app.url') }}/soporte" target="_blank">centro de soporte</a>.<br><br>
-                &copy; {{ date('Y') }} AStudio. Todos los derechos reservados.
-            </div>
-        </div>
-    </div>
-</div>
+                    </td>
+                </tr>
+
+                {{-- ══ FOOTER ══ --}}
+                <tr>
+                    <td class="mobile-padding"
+                        style="background-color:#111111;border-radius:0 0 16px 16px;padding:32px 48px 28px;text-align:center;border:1px solid #222222;border-top:none;">
+
+                        {{-- Redes sociales --}}
+                        @if(config('company.social.instagram') || config('company.social.whatsapp') || config('company.social.tiktok'))
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0"
+                                   style="margin:0 auto 24px;">
+                                <tr>
+                                    @if(config('company.social.instagram'))
+                                        <td style="padding:0 5px;">
+                                            <a href="{{ config('company.social.instagram') }}" target="_blank"
+                                               style="display:inline-block;width:38px;height:38px;border-radius:10px;background-color:rgba(255,255,255,0.08);text-decoration:none;text-align:center;line-height:38px;">
+                                                <img src="{{ asset('images/email/icon-instagram.png') }}" width="18" height="18"
+                                                     alt="Instagram" style="display:inline-block;vertical-align:middle;">
+                                            </a>
+                                        </td>
+                                    @endif
+                                    @if(config('company.social.whatsapp'))
+                                        <td style="padding:0 5px;">
+                                            <a href="https://wa.me/{{ preg_replace('/\D/', '', config('company.social.whatsapp')) }}" target="_blank"
+                                               style="display:inline-block;width:38px;height:38px;border-radius:10px;background-color:rgba(255,255,255,0.08);text-decoration:none;text-align:center;line-height:38px;">
+                                                <img src="{{ asset('images/email/icon-whatsapp.png') }}" width="18" height="18"
+                                                     alt="WhatsApp" style="display:inline-block;vertical-align:middle;">
+                                            </a>
+                                        </td>
+                                    @endif
+                                    @if(config('company.social.tiktok'))
+                                        <td style="padding:0 5px;">
+                                            <a href="{{ config('company.social.tiktok') }}" target="_blank"
+                                               style="display:inline-block;width:38px;height:38px;border-radius:10px;background-color:rgba(255,255,255,0.08);text-decoration:none;text-align:center;line-height:38px;">
+                                                <img src="{{ asset('images/email/icon-tiktok.png') }}" width="18" height="18"
+                                                     alt="TikTok" style="display:inline-block;vertical-align:middle;">
+                                            </a>
+                                        </td>
+                                    @endif
+                                </tr>
+                            </table>
+                        @endif
+
+                        {{-- Contacto --}}
+                        <p style="margin:0 0 20px;font-family:Arial,sans-serif;font-size:13px;color:#9ca3af;line-height:1.8;">
+                            <a href="mailto:{{ config('mail.from.address') }}"
+                               style="color:#e87722;text-decoration:none;">{{ config('mail.from.address') }}</a>
+                            &nbsp;·&nbsp;
+                            <a href="tel:{{ config('company.phone', '') }}"
+                               style="color:#e87722;text-decoration:none;">{{ config('company.phone', '') }}</a>
+                            @if(config('company.address'))
+                                <br>{{ config('company.address') }}
+                            @endif
+                        </p>
+
+                        {{-- Divisor --}}
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td style="height:1px;background-color:rgba(255,255,255,0.08);font-size:1px;line-height:1px;margin:0 0 20px;">&nbsp;</td>
+                            </tr>
+                        </table>
+
+                        {{-- Legal --}}
+                        <p style="margin:16px 0 0;font-family:Arial,sans-serif;font-size:11px;color:#6b6b6b;line-height:1.7;">
+                            Este correo fue enviado automáticamente, por favor no respondas a este mensaje.<br>
+                            Si tienes dudas, contáctanos en
+                            <a href="mailto:{{ config('mail.from.address') }}"
+                               style="color:#9ca3af;text-decoration:underline;">{{ config('mail.from.address') }}</a>
+                            o visita nuestro
+                            <a href="{{ config('app.url') }}/soporte" target="_blank"
+                               style="color:#9ca3af;text-decoration:underline;">centro de soporte</a>.<br><br>
+                            &copy; {{ date('Y') }} AStudio. Todos los derechos reservados.
+                        </p>
+
+                    </td>
+                </tr>
+
+            </table>
+            {{-- /contenedor 600px --}}
+
+        </td>
+    </tr>
+</table>
+
 </body>
 </html>

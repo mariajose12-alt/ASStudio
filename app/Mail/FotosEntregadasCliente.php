@@ -3,25 +3,30 @@
 namespace App\Mail;
 
 use App\Models\Sesion;
+use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
 
-class SeleccionConfirmadaFotografo extends Mailable
+class FotosEntregadasCliente extends Mailable
 {
+    use Queueable, SerializesModels;
+
     public function __construct(public Sesion $sesion) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'El cliente confirmó su selección de fotos · ' . config('app.name')
+            subject: '¡Tus fotos editadas están listas! · ' . config('app.name')
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.seleccion-confirmada-fotografo',
+        // Crea la vista: resources/views/emails/fotos-entregadas-cliente.blade.php
+            view: 'emails.fotos-entregadas-cliente',
         );
     }
 }

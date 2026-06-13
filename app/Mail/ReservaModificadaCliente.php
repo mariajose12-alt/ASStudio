@@ -14,7 +14,7 @@ class ReservaModificadaCliente extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'El fotógrafo propone un cambio en tu reserva — AS Studio',
+            subject: 'El fotógrafo propone un cambio en tu reserva · ' . config('app.name')
         );
     }
 

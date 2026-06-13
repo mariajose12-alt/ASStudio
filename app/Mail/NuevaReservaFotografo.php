@@ -15,7 +15,7 @@ class NuevaReservaFotografo extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Nueva solicitud de reserva — AS Studio',
+            subject: 'Nueva solicitud de reserva · ' . config('app.name')
         );
     }
 

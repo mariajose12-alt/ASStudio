@@ -1,86 +1,135 @@
 @extends('layouts.email')
 
-@section('email_title', 'Reserva aprobada')
+@section('email_title', 'Reserva Aprobada')
 
 @section('content')
 
-    <h1 style="
-    margin:0 0 16px;
-    font-size:28px;
-    font-weight:700;
-    color:#1a0d00;
-">
+    {{-- Ícono de estado --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td align="center" style="padding-bottom:24px;">
+                <div style="display:inline-block;width:56px;height:56px;border-radius:50%;background-color:#e8f5e9;border:2px solid rgba(46,125,50,0.3);text-align:center;line-height:56px;font-size:24px;">
+                    ✓
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {{-- Título --}}
+    <h1 style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:700;color:#1a0d00;line-height:1.3;text-align:center;">
         ¡Tu reserva ha sido aprobada!
     </h1>
 
-    <p style="
-    margin:0 0 24px;
-    font-size:15px;
-    line-height:1.7;
-    color:#4b5563;
-">
-        Hola {{ $reserva->cliente->usuario->persona->nombre }},
+    {{-- Subtítulo --}}
+    <p style="margin:0 0 32px;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;color:#4b5563;text-align:center;">
+        Hola <strong style="color:#1a0d00;">{{ $reserva->cliente->usuario->persona->nombre }}</strong>,
         nos complace informarte que tu solicitud de reserva fue aprobada.
     </p>
 
-    <div class="email-info-block" style="margin-top:0;">
-        <p class="email-info-block__title">
-            Detalles de la reserva
-        </p>
+    {{-- Divisor --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+        <tr>
+            <td style="height:1px;background-color:#e8e8e8;font-size:1px;line-height:1px;">&nbsp;</td>
+        </tr>
+    </table>
 
-        <div class="email-info-grid">
-            <div class="email-info-item">
-                <span class="email-info-item__label">Paquete</span>
-                <span class="email-info-item__value">
-                {{ $reserva->paquete->nombre }}
-            </span>
-            </div>
-
-            <div class="email-info-item">
-                <span class="email-info-item__label">Fecha</span>
-                <span class="email-info-item__value">
-                {{ $reserva->fecha_inicio->format('d/m/Y') }}
-            </span>
-            </div>
-
-            <div class="email-info-item">
-                <span class="email-info-item__label">Tipo</span>
-                <span class="email-info-item__value">
-                {{ $reserva->tipo }}
-            </span>
-            </div>
-
-            <div class="email-info-item">
-                <span class="email-info-item__label">Estado</span>
-                <span class="email-info-item__value">
-                Aprobada
-            </span>
-            </div>
-        </div>
-    </div>
-
-    <p style="
-    margin:32px 0 24px;
-    font-size:15px;
-    line-height:1.7;
-    color:#4b5563;
-">
-        Ya puedes acceder a tu reserva y revisar toda la información desde la plataforma.
+    {{-- Etiqueta sección --}}
+    <p style="margin:0 0 14px;font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;">
+        Detalles de la reserva
     </p>
 
-    <div style="text-align:center;">
-        <a href="{{ route('cliente.reservas.show', $reserva->id) }}"
-           style="
-            display:inline-block;
-            padding:14px 28px;
-            background:#e87722;
-            color:#ffffff;
-            text-decoration:none;
-            border-radius:12px;
-            font-weight:600;
-       ">
-            Ver mi reserva
-        </a>
-    </div>
+    {{-- Tabla de detalles --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;">
+        <tr>
+            <td style="padding:14px 20px;background-color:#fafafa;border-bottom:1px solid #e8e8e8;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="120" valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Paquete</span>
+                        </td>
+                        <td valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:600;">{{ $reserva->paquete->nombre }}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:14px 20px;background-color:#ffffff;border-bottom:1px solid #e8e8e8;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="120" valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Fecha</span>
+                        </td>
+                        <td valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:500;">{{ $reserva->fecha_inicio->format('d/m/Y') }}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:14px 20px;background-color:#fafafa;border-bottom:1px solid #e8e8e8;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="120" valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Tipo</span>
+                        </td>
+                        <td valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:500;">{{ $reserva->tipo }}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:14px 20px;background-color:#ffffff;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="120" valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Estado</span>
+                        </td>
+                        <td valign="top">
+                            {{-- Badge de estado --}}
+                            <span style="display:inline-block;padding:3px 12px;background-color:#e8f5e9;border-radius:20px;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#2e7d32;letter-spacing:0.5px;">
+                                Aprobada
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- Banner de siguiente paso --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
+        <tr>
+            <td style="background-color:#fff3e8;border-left:4px solid #e87722;padding:14px 18px;border-radius:0 8px 8px 0;">
+                <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;line-height:1.6;">
+                    <strong>Siguiente paso:</strong> Ya puedes acceder a tu reserva y revisar toda la información desde la plataforma.
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    {{-- CTA --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:32px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td style="border-radius:12px;background-color:#e87722;">
+                            <a href="{{ route('cliente.reservas.show', $reserva->id) }}"
+                               target="_blank"
+                               style="display:inline-block;padding:14px 32px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;">
+                                Ver mi reserva &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 
 @endsection

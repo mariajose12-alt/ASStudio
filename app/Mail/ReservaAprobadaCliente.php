@@ -14,7 +14,7 @@ class ReservaAprobadaCliente extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '¡Tu reserva fue aprobada! — AS Studio',
+            subject: '¡Tu reserva fue aprobada! · ' . config('app.name')
         );
     }
 

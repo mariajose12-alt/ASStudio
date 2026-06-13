@@ -14,7 +14,7 @@ class PagoConfirmadoCliente extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Pago recibido — tu sesión está confirmada · AS Studio',
+            subject: 'Pago recibido — tu sesión está confirmada ·' . config('app.name')
         );
     }
 

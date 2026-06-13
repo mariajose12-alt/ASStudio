@@ -19,7 +19,7 @@ class EnviarNotificacionNuevaReserva
             return;
         }
 
-        $email = $fotografo->getUsuario()->email;
+        $email = $fotografo->empleado->usuario->email;
 
         Mail::to($email)->send(new NuevaReservaFotografo($reserva));
     }

@@ -61,7 +61,7 @@ Route::get('/estudio', function () {
 Route::get('/preview-mail', function () {
     $reserva = App\Models\Reserva::first();
 
-    return new App\Mail\ReservaAprobadaCliente($reserva);
+    return new App\Mail\ReservaModificadaCliente($reserva);
 });
 
 // AUTENTICACIÓN
@@ -117,13 +117,13 @@ Route::middleware(['auth', 'rol:FOTOGRAFO'])
         Route::post('reservas/{reserva}/accion', [FotografoReservaController::class, 'procesarAccion'])->name('reservas.accion');
 
         // Sesiones
-        Route::get('sesiones',                   [SesionController::class, 'index'])->name('sesiones.index');
-        Route::post('sesiones/{id}/iniciar',     [SesionController::class, 'iniciar'])->name('sesiones.iniciar');
+        Route::get('sesiones',               [SesionController::class, 'index'])->name('sesiones.index');
+        Route::post('sesiones/{id}/iniciar', [SesionController::class, 'iniciar'])->name('sesiones.iniciar');
 
         // Fotografías
-        Route::get('sesiones/{id}/fotografias/create', [FotografiaController::class, 'create'])->name('fotografias.create');
-        Route::post('sesiones/{id}/fotografias',       [FotografiaController::class, 'store'])->name('fotografias.store');
-        Route::post('sesiones/{id}/fotografias',       [FotografiaController::class, 'store']) ->name('fotografias.store');
+        Route::get('sesiones/{id}/fotografias/create',  [FotografiaController::class, 'create'])         ->name('fotografias.create');
+        Route::post('sesiones/{id}/fotografias',        [FotografiaController::class, 'store'])           ->name('fotografias.store');
+        Route::patch('sesiones/{id}/entregar',          [FotografiaController::class, 'marcarEntregada']) ->name('fotografias.entregar');
     });
 
 // DASHBOARD CLIENTE
@@ -154,7 +154,7 @@ Route::middleware(['auth', 'rol:CLIENTE'])
         Route::post('galeria/{id}/recepcion',          [GaleriaController::class, 'confirmarRecepcion'])->name('galeria.recepcion');
         Route::get('galeria/foto/{id}/descargar',      [GaleriaController::class, 'descargar'])         ->name('galeria.descargar');
         Route::get('galeria/{id}/zip/{tipo}',          [GaleriaController::class, 'descargarZip'])      ->name('galeria.zip');
-        Route::get('reservas/{reserva}',  [ClienteReservaController::class, 'show'])->name('reservas.show');
+        Route::get('reservas/{reserva}',               [ClienteReservaController::class, 'show'])->name('reservas.show');
 
         Route::patch('reservas/{reserva}/responder-sugerencia', [ClienteReservaController::class, 'responderSugerencia'])->name('reservas.responder-sugerencia');
 

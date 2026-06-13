@@ -32,36 +32,97 @@
                 <span class="meta-value">{{ $sesion->lugar ?? 'Estudio' }}</span>
             </div>
             <div class="meta-item">
-                <span class="meta-label">TIPO</span>
-                <span class="meta-value">{{ $sesion->reserva->tipo ?? '—' }}</span>
+                <span class="meta-label">ESTADO</span>
+                <span class="meta-value">{{ $sesion->estado }}</span>
             </div>
         </div>
     </div>
+
+    {{-- Fotos pendientes de edición (solo si la sesión está en EN_EDICION) --}}
+    @if($pendientesEdicion->isNotEmpty())
+        <div class="pendientes-card">
+            <div class="pendientes-header">
+                <div class="pendientes-header-left">
+                    <span class="pendientes-badge">{{ $pendientesEdicion->where('ya_editada', false)->count() }}</span>
+                    <h4 class="pendientes-title">Fotos seleccionadas por el cliente</h4>
+                </div>
+                <span class="pendientes-hint">Búscalas en tu computadora y súbelas como <strong>Editada</strong></span>
+            </div>
+
+            <div class="pendientes-list">
+                @foreach($pendientesEdicion as $foto)
+                    <div class="pendiente-item {{ $foto->ya_editada ? 'ya-editada' : '' }}">
+                        <div class="pendiente-icon">
+                            @if($foto->ya_editada)
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            @else
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-1.414.828l-3 1 1-3a4 4 0 01.828-1.414z"/>
+                                </svg>
+                            @endif
+                        </div>
+                        <span class="pendiente-nombre">{{ $foto->nombre_original ?? basename($foto->url) }}</span>
+                        <span class="pendiente-estado {{ $foto->ya_editada ? 'entregada' : '' }}">
+                            {{ $foto->ya_editada ? 'Editada ✓' : 'Pendiente de edición' }}
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Botón marcar como entregada — solo si hay fotos y todas están editadas --}}
+            @if($sesion->estado === 'EN_EDICION' && $pendientesEdicion->where('ya_editada', false)->count() === 0)
+                <div style="margin-top: 20px; text-align: right;">
+                    <button type="button" class="btn-entregar" id="btnEntregar" onclick="marcarEntregada()">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Marcar sesión como entregada
+                    </button>
+                </div>
+            @elseif($sesion->estado === 'EN_EDICION')
+                <div style="margin-top: 16px;">
+                    <p class="entregar-hint">Sube todas las fotos editadas para poder marcar la sesión como entregada.</p>
+                </div>
+            @endif
+        </div>
+    @endif
 
     {{-- Formulario de subida --}}
     <div class="upload-card">
         <div class="upload-header">
             <span class="upload-label">Seleccionar Archivos</span>
-            <div class="estado-selector">
-                <label class="estado-option">
-                    <input type="radio" name="estado_sel" value="ORIGINAL" checked>
-                    <span>RAW / Original</span>
-                </label>
-                <label class="estado-option">
-                    <input type="radio" name="estado_sel" value="EDITADA">
-                    <span>Editada</span>
-                </label>
-            </div>
+            @if($sesion->estado !== 'EN_EDICION')
+                <div class="estado-selector">
+                    <label class="estado-option">
+                        <input type="radio" name="estado_sel" value="ORIGINAL" checked>
+                        <span>RAW / Original</span>
+                    </label>
+                    <label class="estado-option">
+                        <input type="radio" name="estado_sel" value="EDITADA">
+                        <span>Editada</span>
+                    </label>
+                </div>
+            @else
+                {{-- Forzado silenciosamente, no hay que mostrarlo --}}
+                <input type="hidden" name="estado_sel" value="EDITADA">
+                <span class="upload-label" style="font-size:12px; color:var(--muted);">
+                    Subiendo como <strong>Editada</strong>
+                </span>
+            @endif
         </div>
 
-        {{-- SOLO DESARROLLO: borrar antes de producción --}}
+        {{-- SOLO DESARROLLO
         @if(app()->isLocal())
             <div style="margin-bottom: 12px; text-align: right;">
                 <button type="button" onclick="simularSubida()" style="font-size: 12px; background: #f0f0f0; border: 1px dashed #ccc; padding: 6px 14px; border-radius: 6px; cursor: pointer; color: #666;">
-                    🧪 Simular subida (dev)
+                    Simular subida (dev)
                 </button>
             </div>
         @endif
+        --}}
 
         <div class="dropzone" id="dropzone">
             <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: #ccc; margin-bottom: 12px;">
@@ -89,11 +150,11 @@
             <div class="progress-bar-wrap">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
-            <p id="progressText" class="progress-text">Subiendo...</p>
+            <p id="progressText" class="progress-text">Preparando...</p>
         </div>
 
-        {{-- Botón subir --}}
-        <div id="uploadActions" style="display:none; margin-top: 20px; text-align: right;">
+        {{-- Acciones: subir + terminé --}}
+        <div id="uploadActions" style="display:none; margin-top: 20px; display: none; justify-content: space-between; align-items: center;">
             <button type="button" class="btn-upload" id="uploadBtn" onclick="uploadFiles()">
                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
@@ -101,35 +162,41 @@
                 Subir Fotografías
             </button>
         </div>
+
+        {{-- Botón "Terminé de subir" — aparece después de la primera subida exitosa --}}
+        <div id="termineSection" style="display:none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); text-align: right;">
+            <p style="font-size: 13px; color: var(--muted); margin: 0 0 10px 0;">¿Ya subiste todas las fotos de esta tanda?</p>
+            <button type="button" class="btn-termine" onclick="abrirModalExito()">
+                Confirmar subida
+            </button>
+        </div>
     </div>
 
     {{-- Fotos ya subidas --}}
-    @if($sesion->fotografias->count() > 0)
-        <div class="uploaded-section">
-            <h4 class="uploaded-title">Fotos ya subidas ({{ $sesion->fotografias->count() }})</h4>
-            <div class="uploaded-grid">
-                @foreach($sesion->fotografias as $foto)
-                    <div class="uploaded-item">
-                        <div class="uploaded-thumb">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--muted);">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                        </div>
-                        <div class="uploaded-info">
-                            <span class="uploaded-name">{{ basename($foto->url) }}</span>
-                            <span class="uploaded-estado {{ strtolower($foto->estado) }}">{{ $foto->estado }}</span>
-                        </div>
+    <div class="uploaded-section" id="uploadedSection" style="{{ $sesion->fotografias->count() === 0 ? 'display:none' : '' }}">
+        <h4 class="uploaded-title">Fotos ya subidas (<span id="uploadedCount">{{ $sesion->fotografias->count() }}</span>)</h4>
+        <div class="uploaded-grid" id="uploadedGrid">
+            @foreach($sesion->fotografias as $foto)
+                <div class="uploaded-item">
+                    <div class="uploaded-thumb">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--muted);">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
                     </div>
-                @endforeach
-            </div>
+                    <div class="uploaded-info">
+                        <span class="uploaded-name">{{ $foto->nombre_original ?? basename($foto->url) }}</span>
+                        <span class="uploaded-estado {{ strtolower($foto->estado) }}">{{ $foto->estado }}</span>
+                    </div>
+                </div>
+            @endforeach
         </div>
-    @endif
+    </div>
 
-    {{-- ── MODAL ÉXITO ── --}}
+    {{-- ── MODAL ÉXITO (subida) ── --}}
     <div class="success-backdrop" id="successModal">
         <div class="success-modal">
             <h2 class="success-title">¡Fotografías Subidas!</h2>
-            <p class="success-desc">Las fotografías han sido subidas exitosamente. El cliente ha sido notificado por email y podrá acceder a ellas desde su panel de usuario.</p>
+            <p class="success-desc">Las fotografías han sido cargadas correctamente. Puedes seguir subiendo más o volver a la lista de sesiones.</p>
 
             <div class="success-stats">
                 <div class="success-stat">
@@ -141,8 +208,8 @@
                     <span class="success-stat__label">TAMAÑO TOTAL</span>
                 </div>
                 <div class="success-stat">
-                    <span class="success-stat__num">✓</span>
-                    <span class="success-stat__label">CLIENTE NOTIFICADO</span>
+                    <span class="success-stat__num" id="statEstado">—</span>
+                    <span class="success-stat__label">TIPO</span>
                 </div>
             </div>
 
@@ -150,6 +217,24 @@
                 <button class="success-btn success-btn--outline" onclick="cerrarModalYSubirMas()">
                     Subir Más Fotos
                 </button>
+                <a href="{{ route('fotografo.sesiones.index') }}" class="success-btn success-btn--primary">
+                    Volver a Sesiones
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── MODAL CONFIRMACIÓN ENTREGADA ── --}}
+    <div class="success-backdrop" id="entregadaModal">
+        <div class="success-modal">
+            <div style="margin-bottom: 20px;">
+                <svg width="48" height="48" fill="none" stroke="#22c55e" viewBox="0 0 24 24" style="margin: 0 auto; display: block;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h2 class="success-title">Sesión Entregada</h2>
+            <p class="success-desc">El cliente ha sido notificado por email y podrá descargar sus fotos desde su panel.</p>
+            <div class="success-actions" style="justify-content: center;">
                 <a href="{{ route('fotografo.sesiones.index') }}" class="success-btn success-btn--primary">
                     Volver a Sesiones
                 </a>
@@ -172,6 +257,7 @@
             }
             .btn-volver:hover { background: var(--bg); }
 
+            /* ── Info sesión ── */
             .sesion-info-card {
                 background: var(--white);
                 border: 1px solid var(--border);
@@ -209,6 +295,7 @@
             }
             .meta-value { font-size: 13px; color: var(--navy); font-weight: 500; }
 
+            /* ── Upload card ── */
             .upload-card {
                 background: var(--white);
                 border: 1px solid var(--border);
@@ -238,6 +325,7 @@
             }
             .estado-option input[type="radio"] { accent-color: #E8A020; }
 
+            /* ── Dropzone ── */
             .dropzone {
                 border: 2px dashed var(--border);
                 border-radius: 10px;
@@ -276,6 +364,7 @@
             }
             .btn-select:hover { background: #c98b18; }
 
+            /* ── File preview ── */
             .file-preview {
                 margin-top: 16px;
                 border-top: 1px solid var(--border);
@@ -341,6 +430,7 @@
             .file-item-status.done       { background: #d1fae5; color: #065f46; }
             .file-item-status.error      { background: #fee2e2; color: #991b1b; }
 
+            /* ── Progress ── */
             .progress-bar-wrap {
                 background: var(--border);
                 border-radius: 20px;
@@ -356,6 +446,7 @@
             }
             .progress-text { font-size: 12px; color: var(--muted); margin: 6px 0 0 0; text-align: center; }
 
+            /* ── Botones de acción ── */
             .btn-upload {
                 display: inline-flex;
                 align-items: center;
@@ -373,6 +464,46 @@
             .btn-upload:hover { opacity: 0.85; }
             .btn-upload:disabled { opacity: 0.5; cursor: not-allowed; }
 
+            .btn-termine {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                background: #16a34a;
+                color: #fff;
+                border: none;
+                padding: 11px 22px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: opacity 0.15s;
+            }
+            .btn-termine:hover { opacity: 0.88; }
+
+            .btn-entregar {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                background: #16a34a;
+                color: #fff;
+                border: none;
+                padding: 11px 22px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: opacity 0.15s;
+            }
+            .btn-entregar:hover { opacity: 0.88; }
+            .btn-entregar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+            .entregar-hint {
+                font-size: 12px;
+                color: var(--muted);
+                margin: 0;
+            }
+
+            /* ── Fotos ya subidas ── */
             .uploaded-section { margin-top: 8px; }
             .uploaded-title { font-size: 14px; font-weight: 600; color: var(--navy); margin: 0 0 12px 0; }
 
@@ -423,12 +554,99 @@
                 border-radius: 10px;
                 white-space: nowrap;
             }
-            .uploaded-estado.original   { background: #ede9fe; color: #5b21b6; }
-            .uploaded-estado.editada    { background: #dbeafe; color: #1e40af; }
-            .uploaded-estado.entregada  { background: #d1fae5; color: #065f46; }
-            .uploaded-estado.publicada  { background: #fef9c3; color: #854d0e; }
+            .uploaded-estado.original              { background: #ede9fe; color: #5b21b6; }
+            .uploaded-estado.editada               { background: #dbeafe; color: #1e40af; }
+            .uploaded-estado.entregada             { background: #d1fae5; color: #065f46; }
+            .uploaded-estado.pendiente_edicion     { background: #fef3c7; color: #92400e; }
 
-            /* ── MODAL ÉXITO ── */
+            /* ── Pendientes ── */
+            .pendientes-card {
+                background: var(--white);
+                border: 1.5px solid #E8A020;
+                border-radius: 12px;
+                padding: 20px 24px;
+                margin-bottom: 24px;
+            }
+            .pendientes-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 16px;
+            }
+            .pendientes-header-left { display: flex; align-items: center; gap: 10px; }
+            .pendientes-badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                background: #E8A020;
+                color: #fff;
+                font-size: 12px;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+            .pendientes-title { font-size: 14px; font-weight: 600; color: var(--navy); margin: 0; }
+            .pendientes-hint  { font-size: 12px; color: var(--muted); }
+            .pendientes-list  { display: flex; flex-direction: column; gap: 6px; }
+            .pendiente-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 9px 12px;
+                background: #FFFBF2;
+                border: 1px solid #F5E0B0;
+                border-radius: 8px;
+                transition: background 0.2s, border-color 0.2s;
+            }
+            .pendiente-item.ya-editada {
+                background: #f0fdf4;
+                border-color: #bbf7d0;
+            }
+            .pendiente-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
+                border-radius: 6px;
+                background: #FEF3DC;
+                color: #E8A020;
+                flex-shrink: 0;
+            }
+            .pendiente-item.ya-editada .pendiente-icon {
+                background: #dcfce7;
+                color: #16a34a;
+            }
+            .pendiente-nombre {
+                flex: 1;
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--navy);
+                font-family: 'Courier New', monospace;
+                word-break: break-all;
+            }
+            .pendiente-estado {
+                font-size: 11px;
+                font-weight: 600;
+                color: #C07800;
+                background: #FEF3DC;
+                border: 1px solid #F5D78A;
+                padding: 2px 8px;
+                border-radius: 20px;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+            .pendiente-estado.entregada {
+                color: #15803d;
+                background: #dcfce7;
+                border-color: #86efac;
+            }
+
+            /* ── Modal ── */
             .success-backdrop {
                 display: none;
                 position: fixed;
@@ -505,13 +723,7 @@
                 letter-spacing: 0.1em;
                 color: var(--muted);
             }
-
-            .success-actions {
-                display: flex;
-                gap: 12px;
-                justify-content: center;
-            }
-
+            .success-actions { display: flex; gap: 12px; justify-content: center; }
             .success-btn {
                 padding: 11px 24px;
                 border-radius: 9px;
@@ -543,18 +755,27 @@
         <script>
             const sesionId  = {{ $sesion->id }};
             const csrfToken = '{{ csrf_token() }}';
-            let selectedFiles = [];
+            const entregaUrl = '{{ route('fotografo.fotografias.entregar', $sesion->id) }}';
 
-            const dropzone      = document.getElementById('dropzone');
-            const fileInput     = document.getElementById('fileInput');
-            const filePreview   = document.getElementById('filePreview');
-            const fileList      = document.getElementById('fileList');
-            const fileCount     = document.getElementById('fileCount');
-            const uploadActions = document.getElementById('uploadActions');
+            let selectedFiles  = [];
+            let totalSubidas   = 0;  // acumulado de todas las tandas
+            let totalMBSubidos  = 0;
+
+            const dropzone        = document.getElementById('dropzone');
+            const fileInput       = document.getElementById('fileInput');
+            const filePreview     = document.getElementById('filePreview');
+            const fileList        = document.getElementById('fileList');
+            const fileCount       = document.getElementById('fileCount');
+            const uploadActions   = document.getElementById('uploadActions');
             const progressSection = document.getElementById('progressSection');
-            const progressBar   = document.getElementById('progressBar');
-            const progressText  = document.getElementById('progressText');
+            const progressBar     = document.getElementById('progressBar');
+            const progressText    = document.getElementById('progressText');
+            const termineSection  = document.getElementById('termineSection');
+            const uploadedSection = document.getElementById('uploadedSection');
+            const uploadedGrid    = document.getElementById('uploadedGrid');
+            const uploadedCount   = document.getElementById('uploadedCount');
 
+            // ── Dropzone events ──
             dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('dragover'); });
             dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
             dropzone.addEventListener('drop', e => {
@@ -578,40 +799,48 @@
                     uploadActions.style.display = 'none';
                     return;
                 }
-                filePreview.style.display  = 'block';
-                uploadActions.style.display = 'block';
+                filePreview.style.display   = 'block';
+                uploadActions.style.display = 'flex';
                 fileCount.textContent = `${selectedFiles.length} archivo${selectedFiles.length !== 1 ? 's' : ''} seleccionado${selectedFiles.length !== 1 ? 's' : ''}`;
                 fileList.innerHTML = selectedFiles.map((f, i) => `
-            <div class="file-item" id="file-item-${i}">
-                <span class="file-item-name">${f.name}</span>
-                <span class="file-item-size">${(f.size / 1024 / 1024).toFixed(1)} MB</span>
-                <span class="file-item-status pending" id="status-${i}">Pendiente</span>
-            </div>
-        `).join('');
+                    <div class="file-item" id="file-item-${i}">
+                        <span class="file-item-name">${f.name}</span>
+                        <span class="file-item-size">${(f.size / 1024 / 1024).toFixed(1)} MB</span>
+                        <span class="file-item-status pending" id="status-${i}">Pendiente</span>
+                    </div>
+                `).join('');
             }
 
             function clearFiles() {
                 selectedFiles = [];
                 fileInput.value = '';
-                filePreview.style.display   = 'none';
-                uploadActions.style.display = 'none';
+                filePreview.style.display    = 'none';
+                uploadActions.style.display  = 'none';
                 progressSection.style.display = 'none';
+                progressBar.style.width = '0%';
             }
 
             async function uploadFiles() {
                 if (selectedFiles.length === 0) return;
 
-                const estado = document.querySelector('input[name="estado_sel"]:checked').value;
+                const estadoInput = document.querySelector('input[name="estado_sel"]:checked')
+                    ?? document.querySelector('input[name="estado_sel"]');
+                const estado = estadoInput.value;
                 const btn    = document.getElementById('uploadBtn');
                 btn.disabled = true;
                 progressSection.style.display = 'block';
+                progressBar.style.width = '0%';
 
                 let completados = 0;
+                let errores     = 0;
+                const tandaMB   = selectedFiles.reduce((acc, f) => acc + f.size, 0) / 1024 / 1024;
 
                 for (let i = 0; i < selectedFiles.length; i++) {
                     const statusEl = document.getElementById(`status-${i}`);
                     statusEl.textContent = 'Subiendo...';
                     statusEl.className   = 'file-item-status uploading';
+
+                    progressText.textContent = `Subiendo ${i + 1} de ${selectedFiles.length}...`;
 
                     const formData = new FormData();
                     formData.append('fotos[]', selectedFiles[i]);
@@ -619,21 +848,29 @@
                     formData.append('_token',  csrfToken);
 
                     try {
-                        const res = await fetch(`/fotografo/sesiones/${sesionId}/fotografias`, {
+                        const res  = await fetch(`/fotografo/sesiones/${sesionId}/fotografias`, {
                             method: 'POST',
-                            body: formData,
+                            body:   formData,
                         });
+                        const data = await res.json();
 
                         if (res.ok) {
                             statusEl.textContent = 'Listo ✓';
                             statusEl.className   = 'file-item-status done';
+
+                            // Agregar a la lista en vivo
+                            if (data.fotos && data.fotos.length > 0) {
+                                appendFotoAlGrid(data.fotos[0]);
+                            }
                         } else {
                             statusEl.textContent = 'Error';
                             statusEl.className   = 'file-item-status error';
+                            errores++;
                         }
                     } catch (e) {
                         statusEl.textContent = 'Error';
                         statusEl.className   = 'file-item-status error';
+                        errores++;
                     }
 
                     completados++;
@@ -650,20 +887,113 @@
                 document.getElementById('statTamano').textContent   = totalMB.toFixed(1) + ' MB';
 
                 // Mostrar modal
-                document.getElementById('successModal').classList.add('open');
+                //document.getElementById('successModal').classList.add('open'); esperar a que el fotografo confirme la subida
+                termineSection.style.display = 'block';
 
                 progressText.textContent = '¡Todas las fotos fueron subidas!';
                 btn.disabled = false;
                 //setTimeout(() => window.location.reload(), 1500);
             }
 
+            function abrirModalExito() {
+                @if($sesion->estado === 'EN_EDICION')
+                    termineSection.style.display = 'none';
+
+                    // Mostrar el botón de entregar dinámicamente
+                    const hint = document.querySelector('.entregar-hint');
+                    if (hint) hint.style.display = 'none';
+
+                    let btnEntregar = document.getElementById('btnEntregar');
+                    if (!btnEntregar) {
+                        // El botón no existía en el DOM (aún había pendientes al cargar)
+                        // lo creamos y lo insertamos al final de pendientes-card
+                        const wrap = document.createElement('div');
+                        wrap.id = 'btnEntregarWrap';
+                        wrap.style.cssText = 'margin-top: 20px; text-align: right;';
+                        wrap.innerHTML = `
+                            <button type="button" class="btn-entregar" id="btnEntregar" onclick="marcarEntregada()">
+                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Marcar sesión como entregada
+                            </button>
+                        `;
+                        const card = document.querySelector('.pendientes-card');
+                        if (card) card.appendChild(wrap);
+                    } else {
+                        // El botón ya existía pero estaba oculto
+                        btnEntregar.closest('div').style.display = 'block';
+                        btnEntregar.disabled = false;
+                    }
+                @else
+                    document.getElementById('successModal').classList.add('open');
+                @endif
+            }
+
             function cerrarModalYSubirMas() {
                 document.getElementById('successModal').classList.remove('open');
                 clearFiles();
+                termineSection.style.display  = 'none';
                 progressSection.style.display = 'none';
                 progressBar.style.width = '0%';
             }
 
+            function appendFotoAlGrid(foto) {
+                // Mostrar sección si estaba oculta
+                uploadedSection.style.display = '';
+
+                // Actualizar contador
+                const count = parseInt(uploadedCount.textContent || '0') + 1;
+                uploadedCount.textContent = count;
+
+                // Agregar item al grid
+                const div = document.createElement('div');
+                div.className = 'uploaded-item';
+                div.innerHTML = `
+                    <div class="uploaded-thumb">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--muted)">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div class="uploaded-info">
+                        <span class="uploaded-name">${foto.nombre}</span>
+                        <span class="uploaded-estado ${foto.estado_lower}">${foto.estado}</span>
+                    </div>
+                `;
+                uploadedGrid.appendChild(div);
+            }
+
+            async function marcarEntregada() {
+                const btn = document.getElementById('btnEntregar');
+                if (!btn) return;
+                btn.disabled = true;
+                btn.textContent = 'Procesando...';
+
+                try {
+                    const res = await fetch(entregaUrl, {
+                        method:  'PATCH',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    if (res.ok) {
+                        document.getElementById('entregadaModal').classList.add('open');
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = 'Marcar sesión como entregada';
+                        alert('Ocurrió un error al marcar la sesión. Intenta de nuevo.');
+                    }
+                } catch (e) {
+                    btn.disabled = false;
+                    btn.textContent = 'Marcar sesión como entregada';
+                    alert('Error de conexión. Intenta de nuevo.');
+                }
+            }
+
+            // ── Simulación dev ──
             function simularSubida() {
                 // Archivos falsos para simular
                 const archivos = [
@@ -680,19 +1010,17 @@
 
                 const intervalo = setInterval(() => {
                     completados++;
-                    progressBar.style.width = Math.round((completados / total) * 100) + '%';
-                    progressText.textContent = `Subiendo ${completados} de ${total}...`;
+                    progressBar.style.width   = Math.round((completados / total) * 100) + '%';
+                    progressText.textContent  = `Subiendo ${completados} de ${total}...`;
 
                     if (completados >= total) {
                         clearInterval(intervalo);
                         progressText.textContent = '¡Todas las fotos fueron subidas!';
-
-                        const totalMB = archivos.reduce((acc, f) => acc + f.size, 0);
-                        document.getElementById('statArchivos').textContent = total;
-                        document.getElementById('statTamano').textContent   = totalMB.toFixed(1) + ' MB';
-                        document.getElementById('successModal').classList.add('open');
+                        totalSubidas   += total;
+                        totalMBSubidos += archivos.reduce((acc, f) => acc + f.size, 0);
+                        termineSection.style.display = 'block';
                     }
-                }, 600); // 600ms entre cada foto simulada
+                }, 200);
             }
         </script>
     @endpush

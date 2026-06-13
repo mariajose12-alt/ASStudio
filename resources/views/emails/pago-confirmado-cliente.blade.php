@@ -1,45 +1,134 @@
 @extends('layouts.email')
 
-@section('email_title', 'Confirmación de Pago')
+@section('email_title', 'Pago Confirmado')
 
 @section('content')
-    <h2 style="color:#2e7d32;">✓ Pago recibido — sesión confirmada</h2>
 
-    <p>Hola <strong>{{ $reserva->cliente->usuario->persona->nombre }} {{ $reserva->cliente->usuario->persona->apellido }}</strong>,
-        hemos recibido tu pago correctamente. Tu sesión fotográfica queda confirmada.</p>
-
-    <table style="width:100%; border-collapse:collapse; margin-top:16px;">
+    {{-- Ícono de estado --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-            <td style="padding:10px; background:#f5f5f5; width:140px;"><strong>Paquete</strong></td>
-            <td style="padding:10px;">{{ $reserva->paquete->nombre }}</td>
-        </tr>
-        <tr>
-            <td style="padding:10px; background:#f5f5f5;"><strong>Fecha</strong></td>
-            <td style="padding:10px;">{{ \Carbon\Carbon::parse($reserva->fecha_inicio)->format('d/m/Y H:i') }}</td>
-        </tr>
-        <tr>
-            <td style="padding:10px; background:#f5f5f5;"><strong>Tipo</strong></td>
-            <td style="padding:10px;">{{ $reserva->tipo }}</td>
-        </tr>
-        <tr>
-            <td style="padding:10px; background:#f5f5f5;"><strong>Total pagado</strong></td>
-            <td style="padding:10px;">${{ number_format($reserva->precio_total, 0, ',', '.') }}</td>
+            <td align="center" style="padding-bottom:24px;">
+                <div style="display:inline-block;width:56px;height:56px;border-radius:50%;background-color:#e8f5e9;border:2px solid rgba(46,125,50,0.3);text-align:center;line-height:56px;font-size:24px;">
+                    ✓
+                </div>
+            </td>
         </tr>
     </table>
 
-    <div style="background:#e8f5e9; border-left:4px solid #2e7d32;
-                padding:12px 16px; border-radius:0 8px 8px 0; margin-top:20px;">
-        <strong>¡Todo listo!</strong> Tu fotógrafo se pondrá en contacto contigo antes de la sesión.
-    </div>
+    {{-- Título --}}
+    <h1 style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:700;color:#2e7d32;line-height:1.3;text-align:center;">
+        Pago recibido — sesión confirmada
+    </h1>
 
-    <a href="{{ url('/cliente/reservas') }}"
-       style="display:inline-block; margin-top:24px; padding:12px 28px;
-              background:#f59e0b; color:#fff; border-radius:8px;
-              text-decoration:none; font-weight:bold;">
-        Ver mis reservas →
-    </a>
-
-    <p style="margin-top:32px; font-size:12px; color:#999;">
-        AS Studio · Mensaje automático, por favor no responder.
+    {{-- Subtítulo --}}
+    <p style="margin:0 0 32px;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;color:#4b5563;text-align:center;">
+        Hola <strong style="color:#1a0d00;">{{ $reserva->cliente->usuario->persona->nombre }} {{ $reserva->cliente->usuario->persona->apellido }}</strong>,
+        hemos recibido tu pago correctamente. Tu sesión fotográfica queda confirmada.
     </p>
+
+    {{-- Divisor --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+        <tr>
+            <td style="height:1px;background-color:#e8e8e8;font-size:1px;line-height:1px;">&nbsp;</td>
+        </tr>
+    </table>
+
+    {{-- Etiqueta sección --}}
+    <p style="margin:0 0 14px;font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;">
+        Resumen del pago
+    </p>
+
+    {{-- Tabla de detalles --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;">
+        <tr>
+            <td style="padding:14px 20px;background-color:#fafafa;border-bottom:1px solid #e8e8e8;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="140" valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Paquete</span>
+                        </td>
+                        <td valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:600;">{{ $reserva->paquete->nombre }}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:14px 20px;background-color:#ffffff;border-bottom:1px solid #e8e8e8;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="140" valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Fecha</span>
+                        </td>
+                        <td valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:500;">{{ \Carbon\Carbon::parse($reserva->fecha_inicio)->format('d/m/Y H:i') }}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:14px 20px;background-color:#fafafa;border-bottom:1px solid #e8e8e8;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="140" valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Tipo</span>
+                        </td>
+                        <td valign="top">
+                            <span style="font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;font-weight:500;">{{ $reserva->tipo }}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:16px 20px;background-color:#ffffff;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="140" valign="middle">
+                            <span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;">Total pagado</span>
+                        </td>
+                        <td valign="middle">
+                            <span style="font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:700;color:#2e7d32;">
+                                ${{ number_format($reserva->precio_total, 0, ',', '.') }}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- Banner confirmación --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
+        <tr>
+            <td style="background-color:#e8f5e9;border-left:4px solid #2e7d32;padding:14px 18px;border-radius:0 8px 8px 0;">
+                <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;line-height:1.6;">
+                    <strong>¡Todo listo!</strong> Tu fotógrafo se pondrá en contacto contigo antes de la sesión para coordinar los detalles.
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    {{-- CTA --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:32px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td style="border-radius:12px;background-color:#e87722;">
+                            <a href="{{ url('/cliente/reservas') }}"
+                               target="_blank"
+                               style="display:inline-block;padding:14px 32px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;">
+                                Ver mis reservas &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
 @endsection

@@ -180,12 +180,13 @@ body {
 
 /* ── GRID / FOTOS ── */
 .fotos-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    columns: 4;
+    column-gap: 8px;
 }
 
 .foto-item {
+    break-inside: avoid;
+    margin-bottom: 8px;
     position: relative;
     border-radius: 10px;
     overflow: hidden;
@@ -194,7 +195,7 @@ body {
 
 .foto-item img {
     width: 100%;
-    height: 100%;
+    height: auto;      /* ← clave: cada imagen respeta su proporción natural */
     display: block;
     transition: transform 0.25s ease;
 }
@@ -202,20 +203,16 @@ body {
 
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
-    .fotos-grid { grid-template-columns: repeat(3, 1fr); }
+    .fotos-grid { columns: 3; }
 }
 
 @media (max-width: 600px) {
-    .gal-topbar       { height: 90px; padding: 0 14px; }
-    .gal-topbar__divider { display: none; }
-    .gal-topbar__title   { font-size: 17px; }
-    .gal-topbar__subtitle { font-size: 14px; }
-    .gal-body         { padding: 0 14px 32px; }
-    .fotos-grid       { grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .fotos-grid { columns: 3; column-gap: 5px; }
+    .foto-item  { margin-bottom: 5px; }
 }
 
 @media (max-width: 400px) {
-    .fotos-grid { grid-template-columns: repeat(2, 1fr); }
+    .fotos-grid { columns: 2; }
 }
 
 /* ─────────────────────────────────────────────
@@ -895,3 +892,7 @@ body {
     .lb-nav--next { right: 8px; }
     .lb-img-wrap  { max-width: calc(100vw - 80px); }
 }
+
+.badge--pendiente { background: #f59e0b; } /* amarillo */
+.badge--edicion   { background: #6366f1; } /* morado   */
+.badge--lista     { background: #10b981; } /* verde    */

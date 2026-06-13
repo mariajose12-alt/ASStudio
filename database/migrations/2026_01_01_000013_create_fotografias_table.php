@@ -10,10 +10,11 @@ return new class extends Migration
     {
         Schema::create('fotografias', function (Blueprint $table) {
             $table->id();
+            $table->string('nombre_original', 260)->nullable()->after('url');
             $table->foreignId('sesion_id')->constrained('sesiones')->cascadeOnDelete();
             $table->string('url', 500);
             $table->dateTime('fecha_captura')->useCurrent();
-            $table->enum('estado', ['ORIGINAL', 'EDITADA', 'ENTREGADA', 'PUBLICADA'])->default('ORIGINAL');
+            $table->enum('estado', ['ORIGINAL', 'PENDIENTE_EDICION','EDITADA', 'ENTREGADA', 'PUBLICADA'])->default('ORIGINAL');
             $table->boolean('seleccionada')->default(false);
             $table->timestamps();
         });

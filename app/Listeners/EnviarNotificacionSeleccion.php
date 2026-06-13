@@ -10,7 +10,7 @@ class EnviarNotificacionSeleccion
 {
     public function handle(SeleccionConfirmada $event): void
     {
-        $email = $event->sesion->reserva->fotografo->getUsuario()->email;
+        $email = $event->sesion->reserva->fotografo->empleado->usuario->email;
 
         if (!$email) return;
 

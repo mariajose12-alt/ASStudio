@@ -7,7 +7,6 @@
                 {{ $sesion->reserva->cliente->usuario->persona->nombre ?? '' }}
                 {{ $sesion->reserva->cliente->usuario->persona->apellido ?? '' }}
             </h3>
-            <span class="sesion-id">#{{ $sesion->id }}</span>
         </div>
         <span class="badge-estado {{ strtolower($sesion->estado) }}">
             {{ str_replace('_', ' ', $sesion->estado) }}
@@ -34,12 +33,6 @@
     </div>
 
     <div class="sesion-card-footer">
-        <div>
-            @php $total = $sesion->fotografias->count(); @endphp
-            @if($total > 0)
-                <span class="fotos-badge">{{ $total }} foto{{ $total !== 1 ? 's' : '' }} subida{{ $total !== 1 ? 's' : '' }}</span>
-            @endif
-        </div>
         <div class="footer-actions">
             {{-- Botón provisional: pasar a EN_PROCESO --}}
             @if($sesion->estado === 'CONFIRMADA')
@@ -47,6 +40,25 @@
                     @csrf
                     <button type="submit" class="btn-iniciar">Iniciar Sesión</button>
                 </form>
+            @endif
+
+            {{-- Ver selección del cliente (solo EN_EDICION y si hay fotos seleccionadas) --}}
+            @if($sesion->estado === 'EN_EDICION')
+                @php $seleccionadas = $sesion->fotografias->where('seleccionada', true)->where('estado', 'PENDIENTE_EDICION'); @endphp
+                @if($seleccionadas->count() > 0)
+                    <button type="button" class="btn-seleccion"
+                            onclick="verSeleccion(
+                            {{ $sesion->id }},
+                            '{{ addslashes($sesion->reserva->cliente->usuario->persona->nombre . ' ' . $sesion->reserva->cliente->usuario->persona->apellido) }}',
+                            {{ $seleccionadas->map(fn($f) => ['nombre' => $f->nombre_original ?? basename($f->url)])->values()->toJson() }}
+                        )">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        Ver selección
+                        <span class="btn-seleccion-badge">{{ $seleccionadas->count() }}</span>
+                    </button>
+                @endif
             @endif
 
             {{-- Subir fotos solo si está EN_PROCESO o EN_EDICION --}}

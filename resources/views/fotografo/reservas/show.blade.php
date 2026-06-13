@@ -2,140 +2,157 @@
 @section('title', 'Detalle de Reserva')
 
 @section('content')
-    <div class="container py-4" style="max-width:700px;">
+    <div class="rf-pg">
 
         @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
+            <div class="rf-alert rf-alert--danger">{{ session('error') }}</div>
         @endif
-
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="rf-alert rf-alert--success">{{ session('success') }}</div>
         @endif
 
-        {{-- Info de la reserva --}}
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
-                <table class="table table-borderless mb-0">
-                    <tr>
-                        <td class="text-muted" width="140">Cliente</td>
-                        <td class="fw-bold">
-                            {{ $reserva->cliente->usuario->persona->nombre }}
-                            {{ $reserva->cliente->usuario->persona->apellido }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Email</td>
-                        <td>{{ $reserva->cliente->usuario->email }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Teléfono</td>
-                        <td>{{ $reserva->cliente->usuario->persona->telefono ?? '—' }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Paquete</td>
-                        <td>{{ $reserva->paquete->nombre }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Fecha</td>
-                        <td>{{ \Carbon\Carbon::parse($reserva->fecha_inicio)->format('d/m/Y H:i') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Tipo</td>
-                        <td>{{ $reserva->tipo }}</td>
-                    </tr>
-                    @if($reserva->lugar)
-                        <tr>
-                            <td class="text-muted">Lugar</td>
-                            <td>{{ $reserva->lugar }}</td>
-                        </tr>
-                    @endif
-                    <tr>
-                        <td class="text-muted">Descripción</td>
-                        <td>{{ $reserva->descripcion }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Precio</td>
-                        <td>RD$ {{ number_format($reserva->precio_total, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Estado</td>
-                        <td>
-                            @php
-                                $badgeClass = match($reserva->estado) {
-                                    'PENDIENTE' => 'bg-warning',
-                                    'APROBADA' => 'bg-success',
-                                    'RECHAZADA' => 'bg-danger',
-                                    'CANCELADA' => 'bg-secondary',
-                                    default => 'bg-info',
-                                };
-                            @endphp
-                            <span class="badge {{ $badgeClass }}">{{ $reserva->estado }}</span>
-                        </td>
-                    </tr>
-                </table>
+        {{-- Tarjeta principal --}}
+        <div class="rf-card">
+
+            {{-- Hero cliente --}}
+            <div class="rf-hero">
+                @php
+                    $nombre   = $reserva->cliente->usuario->persona->nombre;
+                    $apellido = $reserva->cliente->usuario->persona->apellido;
+                    $iniciales = strtoupper(mb_substr($nombre, 0, 1) . mb_substr($apellido, 0, 1));
+                @endphp
+                <div class="rf-avatar">{{ $iniciales }}</div>
+                <div class="rf-hero__info">
+                    <div class="rf-hero__name">{{ $nombre }} {{ $apellido }}</div>
+                    <div class="rf-hero__sub">
+                    <span>
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        {{ $reserva->cliente->usuario->email }}
+                    </span>
+                        @if($reserva->cliente->usuario->persona->telefono)
+                            <span>
+                            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.18 6.18l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                            {{ $reserva->cliente->usuario->persona->telefono }}
+                        </span>
+                        @endif
+                    </div>
+                </div>
+                @php
+                    $badgeClass = match($reserva->estado) {
+                        'PENDIENTE'  => 'rf-badge--warn',
+                        'APROBADA'   => 'rf-badge--succ',
+                        'RECHAZADA'  => 'rf-badge--dang',
+                        'CANCELADA'  => 'rf-badge--sec',
+                        default      => 'rf-badge--sec',
+                    };
+                @endphp
+                <span class="rf-badge {{ $badgeClass }}">{{ $reserva->estado }}</span>
             </div>
-        </div>
 
-        @if($reserva->estado === 'PENDIENTE')
-
-            {{-- Formulario de acción --}}
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <h5 class="fw-bold mb-3" style="padding-bottom:10px">Gestión de Reserva</h5>
-
-                    <form method="POST"
-                          action="{{ route('fotografo.reservas.accion', $reserva) }}"
-                          id="formAccion">
-                        @csrf
-
-                        {{-- Selector de acción --}}
-                        <div class="mb-3">
-                            <div class="d-flex gap-2">
-                                <button type="button"
-                                        class="btn btn-success btn-accion"
-                                        data-accion="APROBADA"
-                                        style="justify-content:center; background:#2e7d52; border-color:#2e7d52;">
-                                    ✓ Aprobar
-                                </button>
-                                <button type="button"
-                                        class="btn btn-warning btn-accion"
-                                        data-accion="MODIFICACION_PROPUESTA"
-                                        style="justify-content:center; background:var(--blue-mid); border-color:var(--blue-mid);">
-                                    ✎ Proponer cambio
-                                </button>
-                                <button type="button"
-                                        class="btn btn-danger btn-accion"
-                                        data-accion="RECHAZADA"
-                                        style="justify-content:center;">
-                                    ✗ Rechazar
-                                </button>
-                            </div>
-                            <input type="hidden" name="accion" id="accionInput">
-                        </div>
-
-                        {{-- Motivo (aparece si rechaza o modifica) --}}
-                        <div id="campoMotivo" class="mb-3" style="display:none;">
-                            <label class="form-label">Motivo / Observación *</label>
-                            <textarea name="motivo"
-                                      rows="4"
-                                      class="form-control"
-                                      placeholder="Explica el motivo de tu decisión o los cambios que propones en la descripción..."></textarea>
-                        </div>
-
-                        <div id="contenedorEnviar" style="display:none; padding-top:10px">
-                            <button type="submit" class="btn btn-dark w-100">
-                                Confirmar y notificar al cliente
-                            </button>
-                        </div>
-
-                    </form>
+            {{-- Franja de precio --}}
+            <div class="rf-precio-strip">
+                <div>
+                    <div class="rf-strip-lbl">Total a cobrar</div>
+                    <div class="rf-precio-val">RD$ {{ number_format($reserva->precio_total, 2) }}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="rf-strip-lbl">Paquete</div>
+                    <div class="rf-strip-val">{{ $reserva->paquete->nombre }}</div>
                 </div>
             </div>
 
+            {{-- Detalles --}}
+            <div class="rf-details">
+                <div class="rf-det-row">
+                    <div class="rf-det-icon">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </div>
+                    <div class="rf-det-body">
+                        <div class="rf-det-lbl">Fecha y horario</div>
+                        <div class="rf-det-val">
+                            {{ \Carbon\Carbon::parse($reserva->fecha_inicio)->translatedFormat('d \d\e F, Y') }}
+                            — {{ \Carbon\Carbon::parse($reserva->fecha_inicio)->format('H:i') }} hrs
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rf-det-row">
+                    <div class="rf-det-icon">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </div>
+                    <div class="rf-det-body">
+                        <div class="rf-det-lbl">Lugar</div>
+                        <div class="rf-det-val">{{ $reserva->lugar ?? 'Estudio' }}</div>
+                        <div class="rf-det-sub">Tipo: {{ $reserva->tipo }}</div>
+                    </div>
+                </div>
+
+                @if($reserva->descripcion)
+                    <div class="rf-det-row">
+                        <div class="rf-det-icon">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        </div>
+                        <div class="rf-det-body">
+                            <div class="rf-det-lbl">Descripción</div>
+                            <div class="rf-det-val">{{ $reserva->descripcion }}</div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Gestión --}}
+        @if($reserva->estado === 'PENDIENTE')
+            <div class="rf-card" id="rfActCard">
+                <div class="rf-act-header">
+                    <span class="rf-act-title">Gestionar reserva</span>
+                </div>
+
+                <form method="POST"
+                      action="{{ route('fotografo.reservas.accion', $reserva) }}"
+                      id="formAccion">
+                    @csrf
+                    <input type="hidden" name="accion" id="accionInput">
+
+                    <div class="rf-act-btns">
+                        <button type="button" class="rf-abtn" id="btnAp" data-accion="APROBADA">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            Aprobar
+                        </button>
+                        <button type="button" class="rf-abtn" id="btnMo" data-accion="MODIFICACION_PROPUESTA">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Proponer cambio
+                        </button>
+                        <button type="button" class="rf-abtn" id="btnRe" data-accion="RECHAZADA">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            Rechazar
+                        </button>
+                    </div>
+
+                    <div class="rf-motivo-wrap" id="campoMotivo" style="display: none;">
+                        <label class="rf-motivo-lbl" for="motivoTextarea">Motivo / observación *</label>
+                        <textarea id="motivoTextarea"
+                                  name="motivo"
+                                  rows="4"
+                                  class="rf-motivo-ta"
+                                  placeholder="Explica el motivo o los cambios que propones..."></textarea>
+                    </div>
+
+                    <div id="contenedorEnviar" style="display: none; padding: 0 20px 20px;">
+                        <button type="submit" class="rf-btn-submit">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            Confirmar y notificar al cliente
+                        </button>
+                    </div>
+                </form>
+            </div>
         @else
-            <div class="alert alert-secondary">
-                Esta reserva ya fue procesada — estado actual:
-                <strong>{{ $reserva->estado }}</strong>
+            <div class="rf-card">
+                <div class="rf-processed">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Esta reserva ya fue procesada — estado actual:
+                    <strong>{{ $reserva->estado }}</strong>
+                </div>
             </div>
         @endif
 
@@ -144,34 +161,31 @@
 
 @push('scripts')
     <script>
-        document.querySelectorAll('.btn-accion').forEach(btn => {
+        const clases = {
+            APROBADA:               'a-ap',
+            MODIFICACION_PROPUESTA: 'a-mo',
+            RECHAZADA:              'a-re',
+        };
+
+        document.querySelectorAll('.rf-abtn').forEach(btn => {
             btn.addEventListener('click', function () {
                 const accion = this.dataset.accion;
 
-                // Marcar botón activo
-                document.querySelectorAll('.btn-accion').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
+                document.querySelectorAll('.rf-abtn').forEach(b => {
+                    b.className = 'rf-abtn';
+                });
+                this.classList.add(clases[accion]);
 
-                // Setear el input hidden
                 document.getElementById('accionInput').value = accion;
 
-                // Mostrar/ocultar campos según acción
-                const motivo  = document.getElementById('campoMotivo');
-                const enviar  = document.getElementById('contenedorEnviar');
+                const needsMotivo = accion === 'RECHAZADA' || accion === 'MODIFICACION_PROPUESTA';
+                const motivoWrap  = document.getElementById('campoMotivo');
+                motivoWrap.style.display = needsMotivo ? 'flex' : 'none';
 
-                // Mostrar motivo para RECHAZAR y MODIFICAR
-                motivo.style.display  = (accion === 'RECHAZADA' || accion === 'MODIFICACION_PROPUESTA') ? 'block' : 'none';
+                const ta = motivoWrap.querySelector('textarea');
+                needsMotivo ? ta.setAttribute('required', 'required') : ta.removeAttribute('required');
 
-                // Hacer el campo requerido si es necesario
-                const motivoTextarea = motivo.querySelector('textarea');
-                if (accion === 'RECHAZADA' || accion === 'MODIFICACION_PROPUESTA') {
-                    motivoTextarea.setAttribute('required', 'required');
-                } else {
-                    motivoTextarea.removeAttribute('required');
-                }
-
-                // Siempre mostrar botón de enviar
-                enviar.style.display  = 'block';
+                document.getElementById('contenedorEnviar').style.display = 'block';
             });
         });
     </script>

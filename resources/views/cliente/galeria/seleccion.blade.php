@@ -31,27 +31,24 @@
     </button>
 
     {{-- Grid de fotos --}}
-    <div class="fotos-grid" id="fotosGrid">
-        @foreach($fotos as $i => $foto)
-            @php
-                $altos = [350, 480, 300, 420, 500, 360, 440, 320];
-                $alto  = $altos[$i % count($altos)];
-            @endphp
-            <div class="foto-item foto-sel" data-id="{{ $foto->id }}" onclick="toggleFavorito(this)">
+    <div class="fotos-grid gf-masonry" id="fotosGrid">
+        @foreach($fotos as $foto)
+            <div class="foto-item foto-sel gf-item" data-id="{{ $foto->id }}" onclick="toggleFavorito(this)">
                 <img src="{{ $foto->url_firmada }}"
-                {{--src="https://picsum.photos/seed/sel{{ $foto->id }}/400/{{ $alto }}"--}}
-                 alt="Foto {{ $foto->id }}" loading="lazy">
-            <div class="foto-check" id="check-{{ $foto->id }}">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 12 12" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="2,6 5,9 10,3"/>
-                </svg>
+                     alt="Foto {{ $foto->id }}"
+                     loading="lazy"
+                     onload="this.closest('.gf-item').classList.add('gf-item--loaded')">
+                <div class="foto-check" id="check-{{ $foto->id }}">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 12 12" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="2,6 5,9 10,3"/>
+                    </svg>
+                </div>
+                <div class="foto-num" id="num-{{ $foto->id }}"></div>
             </div>
-            <div class="foto-num" id="num-{{ $foto->id }}"></div>
-        </div>
-    @endforeach
-</div>
+        @endforeach
+    </div>
 
-{{-- Modal de confirmación (bottom-sheet en móvil, centrado en desktop) --}}
+    {{-- Modal de confirmación (bottom-sheet en móvil, centrado en desktop) --}}
     <div class="modal-gal" id="modalOverlay" aria-hidden="true">
         <div class="modal-gal__sheet">
             <div class="modal-gal__pill"></div>
@@ -161,9 +158,9 @@
                 btn.classList.remove('lleno');
                 btn.classList.toggle('exceso', exceso);
                 if (exceso) {
-                    btn.textContent  = 'Demasiadas fotos — deseleccioná ' + (count - limite);
+                    btn.textContent   = 'Tienes ' + (count - limite) + ' foto' + (count - limite !== 1 ? 's' : '') + ' de más';
                     btn.disabled     = true;
-                    label.textContent = 'Deseleccioná ' + (count - limite) + ' para continuar';
+                    label.textContent = 'Selecciona justamente ' + limite + ' fotos en total para continuar';
                 } else if (exacto) {
                     btn.textContent  = 'Confirmar selección';
                     btn.disabled     = false;
@@ -195,7 +192,9 @@
         function entrarModoFavoritos() {
             modoFavoritos = true;
             document.getElementById('fotosGrid').classList.add('modo-favoritos');
-            document.getElementById('seccionLabel').textContent = 'Tus favoritas · ' + seleccionadas.size;
+
+            const seccionLabel = document.getElementById('seccionLabel');
+            if (seccionLabel) seccionLabel.textContent = 'Tus favoritas · ' + seleccionadas.size;
 
             const btnVolver = document.getElementById('btnVolver');
             btnVolver.style.display = 'none';
@@ -216,7 +215,10 @@
         function salirModoFavoritos() {
             modoFavoritos = false;
             document.getElementById('fotosGrid').classList.remove('modo-favoritos');
-            document.getElementById('seccionLabel').textContent = 'Todas las fotos · ' + totalFotos;
+
+            const seccionLabel = document.getElementById('seccionLabel');
+            if (seccionLabel) seccionLabel.textContent = 'Todas las fotos · ' + totalFotos;
+
             document.getElementById('btnVerTodas').style.display = 'none';
             document.getElementById('btnVolver').style.display   = 'inline-block';
             actualizarBanner();

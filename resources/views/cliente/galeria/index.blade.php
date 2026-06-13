@@ -6,14 +6,20 @@
         @forelse($sesiones as $sesion)
             @php
                 $totalFotos = $sesion->fotografias->count();
+                $badge = match($sesion->estado) {
+                    'GALERIA_DISPONIBLE' => ['texto' => 'Selecciona tus fotos',  'clase' => 'badge--pendiente'],
+                    'EN_EDICION'         => ['texto' => 'En edición',            'clase' => 'badge--edicion'],
+                    'FINALIZADA'         => ['texto' => 'Listas para descargar', 'clase' => 'badge--lista'],
+                    default              => null,
+                };
             @endphp
             <div class="galeria-card">
                 <div class="galeria-thumb">
                     <img src="https://picsum.photos/seed/{{ $sesion->id }}/400/200"
                          alt="Thumbnail sesión"
                          style="width:100%; height:100%; object-fit:cover;">
-                    @if($totalFotos > 0)
-                        <span class="galeria-badge">{{ $totalFotos }} fotos</span>
+                    @if($badge)
+                        <span class="galeria-badge {{ $badge['clase'] }}">{{ $badge['texto'] }}</span>
                     @endif
                 </div>
                 <div class="galeria-card-body">
@@ -29,7 +35,12 @@
                         <span>{{ $sesion->reserva->fotografo->empleado->usuario->persona->nombre ?? '—' }}</span>
                     </div>
                     <a href="{{ route('cliente.galeria.show', $sesion->id) }}" class="btn-ver-galeria">
-                        Ver Galería
+                        {{ match($sesion->estado) {
+                            'GALERIA_DISPONIBLE' => 'Seleccionar fotos',
+                            'EN_EDICION'         => 'Ver galería',
+                            'FINALIZADA'         => 'Ver y descargar',
+                            default              => 'Ver galería',
+                        } }}
                     </a>
                 </div>
             </div>

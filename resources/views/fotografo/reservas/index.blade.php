@@ -171,13 +171,9 @@
                     {{-- Acciones PENDIENTE --}}
                     @if($reserva->estado === 'PENDIENTE')
                         <div id="actions-{{ $reserva->id }}" class="reserva-actions">
-                            <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}">
-                                @csrf
-                                <input type="hidden" name="accion" value="APROBADA">
-                                <button type="button" class="btn btn-aprobar" onclick="toggleAprobar({{ $reserva->id }})">
-                                    ✓ Aprobar Reserva
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-aprobar" onclick="toggleAprobar({{ $reserva->id }})">
+                                ✓ Aprobar Reserva
+                            </button>
                             <button type="button" class="btn btn-sugerir" onclick="togglePropuesta({{ $reserva->id }})">
                                 ✎ Sugerir Modificación
                             </button>
@@ -189,11 +185,14 @@
 
                     {{-- Acciones APROBADA --}}
                     @if($reserva->estado === 'APROBADA' && $reserva->sesion?->estado !== 'CERRADA')
-                        <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}">
+                        <form method="POST"
+                              action="{{ route('fotografo.reservas.accion', $reserva) }}"
+                              class="reserva-panel-form"
+                              onsubmit="this.querySelector('[type=submit]').disabled = true; this.querySelector('[type=submit]').textContent = 'Procesando...';">
                             @csrf
                             <input type="hidden" name="accion" value="CERRAR_SESION">
                             <button type="submit" class="btn btn-aprobar btn-full"
-                                    onclick="return confirm('¿Marcar esta sesión como cerrada?')">
+                                    onclick="if(!confirm('¿Marcar esta sesión como cerrada?')) { event.preventDefault(); return; }">
                                 ✓ Cerrar sesión
                             </button>
                         </form>

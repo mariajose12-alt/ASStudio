@@ -11,6 +11,7 @@ class Fotografia extends Model
     protected $fillable = [
         'sesion_id',
         'url',
+        'nombre_original',
         'fecha_captura',
         'estado',
         'seleccionada',

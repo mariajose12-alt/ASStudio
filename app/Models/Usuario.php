@@ -19,8 +19,6 @@ class Usuario extends Authenticatable
         'persona_id',
         'email',
         'contrasena',
-        'google_id',
-        'avatar',
         'estado',
     ];
 
@@ -28,13 +26,11 @@ class Usuario extends Authenticatable
         'contrasena',
     ];
 
-
     public function getAuthPassword(): string
     {
         return $this->contrasena;
     }
 
-    //  Relaciones
     public function persona(): BelongsTo
     {
         return $this->belongsTo(Persona::class, 'persona_id');
@@ -50,12 +46,11 @@ class Usuario extends Authenticatable
         return $this->hasOne(Empleado::class, 'usuario_id');
     }
 
-//    public function notificaciones(): HasMany
-//    {
-//        return $this->hasMany(Notificacion::class, 'usuario_id');
-//    }
+    public function notificaciones(): HasMany
+    {
+        return $this->hasMany(Notificacion::class, 'usuario_id');
+    }
 
-    //  Helpers de rol
     public function esCliente(): bool
     {
         return $this->cliente()->exists();

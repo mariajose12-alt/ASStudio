@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Nomina;
 use App\Models\Reserva;
 use App\Services\AdminService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -57,6 +59,21 @@ class AdminController extends Controller
 
     public function nomina()
     {
-        return view('admin.nomina');
+        // Meses para el dropdown (1 - 12 con su nombre)
+        $meses = [
+            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril', 5 => 'Mayo', 6 => 'Junio',
+            7 => 'Julio', 8 => 'Agosto', 9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre',
+            12 => 'Diciembre'
+        ];
+
+        // Años disponibles -> desde que existe el primer registro de nómina hasta la fecha actual
+        $anioActual = now()->year;
+        $primerAnio = Nomina::min('fecha_inicio')
+            ? Carbon::parse(Nomina::min('fecha_inicio'))->year
+            : $anioActual;
+
+        $anios = range($anioActual, min($primerAnio, $anioActual));
+
+        return view('admin.nomina', compact('meses', 'anios'));
     }
 }

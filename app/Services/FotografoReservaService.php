@@ -26,7 +26,7 @@ class FotografoReservaService
     private function aprobar(Reserva $reserva, float $duracionHoras = 2.0): void
     {
         // Calcular fecha_fin real según la duración confirmada por el fotógrafo
-        $fechaFin = \Carbon\Carbon::parse($reserva->fecha_inicio)
+        $fechaFin = Carbon::parse($reserva->fecha_inicio)
             ->addHours($duracionHoras);
 
         // Verificar que no haya conflicto con otra reserva del mismo fotógrafo
@@ -47,11 +47,20 @@ class FotografoReservaService
             'fecha_fin'      => $fechaFin,
         ]);
 
-        $reserva->sesion()->create([
+        $sesion = $reserva->sesion()->create([
             'fecha_inicio' => $reserva->fecha_inicio,
             'fecha_fin'    => $fechaFin,
             'lugar'        => $reserva->lugar,
             'estado'       => 'CONFIRMADA',
+        ]);
+
+        // Crear la participación del fotógrafo principal en la sesión (por ahora solo PRINCIPAL)
+        $sesion->participaciones()->create([
+            'fotografo_id'          => $reserva->fotografo_id,
+            'rol'                   => 'PRINCIPAL',
+            'porcentaje_comision'   => 0, // usa el fallback de comisión del NominaService
+            'estado_participacion'  => true,
+            'horas_trabajadas'      => $duracionHoras,
         ]);
 
         ReservaAprobada::dispatch($reserva);

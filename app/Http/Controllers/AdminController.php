@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Fotografo;
 use App\Models\Nomina;
 use App\Models\Reserva;
 use App\Services\AdminService;
@@ -57,7 +58,7 @@ class AdminController extends Controller
     }
 
 
-    public function nomina()
+    public function nomina(Request $request)
     {
         // Meses para el dropdown (1 - 12 con su nombre)
         $meses = [
@@ -71,9 +72,42 @@ class AdminController extends Controller
         $primerAnio = Nomina::min('fecha_inicio')
             ? Carbon::parse(Nomina::min('fecha_inicio'))->year
             : $anioActual;
-
         $anios = range($anioActual, min($primerAnio, $anioActual));
 
-        return view('admin.nomina', compact('meses', 'anios'));
+        // Sí se seleccionó el periodo, traer los fotografos con sesiones en ese periodo.
+        $fotografos = null;
+        if($request->filled('mes') && $request->filled('anio')){
+            $fotografos = $this->fotografosDelPeriodo((int) $request->mes, (int) $request->anio);
+        }
+        return view('admin.nomina', compact('meses', 'anios', 'fotografos'));
+    }
+
+    private function fotografosDelPeriodo(int $mes, int $anio)
+    {
+        return Fotografo::query()
+            ->with('empleado.usuario.persona')
+            ->whereHas('participaciones', function($q) use ($mes, $anio){
+                $q->whereHas('sesion', function($q2) use ($mes, $anio){
+                    $q2->where('estado','FINALIZADA')
+                        ->whereYear('updated_at', $anio)
+                        ->whereMonth('updated_at', $mes);
+                });
+            })
+            ->get()
+            ->map(function ($fotografo) use($mes, $anio) {
+                $participaciones = $fotografo->participaciones()
+                    ->whereHas('sesion', function($q) use ($mes, $anio){
+                        $q->where('estado','FINALIZADA')
+                            ->whereYear('updated_at', $anio)
+                            ->whereMonth('updated_at', $mes);
+                    })
+                    ->get();
+
+                $fotografo->sesiones_principal = $participaciones->where('rol', 'PRINCIPAL')->count();
+                $fotografo->sesiones_asistente = $participaciones->where('rol', 'ASISTENTE')->count();
+                $fotografo->total_sesiones = $participaciones->count();
+
+                return $fotografo;
+            });
     }
 }

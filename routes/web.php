@@ -92,6 +92,7 @@ Route::middleware(['auth', 'rol:ADMINISTRADOR'])
         Route::get('/estudio',   [AdminController::class, 'estudio'])->name('estudio');
         Route::get('/nomina',    [AdminController::class, 'nomina'])->name('nomina');
         Route::post('/nomina/calcular', [AdminController::class, 'calcularNomina'])->name('nomina.calcular');
+        Route::get('/nomina/{nomina}/resumen', [AdminController::class, 'nominaResumen'])->name('nomina.resumen');
 
 
         Route::resource('empleados', EmpleadoController::class);

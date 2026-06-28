@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Fotografo;
 use App\Models\Nomina;
+use App\Models\ParticipacionSesion;
 use App\Models\Reserva;
 use App\Services\AdminService;
 use Carbon\Carbon;
@@ -139,5 +140,32 @@ class AdminController extends Controller
         return redirect ()
             ->route('admin.nomina', ['mes' => $mes, 'anio' => $anio])
             ->with('nomina_calculada', $nomina->id);
+    }
+
+    public function nominaResumen(Nomina $nomina)
+    {
+        $nomina->load('detalles.fotografo.empleado.usuario.persona', 'creadaPor.empleado.usuario.persona');
+
+        // Por cada detalle (fotógrafo), traer las participaciones del mismo período
+        // para mostrar el desglose de sesiones y rol que dieron ese total.
+        $fechaInicio = $nomina->fecha_inicio;
+        $fechaFin    = $nomina->fecha_fin;
+
+        $desglose = $nomina->detalles->map(function ($detalle) use ($fechaInicio, $fechaFin) {
+            $participaciones = ParticipacionSesion::where('fotografo_id', $detalle->fotografo_id)
+                ->whereHas('sesion', function ($q) use ($fechaInicio, $fechaFin) {
+                    $q->where('estado', 'FINALIZADA')
+                        ->whereYear('updated_at', $fechaInicio->year)
+                        ->whereMonth('updated_at', $fechaInicio->month);
+                })
+                ->where('estado_participacion', true)
+                ->with('sesion.reserva')
+                ->get();
+
+            $detalle->participaciones_detalle = $participaciones;
+            return $detalle;
+        });
+
+        return view('admin.nomina-resumen', compact('nomina', 'desglose'));
     }
 }

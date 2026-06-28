@@ -55,4 +55,20 @@ class Nomina extends Model
     {
         return $this->estado === 'CERRADA';
     }
+
+    public function todosFotografosConfirmaron(): bool
+    {
+        return $this->detalles->isNotEmpty() &&
+            $this->detalles->every(fn($detalle) => $detalle->estaConfirmado());
+    }
+
+    public function tieneDisputasPendientes(): bool
+    {
+        return $this->detalles->contains(fn($detalle) => $detalle->estaEnDisputa());
+    }
+
+    public function detallesPendientesDeRevision(): int
+    {
+        return $this->detalles->where('estado_confirmacion', 'PENDIENTE')->count();
+    }
 }

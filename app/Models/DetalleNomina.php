@@ -15,12 +15,17 @@ class DetalleNomina extends Model
         'salario_bruto',
         'descuentos_legales',
         'sueldo_neto',
+        'confirmado_at',
+        'estado_confirmacion',
+        'observacion_fotografo',
+
     ];
 
     protected $casts = [
-        'salario_bruto'      => 'decimal:2',
-        'descuentos_legales' => 'decimal:2',
-        'sueldo_neto'        => 'decimal:2',
+        'salario_bruto'            => 'decimal:2',
+        'descuentos_legales'       => 'decimal:2',
+        'sueldo_neto'              => 'decimal:2',
+        'confirmado_at'            => 'datetime',
     ];
 
     public function nomina(): BelongsTo
@@ -31,5 +36,20 @@ class DetalleNomina extends Model
     public function fotografo(): BelongsTo
     {
         return $this->belongsTo(Fotografo::class, 'fotografo_id');
+    }
+
+    public function estaPendiente(): bool
+    {
+        return $this->estado_confirmacion === 'PENDIENTE';
+    }
+
+    public function estaConfirmado(): bool
+    {
+        return $this->estado_confirmacion === 'CONFIRMADO';
+    }
+
+    public function estaEnDisputa(): bool
+    {
+        return $this->estado_confirmacion === 'EN_DISPUTA';
     }
 }

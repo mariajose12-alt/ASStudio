@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DetalleNomina;
 use App\Models\Fotografo;
 use App\Models\Nomina;
 use App\Models\ParticipacionSesion;
@@ -86,7 +87,14 @@ class AdminController extends Controller
 
         $fotografos = $this->fotografosDelPeriodo($mes, $anio);
 
-        return view('admin.nomina', compact('meses', 'anios', 'fotografos'));
+        $nominas = $this->nominaRepository->all();
+
+        $disputas = DetalleNomina::where('estado_confirmacion', 'EN_DISPUTA')
+            ->with('fotografo.empleado.usuario.persona', 'nomina')
+            ->latest('id')
+            ->get();
+
+        return view('admin.nomina', compact('meses', 'anios', 'fotografos', 'nominas', 'disputas'));
     }
 
     private function fotografosDelPeriodo(int $mes, int $anio)
@@ -180,5 +188,132 @@ class AdminController extends Controller
         });
 
         return view('admin.nomina-resumen', compact('nomina', 'desglose'));
+    }
+
+    public function nominaConfirmar(Nomina $nomina)
+    {
+        $nomina->load('detalles');
+
+        if($nomina->estado !== 'CALCULADA')
+        {
+            return back()->with('error', 'Solo se puede confirmar una nómina que esté en estado CALCULADA');
+        }
+
+        if($nomina->tieneDisputasPendientes())
+        {
+            return back()->with('error', 'No puedes confirmar la nómina porque hay detalles en disputa. Resuélvelos antes de continuar.');
+        }
+
+        // se hará un job para marcar como confirmada pasada 3 días después de su envío.
+        if(!$nomina->todosFotografosConfirmaron())
+        {
+            return back()->with('error', 'No puedes confirmar la nómina hasta que todos los fotógrafos hayan confirmado su resumen individual.');
+        }
+
+        $this->nominaRepository->update($nomina->id, ['estado' => 'CONFIRMADA']);
+
+        return redirect ()
+            ->route('admin.nomina.resumen', $nomina->id)
+            ->with('sucess', 'Nómina confirmada correctamente, El historial ha sido actualizado.');
+    }
+
+    // Pantalla de resolución individual de una disputa
+    public function nominaDisputaShow(DetalleNomina $detalle)
+    {
+        abort_unless($detalle->estaEnDisputa(), 404);
+
+        $detalle->load('fotografo.empleado.usuario.persona', 'nomina');
+
+        $fechaInicio = $detalle->nomina->fecha_inicio;
+        $fechaFin    = $detalle->nomina->fecha_fin;
+
+        // Participaciones actuales de este fotógrafo en el período (lo que ya cuenta)
+        $participacionesActuales = ParticipacionSesion::where('fotografo_id', $detalle->fotografo_id)
+            ->whereHas('sesion', function ($q) use ($fechaInicio, $fechaFin) {
+                $q->where('estado', 'FINALIZADA')
+                    ->whereYear('updated_at', $fechaInicio->year)
+                    ->whereMonth('updated_at', $fechaInicio->month);
+            })
+            ->where('estado_participacion', true)
+            ->with('sesion.reserva')
+            ->get();
+
+        // Sesiones FINALIZADA del período donde este fotógrafo NO tiene participación todavía
+        // (candidatas para el dropdown de "insertar participación")
+        $idsConParticipacion = $participacionesActuales->pluck('sesion_id');
+
+        $sesionesDisponibles = \App\Models\Sesion::where('estado', 'FINALIZADA')
+            ->whereYear('updated_at', $fechaInicio->year)
+            ->whereMonth('updated_at', $fechaInicio->month)
+            ->whereNotIn('id', $idsConParticipacion)
+            ->with('reserva')
+            ->get();
+
+        return view('admin.nomina-disputa', compact('detalle', 'participacionesActuales', 'sesionesDisponibles'));
+    }
+
+    // Insertar una participación nueva (sesión + rol elegidos por el admin)
+    public function nominaDisputaAgregarParticipacion(Request $request, DetalleNomina $detalle)
+    {
+        abort_unless($detalle->estaEnDisputa(), 404);
+
+        $request->validate([
+            'sesion_id' => 'required|exists:sesiones,id',
+            'rol'       => 'required|in:PRINCIPAL,ASISTENTE',
+        ]);
+
+        ParticipacionSesion::create([
+            'sesion_id'            => $request->sesion_id,
+            'fotografo_id'         => $detalle->fotografo_id,
+            'rol'                  => $request->rol,
+            'porcentaje_comision'  => 0,
+            'estado_participacion' => true,
+            'horas_trabajadas'     => 0,
+        ]);
+
+        return back()->with('success', 'Participación agregada. Recuerda darle "Aceptar y recalcular" para aplicar el cambio.');
+    }
+
+    // Eliminar una participación existente
+    public function nominaDisputaEliminarParticipacion(DetalleNomina $detalle, ParticipacionSesion $participacion)
+    {
+        abort_unless($detalle->estaEnDisputa(), 404);
+        abort_if($participacion->fotografo_id !== $detalle->fotografo_id, 403);
+
+        $participacion->delete();
+
+        return back()->with('success', 'Participación eliminada. Recuerda darle "Aceptar y recalcular" para aplicar el cambio.');
+    }
+
+    // Aceptar el ajuste: recalcular el detalle y volver a PENDIENTE para que el fotógrafo confirme de nuevo
+    public function nominaDisputaAceptar(DetalleNomina $detalle, NominaService $nominaService)
+    {
+        abort_unless($detalle->estaEnDisputa(), 404);
+
+        $nominaService->recalcularDetalle($detalle);
+
+        $detalle->update([
+            'estado_confirmacion'   => 'PENDIENTE',
+            'observacion_fotografo' => null,
+        ]);
+
+        return redirect()
+            ->route('admin.nomina')
+            ->with('success', 'Ajuste aceptado. El detalle fue recalculado y vuelve a estar pendiente de confirmación del fotógrafo.');
+    }
+
+    // Rechazar el ajuste: el cálculo original era correcto, se confirma tal cual
+    public function nominaDisputaRechazar(DetalleNomina $detalle)
+    {
+        abort_unless($detalle->estaEnDisputa(), 404);
+
+        $detalle->update([
+            'estado_confirmacion' => 'CONFIRMADO',
+            'confirmado_at'        => now(),
+        ]);
+
+        return redirect()
+            ->route('admin.nomina')
+            ->with('success', 'Ajuste rechazado. El detalle queda confirmado con el cálculo original.');
     }
 }

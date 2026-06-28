@@ -56,14 +56,8 @@ class NominaService
             $salario_base = $fotografo->salarioBaseEfectivo();
 
             $bonoSesiones = $grupo->sum(function (ParticipacionSesion $participacion) {
-                $precio = (float) $participacion->sesion->reserva->precio_total;
-                $tasa = (float) $participacion->porcentaje_comision > 0
-                    ? (float) $participacion->porcentaje_comision
-                    : ($participacion->rol === 'PRINCIPAL' ? self::COMISION_PRINCIPAL : self::COMISION_ASISTENTE);
-
-                return $precio * ($tasa / 100);
+                return self::montoComision($participacion);
             });
-
 
             $bruto      = round($salario_base + $bonoSesiones, 2);
             $descuento  = $this->descuentosEmpleado($bruto);
@@ -93,6 +87,64 @@ class NominaService
         ]);
 
         return $nomina->load('detalles.fotografo.empleado.usuario.persona');
+    }
+
+    public static function tasaComision(ParticipacionSesion $participacion): float
+    {
+        return (float) $participacion->porcentaje_comision > 0
+            ? (float) $participacion->porcentaje_comision
+            : ($participacion->rol === 'PRINCIPAL' ? self::COMISION_PRINCIPAL : self::COMISION_ASISTENTE);
+    }
+
+    public static function montoComision(ParticipacionSesion $participacion): float
+    {
+        $precio = (float) $participacion->sesion->reserva->precio_total;
+        return round($precio * (self::tasaComision($participacion) / 100), 2);
+    }
+
+    public function recalcularDetalle(DetalleNomina $detalle): DetalleNomina
+    {
+        $nomina    = $detalle->nomina;
+        $fotografo = $detalle->fotografo;
+
+        $participaciones = ParticipacionSesion::where('fotografo_id', $fotografo->id)
+            ->whereHas('sesion', function ($q) use ($nomina) {
+                $q->where('estado', 'FINALIZADA')
+                    ->whereYear('updated_at', $nomina->fecha_inicio->year)
+                    ->whereMonth('updated_at', $nomina->fecha_inicio->month);
+            })
+            ->where('estado_participacion', true)
+            ->with('sesion.reserva')
+            ->get();
+
+        $salarioBase  = $fotografo->salarioBaseEfectivo();
+        $bonoSesiones = $participaciones->sum(fn($p) => self::montoComision($p));
+
+        $bruto     = round($salarioBase + $bonoSesiones, 2);
+        $descuento = $this->descuentosEmpleado($bruto);
+        $neto      = round($bruto - $descuento, 2);
+
+        $detalle->update([
+            'salario_bruto'      => $bruto,
+            'descuentos_legales' => $descuento,
+            'sueldo_neto'        => $neto,
+        ]);
+
+        // Recalcular los totales de la Nomina padre también
+        $this->recalcularTotalesNomina($nomina);
+
+        return $detalle;
+    }
+
+    private function recalcularTotalesNomina(Nomina $nomina): void
+    {
+        $nomina->load('detalles');
+
+        $nomina->update([
+            'total_salarios_brutos'    => round($nomina->detalles->sum('salario_bruto'), 2),
+            'total_descuentos_legales' => round($nomina->detalles->sum('descuentos_legales'), 2),
+            'total_nomina_neta'        => round($nomina->detalles->sum('sueldo_neto'), 2),
+        ]);
     }
 
     public function detallesPorFotografo(Nomina $nomina): Collection

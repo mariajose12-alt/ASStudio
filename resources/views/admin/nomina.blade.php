@@ -2,6 +2,12 @@
 @section('title', 'Nómina')
 
 @section('content')
+    @if(session('nomina_calculada'))
+        <div class="alert alert-success" style="margin-bottom:16px; padding:12px 16px; background:#d1fae5; color:#065f46; border-radius:8px;">
+            ¡Nómina calculada correctamente! ID de nómina: {{ session('nomina_calculada') }}
+        </div>
+    @endif
+
     <div class="card">
         <div class="card-header">
             <h2>Selecciona el período</h2>
@@ -30,9 +36,9 @@
                     @endforeach
                 </select>
             </div>
-
         </form>
     </div>
+
     {{--  Listado de fotógrafos activos del período --}}
     @if($fotografos !== null)
         <div class="card" style="margin-top:20px;">
@@ -70,6 +76,17 @@
                         @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <div style="padding:16px 20px; text-align:right;">
+                    <form method="POST" action="{{ route('admin.nomina.calcular') }}">
+                        @csrf
+                        <input type="hidden" name="mes" value="{{ request('mes') }}">
+                        <input type="hidden" name="anio" value="{{ request('anio') }}">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            Calcular Nómina
+                        </button>
+                    </form>
                 </div>
             @endif
         </div>

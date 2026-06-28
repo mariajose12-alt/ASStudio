@@ -16,6 +16,7 @@ class EmpleadoCreateDTO
         public readonly ?string $experiencia_laboral,
         public readonly array   $certificaciones,
         public readonly ?string $password = null,
+        public readonly ?float $salario_base = null,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -34,6 +35,9 @@ class EmpleadoCreateDTO
                 )
             ),
             password:             $request->password,
+            salario_base:         $request->tipo_salario === 'personalizado'
+                ? (float) $request->salario_base
+                : null,
         );
     }
 }

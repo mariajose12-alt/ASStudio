@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DTOs\EmpleadoCreateDTO;
+use App\Models\ConfiguracionNomina;
 use App\Models\Empleado;
 use App\Services\EmpleadoService;
 use Illuminate\Http\Request;
@@ -34,6 +35,7 @@ class EmpleadoController extends Controller
             'rol'      => 'required|in:FOTOGRAFO,ADMINISTRADOR',
             'estado'   => 'required|in:ACTIVO,INACTIVO',
             'experiencia_laboral' => 'nullable|string',
+            'salario_base' => 'nullable|numeric|min:0',
         ]);
 
         $dto      = EmpleadoCreateDTO::fromRequest($request);
@@ -48,13 +50,15 @@ class EmpleadoController extends Controller
     public function show(Empleado $empleado)
     {
         $empleado->load('usuario.persona', 'fotografo');
-        return view('admin.empleados.show', compact('empleado'));
+        $configDefault = ConfiguracionNomina::actual()->salario_base;
+        return view('admin.empleados.show', compact('empleado', 'configDefault'));
     }
 
     public function edit(Empleado $empleado)
     {
         $empleado->load('usuario.persona', 'fotografo');
-        return view('admin.empleados.edit', compact('empleado'));
+        $configDefault = ConfiguracionNomina::actual()->salario_base;
+        return view('admin.empleados.edit', compact('empleado', 'configDefault'));
     }
 
     public function update(Request $request, Empleado $empleado)
@@ -67,6 +71,7 @@ class EmpleadoController extends Controller
             'rol'      => 'required|in:FOTOGRAFO,ADMINISTRADOR',
             'estado'   => 'required|in:ACTIVO,INACTIVO',
             'password' => 'nullable|string|min:8',
+            'salario_base' => 'nullable|numeric|min:0'
         ]);
 
         $dto = EmpleadoCreateDTO::fromRequest($request);

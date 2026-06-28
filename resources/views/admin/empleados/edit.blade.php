@@ -106,6 +106,29 @@
                                        placeholder="Ej: Adobe Lightroom, Sony Certified">
                                 @error('certificaciones')<span class="error-msg">{{ $message }}</span>@enderror
                             </div>
+
+                            <div class="form-group full">
+                                <label>Salario Base</label>
+                                <div style="display:flex; gap:16px; margin-bottom:10px;">
+                                    <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
+                                        <input type="radio" name="tipo_salario" value="default"
+                                               {{ old('tipo_salario', $fotografo?->salario_base === null ? 'default' : 'personalizado') == 'default' ? 'checked' : '' }}
+                                               onchange="toggleSalarioPersonalizado(false)">
+                                        Salario base por defecto (RD$ {{ number_format($configDefault, 2) }})
+                                    </label>
+                                    <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
+                                        <input type="radio" name="tipo_salario" value="personalizado"
+                                               {{ old('tipo_salario', $fotografo?->salario_base === null ? 'default' : 'personalizado') == 'personalizado' ? 'checked' : '' }}
+                                               onchange="toggleSalarioPersonalizado(true)">
+                                        Salario personalizado
+                                    </label>
+                                </div>
+                                <input type="number" step="0.01" name="salario_base" id="input-salario-personalizado"
+                                       value="{{ old('salario_base', $fotografo?->salario_base) }}"
+                                       style="display:{{ $fotografo?->salario_base !== null ? 'block' : 'none' }};"
+                                       placeholder="Ej: 25000.00">
+                                @error('salario_base')<span class="error-msg">{{ $message }}</span>@enderror
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -122,10 +145,14 @@
 @endsection
 
 @push('scripts')
-<script>
-    function toggleFotografo(rol) {
-        document.getElementById('campos-fotografo').style.display =
-            rol === 'FOTOGRAFO' ? 'block' : 'none';
-    }
-</script>
+    <script>
+        function toggleFotografo(rol) {
+            document.getElementById('campos-fotografo').style.display =
+                rol === 'FOTOGRAFO' ? 'block' : 'none';
+        }
+
+        function toggleSalarioPersonalizado(mostrar) {
+            document.getElementById('input-salario-personalizado').style.display = mostrar ? 'block' : 'none';
+        }
+    </script>
 @endpush

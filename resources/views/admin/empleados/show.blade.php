@@ -63,6 +63,10 @@
                                 @endif
                             </td>
                         </tr>
+                        <tr>
+                            <td>Salario Base</td>
+                            <td>RD$ {{ number_format($empleado->fotografo->salario_base ?? $configDefault, 2) }}</td>
+                        </tr>
                     @endif
                     <tr><td>Registrado</td><td>{{ $empleado->created_at->format('d/m/Y H:i') }}</td></tr>
                     <tr><td>Actualizado</td><td>{{ $empleado->updated_at->format('d/m/Y H:i') }}</td></tr>

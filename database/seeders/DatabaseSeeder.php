@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             UsuariosSeeder::class,
             CatalogosPaquetesSeeder::class,
             HorarioSeeder::class,
+            ConfiguracionNominaSeeder::class,
         ]);
     }
 }

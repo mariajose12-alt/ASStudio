@@ -9,6 +9,7 @@ use App\Models\Usuario;
 use App\Models\Empleado;
 use App\Models\Cliente;
 use App\Models\Fotografo;
+use App\Models\Administrador;
 
 class UsuariosSeeder extends Seeder
 {
@@ -31,9 +32,18 @@ class UsuariosSeeder extends Seeder
             'estado' => 'ACTIVO',
         ]);
 
-        Empleado::create([
+        // Se crea el registro en la tabla "administradores" porque Empleado solo
+        // define el rol (ADMINISTRADOR), pero la nómina necesita referenciar
+        // específicamente el id de Administrador (creada_por_id), no el de
+        // Empleado, Usuario o Persona.
+
+        $empleadoAdmin = Empleado::create([
             'usuario_id' => $usuarioAdmin->id,
             'rol' => 'ADMINISTRADOR',
+        ]);
+
+        Administrador::create([
+            'empleado_id' => $empleadoAdmin->id,
         ]);
 
         // 2. Crear Fotógrafo

@@ -8,6 +8,8 @@ use App\Models\Reserva;
 use App\Services\AdminService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\DTOs\NominaCalculoDTO;
+use App\Services\NominaService;
 
 class AdminController extends Controller
 {
@@ -109,5 +111,33 @@ class AdminController extends Controller
 
                 return $fotografo;
             });
+    }
+
+    public function calcularNomina(Request $request, NominaService $nominaService)
+    {
+        $request->validate([
+            'mes' => 'required|integer|min:1|max:12',
+            'anio' => 'required|integer|min:2000|max:' . now()->year,
+        ]);
+
+        $mes  =  (int) $request->mes;
+        $anio =  (int) $request->anio;
+
+        $fechaInicio = Carbon::create($anio, $mes, 1)->startOfMonth();
+        $fechaFin    = $fechaInicio->copy()->endOfMonth();
+        $periodo     = $fechaInicio->format('Y-m');
+
+        $dto = new NominaCalculoDTO(
+            periodo:     $periodo,
+            fechaInicio: $fechaInicio,
+            fechaFin:    $fechaFin,
+            creadaPorId: auth()->user()->empleado->administrador->id,
+        );
+
+        $nomina = $nominaService->calcular($dto);
+
+        return redirect ()
+            ->route('admin.nomina', ['mes' => $mes, 'anio' => $anio])
+            ->with('nomina_calculada', $nomina->id);
     }
 }

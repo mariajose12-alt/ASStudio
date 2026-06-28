@@ -33,10 +33,12 @@ class NominaService
             'estado'        => 'PENDIENTE',
         ]);
 
-        $participaciones = ParticipacionSesion::whereHas('sesion', fn($q) =>
-        $q->whereBetween('fecha_inicio', [$dto->fechaInicio, $dto->fechaFin])
-            ->whereIn('estado', ['FINALIZADA', 'CERRADA'])
-        )
+        // Una sesión pertenece al período en el que pasó a FINALIZADA, usando updated_at
+        $participaciones = ParticipacionSesion::whereHas('sesion', function ($q) use ($dto) {
+            $q->where('estado', 'FINALIZADA')
+                ->whereYear('updated_at', $dto->fechaInicio->year)
+                ->whereMonth('updated_at', $dto->fechaInicio->month);
+        })
             ->where('estado_participacion', true)
             ->with(['sesion.reserva', 'fotografo'])
             ->get();
@@ -49,16 +51,21 @@ class NominaService
         $totNeto     = 0.0;
 
         foreach ($porFotografo as $fotografoId => $grupo) {
-            $bruto = $grupo->sum(function (ParticipacionSesion $p) {
-                $precio = (float) $p->sesion->reserva->precio_total;
-                $tasa   = (float) $p->porcentaje_comision > 0
-                    ? (float) $p->porcentaje_comision
-                    : ($p->esPrincipal() ? self::COMISION_PRINCIPAL : self::COMISION_ASISTENTE);
+           // Sumar el salaro base al bruto
+            $fotografo = $grupo->first()->fotografo;
+            $salario_base = $fotografo->salarioBaseEfectivo();
+
+            $bonoSesiones = $grupo->sum(function (ParticipacionSesion $participacion) {
+                $precio = (float) $participacion->sesion->reserva->precio_total;
+                $tasa = (float) $participacion->porcentaje_comision > 0
+                    ? (float) $participacion->porcentaje_comision
+                    : ($participacion->rol === 'PRINCIPAL' ? self::COMISION_PRINCIPAL : self::COMISION_ASISTENTE);
 
                 return $precio * ($tasa / 100);
             });
 
-            $bruto      = round($bruto, 2);
+
+            $bruto      = round($salario_base + $bonoSesiones, 2);
             $descuento  = $this->descuentosEmpleado($bruto);
             $patronal   = $this->aportesPatronales($bruto);
             $neto       = round($bruto - $descuento, 2);

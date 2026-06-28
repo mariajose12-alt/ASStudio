@@ -43,6 +43,7 @@ class EmpleadoService
                 'empleado_id'         => $empleado->id,
                 'experiencia_laboral' => $dto->experiencia_laboral,
                 'certificaciones'     => $dto->certificaciones,
+                'salario_base'        => $dto->salario_base,
             ]);
         }
 
@@ -78,6 +79,7 @@ class EmpleadoService
                 [
                     'experiencia_laboral' => $dto->experiencia_laboral,
                     'certificaciones'     => $dto->certificaciones,
+                    'salario_base'        => $dto->salario_base,
                 ]
             );
         }

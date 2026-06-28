@@ -15,6 +15,7 @@ class Fotografo extends Model
         'empleado_id',
         'certificaciones',
         'experiencia_laboral',
+        'salario_base',
     ];
 
     protected $casts = [
@@ -71,5 +72,11 @@ class Fotografo extends Model
     public function reservas()
     {
         return $this->hasMany(Reserva::class, 'fotografo_id');
+    }
+
+    public function salarioBaseEfectivo(): float
+    {
+        return $this->salario_base
+            ?? ConfiguracionNomina::actual()->salario_base;
     }
 }

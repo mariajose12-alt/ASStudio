@@ -10,6 +10,23 @@
             </a>
         </div>
     @endif
+    @if(session('periodo_ya_procesado'))
+        <div class="alert" style="margin-bottom:16px; padding:12px 16px; background:#fef3c7; color:#92400e; border-radius:8px;">
+            <p style="margin:0 0 10px;">
+                ⚠️ El período <strong>{{ session('periodo_ya_procesado') }}</strong> ya fue procesado anteriormente.
+                ¿Deseas recalcularlo? Esto generará una nueva nómina para el mismo período.
+            </p>
+            <form method="POST" action="{{ route('admin.nomina.calcular') }}">
+                @csrf
+                <input type="hidden" name="mes" value="{{ request('mes') }}">
+                <input type="hidden" name="anio" value="{{ request('anio') }}">
+                <input type="hidden" name="confirmar_recalculo" value="1">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    Sí, recalcular
+                </button>
+            </form>
+        </div>
+    @endif
 
     <div class="card">
         <div class="card-header">
@@ -46,8 +63,7 @@
     @if($fotografos !== null)
         <div class="card" style="margin-top:20px;">
             <div class="card-header">
-                <h2>Fotógrafos con sesiones en {{ $meses[(int) request('mes')] }} {{ request('anio') }}</h2>
-                <span style="font-size:12px; color:var(--muted);">{{ $fotografos->count() }} fotógrafo(s) encontrado(s)</span>
+                <h2>Fotógrafos con sesiones en {{ $meses[(int) request('mes', now()->month)] }} {{ request('anio', now()->year) }}</h2>                <span style="font-size:12px; color:var(--muted);">{{ $fotografos->count() }} fotógrafo(s) encontrado(s)</span>
             </div>
 
             @if($fotografos->isEmpty())

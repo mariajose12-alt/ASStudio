@@ -11,11 +11,13 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\DTOs\NominaCalculoDTO;
 use App\Services\NominaService;
+use App\Repositories\Contracts\NominaRepositoryInterface;
 
 class AdminController extends Controller
 {
     public function __construct(
-        private AdminService $adminService
+        private AdminService $adminService,
+         private NominaRepositoryInterface $nominaRepository
     ) {}
 
     public function dashboard()
@@ -77,11 +79,13 @@ class AdminController extends Controller
             : $anioActual;
         $anios = range($anioActual, min($primerAnio, $anioActual));
 
-        // Sí se seleccionó el periodo, traer los fotografos con sesiones en ese periodo.
-        $fotografos = null;
-        if($request->filled('mes') && $request->filled('anio')){
-            $fotografos = $this->fotografosDelPeriodo((int) $request->mes, (int) $request->anio);
-        }
+        // Si no vienen mes/año en la URL, usar el mes/año actual por defecto
+        // para que la tabla cargue de inmediato al entrar a la página.
+        $mes  = $request->filled('mes')  ? (int) $request->mes  : now()->month;
+        $anio = $request->filled('anio') ? (int) $request->anio : now()->year;
+
+        $fotografos = $this->fotografosDelPeriodo($mes, $anio);
+
         return view('admin.nomina', compact('meses', 'anios', 'fotografos'));
     }
 
@@ -127,6 +131,15 @@ class AdminController extends Controller
         $fechaInicio = Carbon::create($anio, $mes, 1)->startOfMonth();
         $fechaFin    = $fechaInicio->copy()->endOfMonth();
         $periodo     = $fechaInicio->format('Y-m');
+
+        //Si el período ya fue procesado y el admin no confirmó
+        //explícitamente el recálculo, frenar y pedir confirmación.
+        if($this->nominaRepository->periodoYaProcesado($periodo) && !$request->boolean('confirmar_recalculo'))
+        {
+            return redirect()
+                ->route('admin.nomina', ['mes' => $mes, 'anio' => $anio])
+                ->with('periodo_ya_procesado', $periodo);
+        }
 
         $dto = new NominaCalculoDTO(
             periodo:     $periodo,

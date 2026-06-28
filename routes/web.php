@@ -3,6 +3,7 @@
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\DisponibilidadController;
 use App\Http\Controllers\FotografiaController;
+use App\Http\Controllers\FotografoNominaController;
 use App\Http\Controllers\FotografoReservaController;
 use App\Http\Controllers\SesionController;
 use Illuminate\Support\Facades\Route;
@@ -90,10 +91,16 @@ Route::middleware(['auth', 'rol:ADMINISTRADOR'])
     ->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/estudio',   [AdminController::class, 'estudio'])->name('estudio');
+
         Route::get('/nomina',    [AdminController::class, 'nomina'])->name('nomina');
         Route::post('/nomina/calcular', [AdminController::class, 'calcularNomina'])->name('nomina.calcular');
         Route::get('/nomina/{nomina}/resumen', [AdminController::class, 'nominaResumen'])->name('nomina.resumen');
-
+        Route::post('/nomina/{nomina}/confirmar', [AdminController::class, 'nominaConfirmar'])->name('nomina.confirmar');
+        Route::get('/nomina/disputa/{detalle}', [AdminController::class, 'nominaDisputaShow'])->name('nomina.disputa.show');
+        Route::post('/nomina/disputa/{detalle}/participacion', [AdminController::class, 'nominaDisputaAgregarParticipacion'])->name('nomina.disputa.agregar');
+        Route::delete('/nomina/disputa/{detalle}/participacion/{participacion}', [AdminController::class, 'nominaDisputaEliminarParticipacion'])->name('nomina.disputa.eliminar');
+        Route::post('/nomina/disputa/{detalle}/aceptar', [AdminController::class, 'nominaDisputaAceptar'])->name('nomina.disputa.aceptar');
+        Route::post('/nomina/disputa/{detalle}/rechazar', [AdminController::class, 'nominaDisputaRechazar'])->name('nomina.disputa.rechazar');
 
         Route::resource('empleados', EmpleadoController::class);
         Route::resource('paquetes',  PaqueteController::class);
@@ -126,6 +133,12 @@ Route::middleware(['auth', 'rol:FOTOGRAFO'])
         Route::get('sesiones/{id}/fotografias/create',  [FotografiaController::class, 'create'])         ->name('fotografias.create');
         Route::post('sesiones/{id}/fotografias',        [FotografiaController::class, 'store'])           ->name('fotografias.store');
         Route::patch('sesiones/{id}/entregar',          [FotografiaController::class, 'marcarEntregada']) ->name('fotografias.entregar');
+
+        //Confirmacionde detalle Nomina
+        Route::get('nomina',                      [FotografoNominaController::class, 'index'])->name('nomina.index');
+        Route::get('nomina/{detalle}',             [FotografoNominaController::class, 'show'])->name('nomina.show');
+        Route::post('nomina/{detalle}/confirmar', [FotografoNominaController::class, 'confirmar'])->name('nomina.confirmar');
+        Route::post('nomina/{detalle}/ajuste',    [FotografoNominaController::class, 'reportarAjuste'])->name('nomina.ajuste');
     });
 
 // DASHBOARD CLIENTE

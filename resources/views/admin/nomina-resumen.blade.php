@@ -14,31 +14,41 @@
         </div>
         <div class="card-body">
             <table class="detail-table">
-                <tr>
-                    <td>Período</td>
-                    <td>{{ $nomina->fecha_inicio->format('d/m/Y') }} — {{ $nomina->fecha_fin->format('d/m/Y') }}</td>
-                </tr>
-                <tr>
-                    <td>Creada por</td>
-                    <td>{{ $nomina->creadaPor->empleado->usuario->persona->nombre ?? '—' }} {{ $nomina->creadaPor->empleado->usuario->persona->apellido ?? '' }}</td>
-                </tr>
-                <tr>
-                    <td>Total Bruto</td>
-                    <td>RD$ {{ number_format($nomina->total_salarios_brutos, 2) }}</td>
-                </tr>
-                <tr>
-                    <td>Total Descuentos</td>
-                    <td>RD$ {{ number_format($nomina->total_descuentos_legales, 2) }}</td>
-                </tr>
-                <tr>
-                    <td>Total Aportes Patronales</td>
-                    <td>RD$ {{ number_format($nomina->total_aportes_patronales, 2) }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Total Neto a Pagar</strong></td>
-                    <td><strong>RD$ {{ number_format($nomina->total_nomina_neta, 2) }}</strong></td>
-                </tr>
+                <tr><td>Período</td><td>{{ $nomina->fecha_inicio->format('d/m/Y') }} — {{ $nomina->fecha_fin->format('d/m/Y') }}</td></tr>
+                <tr><td>Creada por</td><td>{{ $nomina->creadaPor->empleado->usuario->persona->nombre ?? '—' }} {{ $nomina->creadaPor->empleado->usuario->persona->apellido ?? '' }}</td></tr>
+                <tr><td>Total Bruto</td><td>RD$ {{ number_format($nomina->total_salarios_brutos, 2) }}</td></tr>
+                <tr><td><strong>Total Neto a Pagar</strong></td><td><strong>RD$ {{ number_format($nomina->total_nomina_neta, 2) }}</strong></td></tr>
             </table>
+
+            {{-- Retenciones a los empleados, a favor de la DGII/TSS --}}
+            <div style="margin-top:20px; padding:16px; background:#f9fafb; border-radius:8px;">
+                <strong style="font-size:13px; display:block; margin-bottom:10px;">Retenciones a empleados </strong>
+                <table class="detail-table">
+                    <tr>
+                        <td>TSS (SFS + AFP empleado)</td>
+                        <td>RD$ {{ number_format($nomina->total_descuentos_legales - $nomina->total_isr_retenido, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td>ISR retenido (a favor de la DGII)</td>
+                        <td>RD$ {{ number_format($nomina->total_isr_retenido, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total retenido a empleados</strong></td>
+                        <td><strong>RD$ {{ number_format($nomina->total_descuentos_legales, 2) }}</strong></td>
+                    </tr>
+                </table>
+            </div>
+
+            {{-- Lo que paga el estudio aparte, no se descuenta a nadie --}}
+            <div style="margin-top:12px; padding:16px; background:#f9fafb; border-radius:8px;">
+                <strong style="font-size:13px; display:block; margin-bottom:10px;">Aportes patronales </strong>
+                <table class="detail-table">
+                    <tr>
+                        <td>SFS + AFP + Riesgo Laboral (patronal)</td>
+                        <td>RD$ {{ number_format($nomina->total_aportes_patronales, 2) }}</td>
+                    </tr>
+                </table>
+            </div>
         </div>
 
         {{-- Confirmación del admin, condicionada a que todos los fotógrafos confirmaron --}}
@@ -119,11 +129,11 @@
                 </table>
             </div>
 
-            <div
-                style="padding:16px 20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; font-size:13px;">
+            <div style="padding:16px 20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; font-size:13px; flex-wrap:wrap; gap:8px;">
                 <span>Salario Base: <strong>RD$ {{ number_format($detalle->fotografo->salarioBaseEfectivo(), 2) }}</strong></span>
                 <span>Bruto: <strong>RD$ {{ number_format($detalle->salario_bruto, 2) }}</strong></span>
-                <span>Descuentos: <strong>RD$ {{ number_format($detalle->descuentos_legales, 2) }}</strong></span>
+                <span>TSS: <strong>RD$ {{ number_format($detalle->descuento_tss, 2) }}</strong></span>
+                <span>ISR: <strong>RD$ {{ number_format($detalle->descuento_isr, 2) }}</strong></span>
                 <span>Neto: <strong>RD$ {{ number_format($detalle->sueldo_neto, 2) }}</strong></span>
             </div>
         </div>

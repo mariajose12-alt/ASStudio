@@ -22,7 +22,15 @@
                     <td>RD$ {{ number_format($detalle->salario_bruto, 2) }}</td>
                 </tr>
                 <tr>
-                    <td>Descuentos Legales</td>
+                    <td>TSS (SFS + AFP)</td>
+                    <td>RD$ {{ number_format($detalle->descuento_tss, 2) }}</td>
+                </tr>
+                <tr>
+                    <td>ISR retenido</td>
+                    <td>RD$ {{ number_format($detalle->descuento_isr, 2) }}</td>
+                </tr>
+                <tr>
+                    <td>Total Descuentos</td>
                     <td>RD$ {{ number_format($detalle->descuentos_legales, 2) }}</td>
                 </tr>
                 <tr>

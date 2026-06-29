@@ -17,6 +17,7 @@ class Nomina extends Model
         'fecha_fin',
         'total_salarios_brutos',
         'total_descuentos_legales',
+        'total_isr_retenido',
         'total_aportes_patronales',
         'total_nomina_neta',
         'estado',
@@ -27,6 +28,7 @@ class Nomina extends Model
         'fecha_fin'                => 'date',
         'total_salarios_brutos'    => 'decimal:2',
         'total_descuentos_legales' => 'decimal:2',
+        'total_isr_retenido'       => 'decimal:2',
         'total_aportes_patronales' => 'decimal:2',
         'total_nomina_neta'        => 'decimal:2',
     ];

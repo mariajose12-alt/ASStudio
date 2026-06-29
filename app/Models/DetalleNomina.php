@@ -14,18 +14,22 @@ class DetalleNomina extends Model
         'fotografo_id',
         'salario_bruto',
         'descuentos_legales',
+        'descuento_tss',
+        'descuento_isr',
         'sueldo_neto',
-        'confirmado_at',
         'estado_confirmacion',
+        'confirmado_at',
         'observacion_fotografo',
 
     ];
 
     protected $casts = [
-        'salario_bruto'            => 'decimal:2',
-        'descuentos_legales'       => 'decimal:2',
-        'sueldo_neto'              => 'decimal:2',
-        'confirmado_at'            => 'datetime',
+        'salario_bruto'      => 'decimal:2',
+        'descuentos_legales' => 'decimal:2',
+        'descuento_tss'      => 'decimal:2',
+        'descuento_isr'      => 'decimal:2',
+        'sueldo_neto'        => 'decimal:2',
+        'confirmado_at'      => 'datetime',
     ];
 
     public function nomina(): BelongsTo

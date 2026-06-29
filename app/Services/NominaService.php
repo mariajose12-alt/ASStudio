@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\DTOs\NominaCalculoDTO;
+use App\Mail\NominaDisponibleFotografo;
 use App\Models\DetalleNomina;
 use App\Models\Nomina;
 use App\Models\ParticipacionSesion;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Mail;
 
 class NominaService
 {
@@ -74,7 +76,7 @@ class NominaService
             $patronal    = $this->aportesPatronales($bruto);
             $neto        = round($bruto - $descuento, 2);
 
-            DetalleNomina::create([
+            $detalle = DetalleNomina::create([
                 'nomina_id'          => $nomina->id,
                 'fotografo_id'       => $fotografoId,
                 'salario_bruto'      => $bruto,
@@ -83,6 +85,9 @@ class NominaService
                 'descuento_isr'      => $isr,
                 'sueldo_neto'        => $neto,
             ]);
+
+            $emailFotografo = $detalle->fotografo->empleado->usuario->email;
+            Mail::to($emailFotografo)->send(new NominaDisponibleFotografo($detalle));
 
             $totBruto     += $bruto;
             $totDescuento += $descuento;

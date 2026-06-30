@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\SeleccionConfirmada;
 use App\Http\Controllers\Controller;
 use App\Models\Fotografia;
 use App\Services\GaleriaService;
@@ -45,6 +46,8 @@ class GaleriaController extends Controller
         $seleccionadas = json_decode($request->input('fotos_seleccionadas'), true) ?? [];
 
         $this->galeria->confirmarSeleccion($sesion, $seleccionadas);
+
+        event(new SeleccionConfirmada($sesion));
 
         return redirect()
             ->route('cliente.galeria.final', $id)

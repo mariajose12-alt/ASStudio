@@ -19,12 +19,15 @@ class Usuario extends Authenticatable
         'persona_id',
         'email',
         'contrasena',
+        'google_id',
+        'avatar',
         'estado',
     ];
 
     protected $hidden = [
         'contrasena',
     ];
+
 
     public function getAuthPassword(): string
     {
@@ -46,10 +49,10 @@ class Usuario extends Authenticatable
         return $this->hasOne(Empleado::class, 'usuario_id');
     }
 
-    public function notificaciones(): HasMany
-    {
-        return $this->hasMany(Notificacion::class, 'usuario_id');
-    }
+//    public function notificaciones(): HasMany
+//    {
+//        return $this->hasMany(Notificacion::class, 'usuario_id');
+//    }
 
     public function esCliente(): bool
     {
@@ -82,5 +85,10 @@ class Usuario extends Authenticatable
     public function getAuthPasswordName(): string
     {
         return 'contrasena';
+    }
+
+    public function scopeAdministradores($query)
+    {
+        return $query->whereHas('empleado', fn ($q) => $q->where('rol', 'ADMINISTRADOR'));
     }
 }

@@ -140,7 +140,7 @@
                                         <td style="padding:0 5px;">
                                             <a href="{{ config('company.social.instagram') }}" target="_blank"
                                                style="display:inline-block;width:38px;height:38px;border-radius:10px;background-color:rgba(255,255,255,0.08);text-decoration:none;text-align:center;line-height:38px;">
-                                                <img src="{{ asset('images/email/icon-instagram.png') }}" width="18" height="18"
+                                                <img src="{{ $message->embed(public_path('images/email/icon-instagram.png')) }}" width="18" height="18"
                                                      alt="Instagram" style="display:inline-block;vertical-align:middle;">
                                             </a>
                                         </td>
@@ -149,7 +149,7 @@
                                         <td style="padding:0 5px;">
                                             <a href="https://wa.me/{{ preg_replace('/\D/', '', config('company.social.whatsapp')) }}" target="_blank"
                                                style="display:inline-block;width:38px;height:38px;border-radius:10px;background-color:rgba(255,255,255,0.08);text-decoration:none;text-align:center;line-height:38px;">
-                                                <img src="{{ asset('images/email/icon-whatsapp.png') }}" width="18" height="18"
+                                                <img src="{{ $message->embed(public_path('images/email/icon-whatsapp.png')) }}" width="18" height="18"
                                                      alt="WhatsApp" style="display:inline-block;vertical-align:middle;">
                                             </a>
                                         </td>
@@ -158,7 +158,7 @@
                                         <td style="padding:0 5px;">
                                             <a href="{{ config('company.social.tiktok') }}" target="_blank"
                                                style="display:inline-block;width:38px;height:38px;border-radius:10px;background-color:rgba(255,255,255,0.08);text-decoration:none;text-align:center;line-height:38px;">
-                                                <img src="{{ asset('images/email/icon-tiktok.png') }}" width="18" height="18"
+                                                <img src="{{ $message->embed(public_path('images/email/icon-tiktok.png')) }}" width="18" height="18"
                                                      alt="TikTok" style="display:inline-block;vertical-align:middle;">
                                             </a>
                                         </td>

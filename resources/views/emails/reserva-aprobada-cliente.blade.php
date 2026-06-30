@@ -107,23 +107,25 @@
         <tr>
             <td style="background-color:#fff3e8;border-left:4px solid #e87722;padding:14px 18px;border-radius:0 8px 8px 0;">
                 <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;color:#1a0d00;line-height:1.6;">
-                    <strong>Siguiente paso:</strong> Ya puedes acceder a tu reserva y revisar toda la información desde la plataforma.
+                    <strong>Tu fecha aún no está reservada.</strong> Para confirmar tu sesión, realiza el pago del anticipo
+                    de <strong>RD$ {{ number_format($reserva->pagos->where('tipo', 'ANTICIPO')->first()?->monto ?? 0, 2) }}</strong>
+                    antes de que otro cliente ocupe el espacio.
                 </p>
             </td>
         </tr>
     </table>
 
     {{-- CTA --}}
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:32px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
         <tr>
             <td align="center">
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                     <tr>
                         <td style="border-radius:12px;background-color:#e87722;">
-                            <a href="{{ route('cliente.reservas.show', $reserva->id) }}"
+                            <a href="{{ route('cliente.pagos.index') }}"
                                target="_blank"
                                style="display:inline-block;padding:14px 32px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;">
-                                Ver mi reserva &rarr;
+                                Pagar anticipo →
                             </a>
                         </td>
                     </tr>
@@ -132,4 +134,7 @@
         </tr>
     </table>
 
+    <p style="margin:20px 0 0;font-family:Arial,sans-serif;font-size:12px;color:#9ca3af;text-align:center;line-height:1.6;">
+        Las fechas se confirman en orden de pago. Si tienes dudas escríbenos antes de perder tu lugar.
+    </p>
 @endsection

@@ -99,7 +99,9 @@
                 </div>
                 <div>
                     <div class="rf-estado-title">¡Tu reserva fue aprobada!</div>
-                    <div class="rf-estado-sub">El fotógrafo confirmó tu sesión. Te esperamos el día acordado.</div>
+                    <div class="rf-estado-sub">
+                        El fotógrafo ha aprobado tu reserva. Ya puedes realizar el anticipo para confirmar y asegurar tu fecha.
+                    </div>
                 </div>
             </div>
 

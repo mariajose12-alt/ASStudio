@@ -8,6 +8,64 @@
     <a href="{{ route('cliente.galeria') }}" class="gal-btn-nav" id="btnVolver">⁝</a>
 @endsection
 
+@push('styles')
+    <style>
+        /* ── Modal exceso: lista de fotos ── */
+        .modal-exceso__lista {
+            list-style: none;
+            margin: 0.75rem 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        .modal-exceso__item {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 0.4rem 0.5rem;
+        }
+        .modal-exceso__thumb {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        .modal-exceso__num {
+            font-size: 0.78rem;
+            opacity: 0.55;
+            flex: 1;
+        }
+        .modal-exceso__quitar {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            opacity: 0.6;
+            padding: 0.25rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.15s;
+        }
+        .modal-exceso__quitar:hover { opacity: 1; }
+
+        /* ── Botón secundario en modal ── */
+        .modal-gal__btn--secondary {
+            background: transparent;
+            border: 1px solid currentColor;
+            opacity: 0.7;
+        }
+        .modal-gal__btn--secondary:hover { opacity: 1; }
+    </style>
+@endpush
+
 
 @section('tabs')
     {{-- Banner de contador de favoritos --}}
@@ -68,6 +126,39 @@
         </div>
     </div>
 
+    {{-- Modal de bienvenida (primera vez) --}}
+    <div class="modal-gal" id="modalBienvenida" aria-hidden="true">
+        <div class="modal-gal__sheet">
+            <div class="modal-gal__pill"></div>
+            <h3 class="modal-gal__titulo">¡Bienvenida a tu galería!</h3>
+            <p class="modal-gal__sub">Cómo funciona la selección</p>
+            <ol class="modal-gal__pasos">
+                <li>Explora todas tus fotos y toca las que más te gusten para marcarlas como <strong>favoritas</strong>.</li>
+                <li>Tu paquete incluye <strong>{{ $limite }} {{ $limite === 1 ? 'fotografía' : 'fotografías' }}</strong>. Debes elegir exactamente ese número.</li>
+                <li>Cuando tengas tus favoritas listas, presiona <strong>"Ver favoritos"</strong> para revisar tu selección y confirmarla.</li>
+            </ol>
+            <button type="button" class="modal-gal__btn" onclick="cerrarModalBienvenida()">
+                ¡Entendido, empezar!
+            </button>
+        </div>
+    </div>
+
+    {{-- Modal de exceso --}}
+    <div class="modal-gal" id="modalExceso" aria-hidden="true">
+        <div class="modal-gal__sheet">
+            <div class="modal-gal__pill"></div>
+            <h3 class="modal-gal__titulo">Tienes fotos de más</h3>
+            <p class="modal-gal__sub" id="modalExcesoSub"></p>
+            <ul class="modal-exceso__lista" id="modalExcesoLista"></ul>
+            <div class="modal-gal__pasos" style="margin-top:0.5rem">
+                <p style="margin:0;font-size:0.85rem;opacity:0.7">Toca el <strong>×</strong> para quitar una foto de la selección.</p>
+            </div>
+            <button type="button" class="modal-gal__btn modal-gal__btn--secondary" onclick="cerrarModalExceso()">
+                Seguir editando
+            </button>
+        </div>
+    </div>
+
     {{-- Lightbox --}}
     <div class="lb-backdrop" id="lightbox" onclick="lbCerrar(event)">
         <button class="lb-close" onclick="lbCerrar()">
@@ -105,12 +196,102 @@
 @endsection
 
 @push('scripts')
+    @include('partials.zoom')
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        });
+
         const limite      = {{ $limite }};
         const totalFotos  = {{ count($fotos) }};
+        const sesionId    = {{ $sesion->id }};
         let seleccionadas = new Set();
         let orden         = [];
         let modoFavoritos = false;
+
+        /* ── Modal de bienvenida ── */
+
+        function mostrarModalBienvenidaSiPrimera() {
+            const clave = 'galeria_vista_' + sesionId;
+            if (!localStorage.getItem(clave)) {
+                const overlay = document.getElementById('modalBienvenida');
+                overlay.classList.add('abierto');
+                overlay.setAttribute('aria-hidden', 'false');
+            }
+        }
+
+        function cerrarModalBienvenida() {
+            const clave = 'galeria_vista_' + sesionId;
+            localStorage.setItem(clave, '1');
+            const overlay = document.getElementById('modalBienvenida');
+            overlay.classList.remove('abierto');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+
+        /* ── Modal de exceso ── */
+
+        function abrirModalExceso() {
+            const excedente = seleccionadas.size - limite;
+            document.getElementById('modalExcesoSub').textContent =
+                'Seleccionaste ' + excedente + ' foto' + (excedente !== 1 ? 's' : '') +
+                ' de más. Quita las que no quieras conservar.';
+
+            const lista = document.getElementById('modalExcesoLista');
+            lista.innerHTML = '';
+
+            // Mostrar las fotos seleccionadas (las últimas en orden = las "de más" primero)
+            [...orden].reverse().forEach(id => {
+                const itemEl = document.querySelector('.foto-item[data-id="' + id + '"]');
+                const imgSrc = itemEl ? itemEl.querySelector('img')?.src : '';
+
+                const li = document.createElement('li');
+                li.className = 'modal-exceso__item';
+                li.dataset.id = id;
+                li.innerHTML =
+                    '<img src="' + imgSrc + '" alt="Foto ' + id + '" class="modal-exceso__thumb">' +
+                    '<span class="modal-exceso__num">#' + (orden.indexOf(id) + 1) + '</span>' +
+                    '<button class="modal-exceso__quitar" onclick="quitarDesdeExceso(\'' + id + '\')" title="Quitar">' +
+                    '  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
+                    '</button>';
+                lista.appendChild(li);
+            });
+
+            const overlay = document.getElementById('modalExceso');
+            overlay.classList.add('abierto');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+
+        function cerrarModalExceso() {
+            const overlay = document.getElementById('modalExceso');
+            overlay.classList.remove('abierto');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+
+        function quitarDesdeExceso(id) {
+            const itemEl = document.querySelector('.foto-item[data-id="' + id + '"]');
+            if (itemEl) toggleFavorito(itemEl);
+
+            // Quitar item de la lista del modal
+            const li = document.querySelector('#modalExcesoLista .modal-exceso__item[data-id="' + id + '"]');
+            if (li) li.remove();
+
+            // Actualizar subtítulo
+            const excedente = seleccionadas.size - limite;
+            if (excedente <= 0) {
+                cerrarModalExceso();
+                return;
+            }
+            document.getElementById('modalExcesoSub').textContent =
+                'Seleccionaste ' + excedente + ' foto' + (excedente !== 1 ? 's' : '') +
+                ' de más. Quita las que no quieras conservar.';
+
+            // Actualizar numeración en la lista
+            document.querySelectorAll('#modalExcesoLista .modal-exceso__item').forEach(item => {
+                const itemId = item.dataset.id;
+                const pos = orden.indexOf(itemId);
+                const numEl = item.querySelector('.modal-exceso__num');
+                if (numEl) numEl.textContent = '#' + (pos + 1);
+            });
+        }
 
         /* ── Selección ── */
 
@@ -159,7 +340,7 @@
                 btn.classList.toggle('exceso', exceso);
                 if (exceso) {
                     btn.textContent   = 'Tienes ' + (count - limite) + ' foto' + (count - limite !== 1 ? 's' : '') + ' de más';
-                    btn.disabled     = true;
+                    btn.disabled     = false;
                     label.textContent = 'Selecciona justamente ' + limite + ' fotos en total para continuar';
                 } else if (exacto) {
                     btn.textContent  = 'Confirmar selección';
@@ -184,6 +365,8 @@
         function manejarBotonPrincipal() {
             if (!modoFavoritos) {
                 entrarModoFavoritos();
+            } else if (seleccionadas.size > limite) {
+                abrirModalExceso();
             } else if (seleccionadas.size === limite) {
                 abrirModal();
             }
@@ -273,9 +456,17 @@
             const img     = document.getElementById('lbImg');
             const spinner = document.getElementById('lbSpinner');
 
+            // Reset zoom al cambiar de foto
+            img.style.transform = 'scale(1) translate(0, 0)';
+            img.dataset.zoomInit = ''; // permite reinicializar en cada foto
+
             img.style.opacity     = '0';
             spinner.style.display = 'block';
-            img.onload = () => { spinner.style.display = 'none'; img.style.opacity = '1'; };
+            img.onload = () => {
+                spinner.style.display = 'none';
+                img.style.opacity = '1';
+                aplicarZoom(img); // ← aquí
+            };
             img.src = foto.src;
 
             document.getElementById('lbCounter').textContent = `${lbIndex + 1} / ${lbFotos.length}`;
@@ -311,5 +502,6 @@
         });
 
         lbInicializar();
+        mostrarModalBienvenidaSiPrimera();
     </script>
 @endpush

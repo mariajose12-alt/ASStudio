@@ -7,9 +7,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
     @stack('styles')
 </head>
 <body>
+
+@php
+    $navLinks = [
+        ['href' => route('fotografo.dashboard'),       'label' => 'Dashboard'],
+        ['href' => route('fotografo.calendario'),      'label' => 'Calendario'],
+        ['href' => route('fotografo.reservas.index'),  'label' => 'Reservas'],
+        ['href' => route('fotografo.sesiones.index'),  'label' => 'Sesiones'],
+        ['href' => route('fotografo.nomina.index'),    'label' => 'Nomina'],
+    ];
+    $logoOverride = null;
+@endphp
+@include('partials.navbar')
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <aside class="sidebar">
@@ -116,6 +129,43 @@
     @media (max-width: 768px) {
         .sidebar-hamburger { display: flex; }
     }
+    @media (min-width: 769px) {
+        /* En desktop, ocultar el navbar del landing */
+        .navbar-landing,
+        .navbar-mobile-menu {
+            display: none !important;
+        }
+    }
+
+    /* ── Topbar: solo visible en desktop ── */
+    .topbar {
+        display: none;
+    }
+
+    @media (min-width: 769px) {
+        .topbar {
+            display: flex;
+        }
+    }
+
+    /* Menú móvil del navbar — necesita display:flex para que la animación funcione */
+    @media (max-width: 768px) {
+        .navbar-hamburger {
+            display: flex !important;
+        }
+
+        .layout {
+            padding-top: 80px; /* altura del navbar (~64px) + un poco de aire */
+        }
+
+        .navbar-mobile-menu {
+            display: flex; /* necesario; la clase .open controla opacity/pointer-events */
+        }
+        /* Ocultar los links de escritorio dentro del navbar en móvil */
+        .navbar-links {
+            display: none !important;
+        }
+    }
 </style>
 
 <script>
@@ -133,6 +183,7 @@
         link.addEventListener('click', closeSidebar);
     });
 </script>
+@include('partials.navbar-scripts')
 @stack('scripts')
 </body>
 </html>

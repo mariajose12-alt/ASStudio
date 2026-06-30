@@ -30,6 +30,7 @@
             <h6>Gestión</h6>
             <nav class="nav flex-column">
                 <a class="nav-link" href="/admin/fotografos">Fotógrafos</a>
+                <a class="nav-link" href="/admin/pagos/index">Comprobantes Pendientes</a>
                 <a class="nav-link" href="/admin/paquetes-servicios">Paquetes y Servicios</a>
                 <a class="nav-link" href="/admin/nomina">Nómina</a>
                 <a class="nav-link" href="/admin/estudio">Estudio</a>

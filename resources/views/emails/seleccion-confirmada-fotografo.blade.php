@@ -22,7 +22,7 @@
 
     {{-- Subtítulo --}}
     <p style="margin:0 0 32px;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;color:#4b5563;text-align:center;">
-        Hola <strong style="color:#1a0d00;">{{ $reserva->fotografo->empleado->usuario->persona->nombre }}</strong>,
+        Hola <strong style="color:#1a0d00;">{{ $sesion->reserva->fotografo->empleado->usuario->persona->nombre }}</strong>,
         el cliente ya eligió sus fotografías favoritas. Puedes proceder con la edición final.
     </p>
 

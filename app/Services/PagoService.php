@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PagoService
 {
-    const PORCENTAJE_ANTICIPO = 0.40;
+    const PORCENTAJE_ANTICIPO = 0.50;
 
     public function registrarAnticipo(Reserva $reserva, PagoRegistrarDTO $dto): Pago
     {

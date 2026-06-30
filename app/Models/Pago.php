@@ -19,6 +19,7 @@ class Pago extends Model
         'estado',
         'metodo',
         'tipo',
+        'motivo_rechazo',
     ];
 
     protected $casts = [
@@ -52,6 +53,11 @@ class Pago extends Model
         return $this->estado === 'PENDIENTE';
     }
 
+    public function estaEnRevision(): bool
+    {
+        return $this->estado === 'EN_REVISION';
+    }
+
     public function esAnticipo(): bool
     {
         return $this->tipo === 'ANTICIPO';
@@ -60,5 +66,26 @@ class Pago extends Model
     public function esPagoFinal(): bool
     {
         return $this->tipo === 'FINAL';
+    }
+
+    public function aprobar(): void
+    {
+        $this->update([
+            'estado'           => 'CONFIRMADO',
+            'fecha_completado' => now(),
+        ]);
+    }
+
+    public function rechazar(string $motivo): void
+    {
+        $this->update([
+            'estado'          => 'RECHAZADO',
+            'motivo_rechazo'  => $motivo,
+        ]);
+    }
+
+    public function asociarComprobante(Comprobante $comprobante): void
+    {
+        $this->update(['comprobante_id' => $comprobante->id]);
     }
 }

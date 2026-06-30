@@ -7,11 +7,13 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class PagoConfirmado
+class PagoRechazado
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public Pago $pago)
-    {
+    public function __construct(
+        public Pago $pago,
+        public ?int $comprobanteAnteriorId = null
+    ) {
     }
 }

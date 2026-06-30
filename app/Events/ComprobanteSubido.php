@@ -2,16 +2,16 @@
 
 namespace App\Events;
 
-use App\Models\Pago;
+use App\Models\Comprobante;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class PagoConfirmado
+class ComprobanteSubido
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public Pago $pago)
+    public function __construct(public Comprobante $comprobante)
     {
     }
 }

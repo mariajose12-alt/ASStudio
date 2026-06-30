@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\ClientePagoController;
 use App\Http\Controllers\DisponibilidadController;
 use App\Http\Controllers\FotografiaController;
 use App\Http\Controllers\FotografoNominaController;
@@ -30,6 +31,13 @@ Route::get('/', function () {
 
     return view('landing', compact('esAdmin'));
 });
+
+Route::get('/admin/comprobante/{comprobante}/imagen', function (App\Models\Comprobante $comprobante) {
+    abort_unless(auth()->user()->esAdministrador(), 403);
+    $contenido = Storage::disk('r2')->get($comprobante->archivo_key);
+    $mime = Storage::disk('r2')->mimeType($comprobante->archivo_key);
+    return response($contenido)->header('Content-Type', $mime);
+})->middleware(['auth'])->name('admin.comprobante.imagen');
 
 Route::get('/api/paquetes/{catalogo}', function ($catalogoId) {
     $catalogo = \App\Models\Catalogo::with('paquetes')->find($catalogoId);
@@ -109,6 +117,12 @@ Route::middleware(['auth', 'rol:ADMINISTRADOR'])
         Route::get('reservas',                    [AdminController::class, 'reservasIndex'])->name('reservas.index');
         Route::get('reservas/{reserva}',          [AdminController::class, 'reservasShow'])->name('reservas.show');
         Route::patch('reservas/{reserva}/estado', [AdminController::class, 'reservasCambiarEstado'])->name('reservas.estado');
+
+        Route::get('pagos',                 [AdminController::class, 'pagosIndex'])->name('pagos.index');
+        Route::get('pagos/{pago}',          [AdminController::class, 'pagosRevisar'])->name('pagos.revisar');
+        Route::post('pagos/{pago}/aprobar', [AdminController::class, 'pagosAprobar'])->name('pagos.aprobar');
+        Route::post('pagos/{pago}/rechazar',[AdminController::class, 'pagosRechazar'])->name('pagos.rechazar');
+
     });
 
 // DASHBOARD FOTÓGRAFO
@@ -175,6 +189,10 @@ Route::middleware(['auth', 'rol:CLIENTE'])
 
         // Índice al final
         Route::get('reservas',         [ReservaController::class, 'index'])->name('reservas.index');
+
+        Route::get('pagos',                     [ClientePagoController::class, 'index'])->name('pagos.index');
+        Route::get('pagos/{pago}/comprobante',  [ClientePagoController::class, 'formulario'])->name('pagos.comprobante.form');
+        Route::post('pagos/{pago}/comprobante', [ClientePagoController::class, 'guardar'])->name('pagos.comprobante.guardar');
     });
 
 Route::resource('admin/paquetes', PaqueteController::class)

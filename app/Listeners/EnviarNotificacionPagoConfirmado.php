@@ -10,10 +10,10 @@ class EnviarNotificacionPagoConfirmado
 {
     public function handle(PagoConfirmado $event): void
     {
-        $email = $event->reserva->cliente->usuario->email;
+        $email = $event->pago->reserva->cliente->usuario->email ?? null;
 
         if (!$email) return;
 
-        Mail::to($email)->send(new PagoConfirmadoCliente($event->reserva));
+        Mail::to($email)->send(new PagoConfirmadoCliente($event->pago->reserva));
     }
 }

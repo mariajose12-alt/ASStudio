@@ -10,10 +10,19 @@ return new class extends Migration
     {
         Schema::create('comprobantes', function (Blueprint $table) {
             $table->id();
-            $table->string('url_archivo', 500);
-            $table->string('nombre_archivo', 255);
-            $table->dateTime('fecha_subida')->useCurrent();
-            $table->boolean('validado')->default(false);
+
+            // Archivo en R2 (mismo patrón que las fotos de sesión)
+            $table->string('archivo_key'); // path/key en el bucket, no la URL pública
+
+            // Datos extraídos por OCR (Google Cloud Vision)
+            $table->decimal('monto_detectado', 12, 2)->nullable();
+            $table->date('fecha_detectada')->nullable();
+            $table->string('banco_detectado')->nullable();
+            $table->string('referencia_detectada')->nullable(); // # de confirmación/transacción
+
+            $table->enum('estado_ocr', ['PENDIENTE', 'PROCESADO', 'FALLIDO'])->default('PENDIENTE');
+            $table->json('respuesta_ocr_raw')->nullable(); // respuesta cruda de Vision API, útil para debug
+
             $table->timestamps();
         });
     }

@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PagoRechazado;
 use App\Models\DetalleNomina;
 use App\Models\Fotografo;
 use App\Models\Nomina;
 use App\Models\ParticipacionSesion;
+use App\Events\PagoConfirmado;
 use App\Models\Reserva;
 use App\Services\AdminService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\Pago;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+
 use App\DTOs\NominaCalculoDTO;
 use App\Services\NominaService;
 use App\Repositories\Contracts\NominaRepositoryInterface;
@@ -24,6 +30,20 @@ class AdminController extends Controller
     public function dashboard()
     {
         return view('admin.dashboard', $this->adminService->getData());
+    }
+
+    /**
+     * Lista los pagos con comprobante subido, pendientes de revisión.
+     */
+    public function pagosIndex(): View
+    {
+        $pagos = Pago::whereNotNull('comprobante_id')
+            ->where('estado', 'EN_REVISION')
+            ->with(['comprobante', 'reserva.cliente.usuario.persona'])
+            ->latest('fecha_registro')
+            ->paginate(15);
+
+        return view('admin.pagos.index', compact('pagos'));
     }
 
     public function reservasIndex()
@@ -56,6 +76,58 @@ class AdminController extends Controller
 
         return redirect()->route('admin.reservas.index')
             ->with('success', 'Estado actualizado correctamente.');
+    }
+
+    /**
+     * Pantalla de revisión de un pago específico (comprobante, datos OCR, monto esperado).
+     */
+    public function pagosRevisar(Pago $pago): View
+    {
+        $pago->load(['comprobante', 'reserva.cliente.usuario.persona', 'reserva.paquete']);
+
+        return view('admin.pagos.revisar', compact('pago'));
+    }
+
+    /**
+     * Aprueba el pago. Dispara PagoConfirmado -> crea/activa la sesión y avisa al cliente.
+     */
+    public function pagosAprobar(Pago $pago): RedirectResponse
+    {
+        if (! $pago->estaEnRevision()) {
+            return back()->with('error', 'Este pago ya fue procesado anteriormente.');
+        }
+
+        $pago->aprobar();
+
+        event(new PagoConfirmado($pago));
+
+        return redirect()
+            ->route('admin.pagos.index')
+            ->with('success', 'Pago aprobado correctamente.');
+    }
+
+    /**
+     * Rechaza el pago con un motivo obligatorio. Dispara PagoRechazado -> avisa al cliente.
+     */
+    public function pagosRechazar(Request $request, Pago $pago): RedirectResponse
+    {
+        if (! $pago->estaEnRevision()) {
+            return back()->with('error', 'Este pago ya fue procesado anteriormente.');
+        }
+
+        $request->validate([
+            'motivo' => ['required', 'string', 'max:500'],
+        ], [
+            'motivo.required' => 'Debes indicar el motivo del rechazo para que el cliente sepa qué corregir.',
+        ]);
+
+        $pago->rechazar($request->input('motivo'));
+
+        event(new PagoRechazado($pago));
+
+        return redirect()
+            ->route('admin.pagos.index')
+            ->with('success', 'Pago rechazado. Se notificó al cliente.');
     }
 
     public function estudio()

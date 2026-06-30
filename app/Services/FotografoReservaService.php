@@ -6,6 +6,7 @@ use App\DTOs\AccionReservaDTO;
 use App\Events\ReservaAprobada;
 use App\Events\ReservaModificada;
 use App\Events\ReservaRechazada;
+use App\Models\Pago;
 use App\Models\Reserva;
 use Carbon\Carbon;
 
@@ -61,6 +62,14 @@ class FotografoReservaService
             'porcentaje_comision'   => 0, // usa el fallback de comisión del NominaService
             'estado_participacion'  => true,
             'horas_trabajadas'      => $duracionHoras,
+        ]);
+
+        Pago::create([
+            'reserva_id' => $reserva->id,
+            'cliente_id' => $reserva->cliente_id,
+            'monto'      => round($reserva->paquete->precio_base * 0.5, 2),
+            'estado'     => 'PENDIENTE',
+            'tipo'       => 'ANTICIPO',
         ]);
 
         ReservaAprobada::dispatch($reserva);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Reserva extends Model
@@ -55,4 +56,102 @@ class Reserva extends Model
     {
         return $this->hasOne(Sesion::class, 'reserva_id');
     }
+
+    public function pagos(): HasMany
+    {
+        return $this->hasMany(Pago::class);
+    }
+
+
+    /**
+     * Pago vigente de tipo ANTICIPO/COMPLETO (el que activa la sesión al confirmarse).
+     */
+    public function pagoAnticipo(): HasOne
+    {
+        return $this->hasOne(Pago::class)
+            ->whereIn('tipo', ['ANTICIPO', 'COMPLETO'])
+            ->latestOfMany();
+    }
+
+    public function pagoFinal(): HasOne
+    {
+        return $this->hasOne(Pago::class)->where('tipo', 'FINAL')->latestOfMany();
+    }
+
+    /* ── Helpers de estado de la reserva ── */
+
+    public function estaAprobada(): bool
+    {
+        return $this->estado === 'APROBADA';
+    }
+
+    public function estaPendiente(): bool
+    {
+        return $this->estado === 'PENDIENTE';
+    }
+
+    /* ── Acciones del state machine de la reserva ── */
+
+    /**
+     * Aprueba la solicitud de reserva (acción del fotógrafo/admin).
+     * No crea la sesión todavía — eso ocurre cuando se confirma el pago.
+     */
+    public function aprobar(): void
+    {
+        $this->update(['estado' => 'APROBADA']);
+    }
+
+    public function rechazar(): void
+    {
+        $this->update(['estado' => 'RECHAZADA']);
+    }
+
+    public function cancelar(): void
+    {
+        $this->update(['estado' => 'CANCELADA']);
+    }
+
+    /**
+     * Se llama cuando el pago de anticipo/completo queda CONFIRMADO.
+     * Si la sesión no existe aún, la crea en estado CONFIRMADA.
+     * Si ya existe (ej. el cliente re-subió un comprobante tras un rechazo previo
+     * y este es un segundo pago que confirma algo), no la duplica.
+     */
+    public function confirmar(): Sesion
+    {
+        if (! $this->estaAprobada()) {
+            throw new \LogicException(
+                "No se puede confirmar la sesión de una reserva en estado {$this->estado}. Debe estar APROBADA."
+            );
+        }
+
+        if ($this->sesion) {
+            return $this->sesion;
+        }
+
+        return $this->sesion()->create([
+            'fecha_inicio' => $this->fecha_inicio,
+            'fecha_fin'    => $this->fecha_fin,
+            'lugar'        => $this->lugar,
+            'estado'       => 'CONFIRMADA',
+        ]);
+    }
+
+    /**
+     * Se llama cuando el pago FINAL queda CONFIRMADO.
+     * Habilita la entrega de la galería final dentro de la sesión existente.
+     */
+    public function habilitarEntregaFinal(): void
+    {
+        if (! $this->sesion) {
+            throw new \LogicException('No existe una sesión asociada a esta reserva para habilitar la entrega final.');
+        }
+
+        // Ajusta el estado destino según tu state machine real de Sesion
+        // (ej. si el pago final desbloquea descarga de galería, no necesariamente
+        // cambia el estado de la sesión sino un flag de "galeria_final_disponible").
+        $this->sesion->update(['estado' => 'FINALIZADA']);
+    }
+
+
 }

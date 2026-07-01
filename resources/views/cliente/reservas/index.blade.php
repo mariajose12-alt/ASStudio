@@ -2,15 +2,6 @@
 
 @section('title', 'Mis Reservas')
 
-@section('topbar-actions')
-    <a href="{{ route('cliente.reservas.paso1') }}" class="btn-nueva-reserva">
-        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        Nueva Reserva
-    </a>
-@endsection
-
 @section('content')
 
     <div class="reservas-wrapper">

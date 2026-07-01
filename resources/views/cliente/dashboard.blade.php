@@ -21,7 +21,7 @@
                 <div class="dash-hero__avatar" aria-hidden="true">
                     {{ strtoupper(substr($usuario->persona->nombre, 0, 1)) }}{{ strtoupper(substr($usuario->persona->apellido, 0, 1)) }}
                 </div>
-                <div>
+                <div style="padding-left: 12px;">
                     <div class="dash-hero__identity-name">
                         {{ $usuario->persona->nombre }} {{ $usuario->persona->apellido }}
                     </div>
@@ -200,86 +200,9 @@
 
         </div>
 
-        <div class="gal-footer">
-            <span class="gal-footer-meta">
-                <strong>29</strong> fotos · <strong>6</strong> sesiones
-            </span>
-            <a href="{{ route('cliente.galeria') }}" class="btn btn-outline btn-sm">
-                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-                Descargar todo
-            </a>
-        </div>
+        <div class="gal-footer"></div>
     </div>
 @endsection
-
-{{-- ══════════════════════════════════════════
-     ESTILOS ESPECÍFICOS DEL DASHBOARD
-     (complementan mobile.css; específicos de
-      esta vista para no inflar el CSS global)
-══════════════════════════════════════════ --}}
-@push('styles')
-    <style>
-        /* Identidad de escritorio dentro del hero (oculta en móvil) */
-        .dash-hero__identity {
-            display: none;
-            align-items: center;
-            gap: 14px;
-        }
-        .dash-hero__avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: rgba(201,168,76,0.18);
-            border: 1.5px solid rgba(201,168,76,0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-            font-weight: 500;
-            color: var(--gold);
-            flex-shrink: 0;
-        }
-        .dash-hero__identity-name {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--white);
-        }
-        .dash-hero__identity-meta {
-            font-size: 11px;
-            color: rgba(255,255,255,0.4);
-            margin-top: 2px;
-        }
-
-        /* Subtítulo y total del gráfico */
-        .dash-chart-subtitle {
-            font-size: 11px;
-            color: var(--text-3);
-            margin-top: 2px;
-        }
-        .dash-chart-total {
-            text-align: right;
-        }
-        .dash-chart-total__num {
-            display: block;
-            font-size: 20px;
-            font-weight: 500;
-            color: var(--navy);
-            line-height: 1;
-        }
-        .dash-chart-total__label {
-            font-size: 10px;
-            color: var(--text-3);
-        }
-
-        @media (min-width: 769px) {
-            .dash-hero__greeting,
-            .dash-hero__name { display: none; }
-            .dash-hero__identity { display: flex; }
-        }
-    </style>
-@endpush
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>

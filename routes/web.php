@@ -79,6 +79,7 @@ Route::get('/login',    [LoginController::class, 'showForm'])->name('login');
 Route::post('/login',   [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout',  [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
+Route::get('/verificar-email/{token}', [RegisterController::class, 'verificar'])->name('verificar.email');
 Route::post('/register',[RegisterController::class, 'register'])->name('register.post');
 Route::get('/auth/google',          [GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
@@ -161,38 +162,46 @@ Route::middleware(['auth', 'rol:CLIENTE'])
     ->name('cliente.')
     ->group(function () {
 
-        Route::get('/dashboard', [ClienteController::class, 'dashboard'])->name('dashboard');
-        Route::get('/perfil',    [ClienteController::class, 'perfil'])->name('perfil');
-        Route::put('/perfil',    [ClienteController::class, 'actualizarPerfil'])->name('perfil.update');
-        Route::get('/galeria',   [ClienteController::class, 'galeria'])->name('galeria');
+        // Estas dos no requieren verificación
+        Route::get('/verificacion-pendiente', fn() => view('cliente.verificacion-pendiente'))->name('verificacion.pendiente');
+        Route::post('/verificacion-reenviar', [RegisterController::class, 'reenviarVerificacion'])->name('verificacion.reenviar');
 
-        // Reservas
-        Route::get('reservas/paso1',   [ReservaController::class, 'paso1'])->name('reservas.paso1');
-        Route::post('reservas/paso1',  [ReservaController::class, 'guardarPaso1'])->name('reservas.guardarPaso1');
-        Route::get('reservas/paso2',   [ReservaController::class, 'paso2'])->name('reservas.paso2');
-        Route::post('reservas/paso2',  [ReservaController::class, 'guardarPaso2'])->name('reservas.guardarPaso2');
-        Route::get('reservas/paso3',   [ReservaController::class, 'paso3'])->name('reservas.paso3');
-        Route::post('reservas/paso3',  [ReservaController::class, 'guardarPaso3'])->name('reservas.guardarPaso3');
-        Route::get('reservas/paso4',   [ReservaController::class, 'paso4'])->name('reservas.paso4');
-        Route::post('reservas/enviar', [ReservaController::class, 'enviar'])->name('reservas.enviar');
+        Route::middleware('verificado')->group(function () {
 
-        Route::get('galeria',                          [GaleriaController::class, 'index'])             ->name('galeria');
-        Route::get('galeria/{id}',                     [GaleriaController::class, 'show'])              ->name('galeria.show');
-        Route::post('galeria/{id}/confirmar',          [GaleriaController::class, 'confirmar'])         ->name('galeria.confirmar');
-        Route::get('galeria/{id}/final',               [GaleriaController::class, 'final'])             ->name('galeria.final');
-        Route::post('galeria/{id}/recepcion',          [GaleriaController::class, 'confirmarRecepcion'])->name('galeria.recepcion');
-        Route::get('galeria/foto/{id}/descargar',      [GaleriaController::class, 'descargar'])         ->name('galeria.descargar');
-        Route::get('galeria/{id}/zip/{tipo}',          [GaleriaController::class, 'descargarZip'])      ->name('galeria.zip');
-        Route::get('reservas/{reserva}',               [ClienteReservaController::class, 'show'])->name('reservas.show');
+            Route::get('/dashboard', [ClienteController::class, 'dashboard'])->name('dashboard');
+            Route::get('/perfil',    [ClienteController::class, 'perfil'])->name('perfil');
+            Route::put('/perfil',    [ClienteController::class, 'actualizarPerfil'])->name('perfil.update');
+            Route::get('/galeria',   [ClienteController::class, 'galeria'])->name('galeria');
 
-        Route::patch('reservas/{reserva}/responder-sugerencia', [ClienteReservaController::class, 'responderSugerencia'])->name('reservas.responder-sugerencia');
+            // Reservas
+            Route::get('reservas/paso1',   [ReservaController::class, 'paso1'])->name('reservas.paso1');
+            Route::post('reservas/paso1',  [ReservaController::class, 'guardarPaso1'])->name('reservas.guardarPaso1');
+            Route::get('reservas/paso2',   [ReservaController::class, 'paso2'])->name('reservas.paso2');
+            Route::post('reservas/paso2',  [ReservaController::class, 'guardarPaso2'])->name('reservas.guardarPaso2');
+            Route::get('reservas/paso3',   [ReservaController::class, 'paso3'])->name('reservas.paso3');
+            Route::post('reservas/paso3',  [ReservaController::class, 'guardarPaso3'])->name('reservas.guardarPaso3');
+            Route::get('reservas/paso4',   [ReservaController::class, 'paso4'])->name('reservas.paso4');
+            Route::post('reservas/enviar', [ReservaController::class, 'enviar'])->name('reservas.enviar');
 
-        // Índice al final
-        Route::get('reservas',         [ReservaController::class, 'index'])->name('reservas.index');
+            Route::get('galeria',                          [GaleriaController::class, 'index'])             ->name('galeria');
+            Route::get('galeria/{id}',                     [GaleriaController::class, 'show'])              ->name('galeria.show');
+            Route::post('galeria/{id}/confirmar',          [GaleriaController::class, 'confirmar'])         ->name('galeria.confirmar');
+            Route::get('galeria/{id}/final',               [GaleriaController::class, 'final'])             ->name('galeria.final');
+            Route::post('galeria/{id}/recepcion',          [GaleriaController::class, 'confirmarRecepcion'])->name('galeria.recepcion');
+            Route::get('galeria/foto/{id}/descargar',      [GaleriaController::class, 'descargar'])         ->name('galeria.descargar');
+            Route::get('galeria/{id}/zip/{tipo}',          [GaleriaController::class, 'descargarZip'])      ->name('galeria.zip');
+            Route::get('reservas/{reserva}',               [ClienteReservaController::class, 'show'])->name('reservas.show');
 
-        Route::get('pagos',                     [ClientePagoController::class, 'index'])->name('pagos.index');
-        Route::get('pagos/{pago}/comprobante',  [ClientePagoController::class, 'formulario'])->name('pagos.comprobante.form');
-        Route::post('pagos/{pago}/comprobante', [ClientePagoController::class, 'guardar'])->name('pagos.comprobante.guardar');
+            Route::patch('reservas/{reserva}/responder-sugerencia', [ClienteReservaController::class, 'responderSugerencia'])->name('reservas.responder-sugerencia');
+
+            // Índice al final
+            Route::get('reservas',         [ReservaController::class, 'index'])->name('reservas.index');
+
+            Route::get('pagos',                     [ClientePagoController::class, 'index'])->name('pagos.index');
+            Route::get('pagos/{pago}/comprobante',  [ClientePagoController::class, 'formulario'])->name('pagos.comprobante.form');
+            Route::post('pagos/{pago}/comprobante', [ClientePagoController::class, 'guardar'])->name('pagos.comprobante.guardar');
+        });
+
     });
 
 Route::resource('admin/paquetes', PaqueteController::class)

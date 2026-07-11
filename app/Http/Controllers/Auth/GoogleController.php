@@ -15,12 +15,25 @@ class GoogleController extends Controller
     public function redirect()
     {
         return Socialite::driver('google')->redirect();
+
+        // para que no revise los certificados
+        /*return Socialite::driver('google')
+            ->stateless()
+            ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
+            ->redirect();
+        */
     }
 
     // Google redirige de vuelta aquí
     public function callback()
     {
         $googleUser = Socialite::driver('google')->user();
+        //para que no revise los certificados
+        /*$googleUser = Socialite::driver('google')
+            ->stateless()
+            ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
+            ->user();
+        */
 
         // Busca o crea la persona
         $usuario = Usuario::whereEmail($googleUser->getEmail())->first();
@@ -37,6 +50,8 @@ class GoogleController extends Controller
                 'contrasena' => null,
                 'google_id'  => $googleUser->getId(),
                 'avatar'     => $googleUser->getAvatar(),
+                'verificado' => true,
+                'token_verificacion' => null,
             ]);
 
             // Crear cliente por defecto

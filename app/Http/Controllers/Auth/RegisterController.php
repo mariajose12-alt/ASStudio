@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use Illuminate\Support\Str;
+use App\Mail\VerificacionEmail;
+use Illuminate\Support\Facades\Mail;
 
 class RegisterController extends Controller
 {
@@ -38,12 +41,16 @@ class RegisterController extends Controller
             'telefono' => $request->telefono,
         ]);
 
+        $token = Str::random(64);
+
         // 2. Crear el usuario vinculado a la persona
         $usuario = Usuario::create([
             'persona_id' => $persona->id,
             'email'      => $request->email,
             'contrasena' => Hash::make($request->password),
             'estado'     => 'ACTIVO',
+            'verificado' => false,
+            'token_verificacion' => $token,
         ]);
 
         // 3. Crear el cliente vinculado al usuario
@@ -51,16 +58,20 @@ class RegisterController extends Controller
             'usuario_id' => $usuario->id,
         ]);
 
-        event(new Registered($usuario));
+        //Enviar correo de verificacion
+        Mail::to($usuario->email)->send(new VerificacionEmail($usuario));
 
-        Auth::login($usuario);
+        //event(new Registered($usuario));
+        //Auth::login($usuario);
 
-        $redirect = $request->input('redirect');
+
+        /*$redirect = $request->input('redirect');
         if ($redirect && $this->esRedirectSeguro($redirect)) {
             return redirect($redirect);
         }
 
-        return redirect()->route('cliente.dashboard');
+        return redirect()->route('cliente.dashboard');*/
+        return redirect()->route('login')->with('success', 'Registro exitoso. Revisa tu correo para verificar tu cuenta antes de iniciar sesión.');
     }
 
     // Valida que la URL de redirect sea interna y esté en la whitelist.
@@ -80,6 +91,40 @@ class RegisterController extends Controller
         ];
 
         return in_array($url, $permitidas);
+    }
+
+    public function verificar(string $token): RedirectResponse
+    {
+        $usuario = Usuario::where('token_verificacion', $token)->first();
+
+        if (!$usuario) {
+            return redirect()->route('login')->with('error', 'El enlace de verificación no es válido o ya fue usado.');
+        }
+
+        $usuario->update([
+            'verificado'         => true,
+            'token_verificacion' => null,
+        ]);
+
+        Auth::login($usuario);
+
+        return redirect()->route('cliente.dashboard')->with('success', '¡Cuenta verificada! Bienvenido a AS Studio.');
+    }
+
+    public function reenviarVerificacion(): RedirectResponse
+    {
+        $usuario = auth()->user();
+
+        if ($usuario->estaVerificado()) {
+            return redirect()->route('cliente.dashboard');
+        }
+
+        $token = Str::random(64);
+        $usuario->update(['token_verificacion' => $token]);
+
+        Mail::to($usuario->email)->send(new VerificacionEmail($usuario));
+
+        return back()->with('success', '¡Correo reenviado! Revisa tu bandeja de entrada.');
     }
 
 }

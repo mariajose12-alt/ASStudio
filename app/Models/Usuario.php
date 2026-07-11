@@ -22,10 +22,16 @@ class Usuario extends Authenticatable
         'google_id',
         'avatar',
         'estado',
+        'verificado',
+        'token_verificacion',
     ];
 
     protected $hidden = [
         'contrasena',
+    ];
+
+    protected $casts = [
+        'verificado' => 'boolean',
     ];
 
 
@@ -90,5 +96,10 @@ class Usuario extends Authenticatable
     public function scopeAdministradores($query)
     {
         return $query->whereHas('empleado', fn ($q) => $q->where('rol', 'ADMINISTRADOR'));
+    }
+
+    public function estaVerificado(): bool
+    {
+        return $this->verificado === true;
     }
 }

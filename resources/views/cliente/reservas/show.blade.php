@@ -4,9 +4,6 @@
 @section('content')
     <div style="max-width: 660px; margin: 0 auto; padding: 1.25rem 1rem;">
 
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
 
         {{-- Tarjeta principal --}}
         <div class="rf-card" style="margin-bottom: 14px;">

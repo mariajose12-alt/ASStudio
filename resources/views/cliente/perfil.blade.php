@@ -161,6 +161,62 @@
             </form>
         </div>
     </div>
+    {{-- ══════════════════════════════════════════
+         CAMBIAR CONTRASEÑA
+    ══════════════════════════════════════════ --}}
+    <div class="card" id="cambiar-password">
+        <div class="card-header"><h2>Cambiar contraseña</h2></div>
+        <div class="card-body">
+
+            @if (session('status') === 'password-updated')
+                <div class="alert-success">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Contraseña actualizada correctamente.
+                </div>
+            @endif
+
+            @if ($errors->updatePassword->any())
+                <div class="alert-error">
+                    Revisa los campos marcados abajo.
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('password.update') }}">
+                @csrf
+                @method('PUT')
+
+                <div class="form-group">
+                    <label for="current_password">Contraseña actual</label>
+                    <input type="password" id="current_password" name="current_password"
+                           autocomplete="current-password" required>
+                    @error('current_password', 'updatePassword')
+                    <span class="field-error">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Nueva contraseña</label>
+                    <input type="password" id="password" name="password"
+                           autocomplete="new-password" required>
+                    @error('password', 'updatePassword')
+                    <span class="field-error">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="password_confirmation">Confirmar nueva contraseña</label>
+                    <input type="password" id="password_confirmation" name="password_confirmation"
+                           autocomplete="new-password" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Actualizar contraseña</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 @endsection
 
@@ -276,5 +332,15 @@
         // Mini gráfico dentro de la card de perfil (visible en desktop)
         const elMini = document.getElementById('sesionesChartAside');
         if (elMini) new Chart(elMini.getContext('2d'), chartConfig(true));
+    </script>
+    <script>
+        // Si venimos de un error o éxito relacionado a la contraseña,
+        // llevamos al usuario directo a esa card en vez de dejarlo arriba del todo.
+        @if ($errors->updatePassword->any() || session('status') === 'password-updated')
+        document.getElementById('cambiar-password')?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+        @endif
     </script>
 @endpush

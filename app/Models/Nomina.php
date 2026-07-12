@@ -48,6 +48,11 @@ class Nomina extends Model
         return $this->estado === 'CALCULADA';
     }
 
+    public function estaConfirmada(): bool
+    {
+        return $this->estado === 'CONFIRMADA';
+    }
+
     public function estaPagada(): bool
     {
         return $this->estado === 'PAGADA';

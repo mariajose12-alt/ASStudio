@@ -1,0 +1,133 @@
+@page {
+    margin: 20mm 15mm;
+}
+
+body {
+    font-family: DejaVu Sans, sans-serif;
+    font-size: 11px;
+    color: #1a2340;
+    line-height: 1.5;
+}
+
+/* Encabezado */
+h1 {
+    font-size: 20px;
+    color: #1a2340;
+    margin-bottom: 2px;
+    margin-top: 0;
+}
+
+.subtitulo {
+    color: #9a9488;
+    font-size: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e8a020;
+    padding-bottom: 10px;
+}
+
+/* Tablas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+}
+
+th {
+    background-color: #faf7f2;
+    color: #1a2340;
+    border-bottom: 2px solid #e8a020;
+    padding: 8px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+td {
+    padding: 7px 8px;
+    border-bottom: 1px solid #ece8e1;
+}
+
+tr:nth-child(even) td {
+    background: #fcfbf9;
+}
+
+.total-row td {
+    font-weight: bold;
+    border-top: 2px solid #e8a020;
+    border-bottom: 2px solid #e8a020;
+    background-color: #fff3e0;
+    color: #1a2340;
+}
+
+/* Encabezado por fotógrafo */
+.fotografo-header {
+    background-color: #1a2340;
+    color: #ffffff;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 0;
+}
+
+.fotografo-subheader {
+    background-color: #e8a020;
+    color: #ffffff;
+    padding: 4px 10px;
+    font-size: 10px;
+    margin-top: 0;
+    margin-bottom: 4px;
+}
+
+/* Tabla de resumen por fotógrafo */
+.resumen-fotografo td {
+    border: none;
+    padding: 3px 8px;
+    font-size: 11px;
+}
+
+.resumen-fotografo tr:last-child td {
+    font-weight: bold;
+    border-top: 1px solid #e8a020;
+    color: #e8a020;
+}
+
+/* Badge de estado */
+.badge {
+    background-color: #d1fae5;
+    color: #065f46;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.badge-calculada  { background-color: #fef3c7; color: #92400e; }
+.badge-confirmada { background-color: #d1fae5; color: #065f46; }
+.badge-pagada     { background-color: #dbeafe; color: #1e40af; }
+.badge-cerrada    { background-color: #f3f4f6; color: #374151; }
+
+/* Alineación */
+.text-right { text-align: right; }
+.text-muted { color: #9a9488; }
+
+/* Separador naranja */
+.divider {
+    border: none;
+    border-top: 2px solid #e8a020;
+    margin: 16px 0;
+}
+
+/* Sección de retenciones */
+.seccion-titulo {
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9a9488;
+    margin-bottom: 4px;
+    margin-top: 12px;
+}
+

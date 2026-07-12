@@ -105,7 +105,10 @@ Route::middleware(['auth', 'rol:ADMINISTRADOR'])
         Route::get('/nomina',    [AdminController::class, 'nomina'])->name('nomina');
         Route::post('/nomina/calcular', [AdminController::class, 'calcularNomina'])->name('nomina.calcular');
         Route::get('/nomina/{nomina}/resumen', [AdminController::class, 'nominaResumen'])->name('nomina.resumen');
+        Route::get('/nomina/{nomina}/pdf', [AdminController::class, 'nominaExportarPdf'])->name('nomina.pdf');
         Route::post('/nomina/{nomina}/confirmar', [AdminController::class, 'nominaConfirmar'])->name('nomina.confirmar');
+        Route::post('/nomina/{nomina}/confirmar', [AdminController::class, 'nominaConfirmar'])->name('nomina.confirmar');
+        Route::post('/nomina/{nomina}/pagar', [AdminController::class, 'nominaPagar'])->name('nomina.pagar');
         Route::get('/nomina/disputa/{detalle}', [AdminController::class, 'nominaDisputaShow'])->name('nomina.disputa.show');
         Route::post('/nomina/disputa/{detalle}/participacion', [AdminController::class, 'nominaDisputaAgregarParticipacion'])->name('nomina.disputa.agregar');
         Route::delete('/nomina/disputa/{detalle}/participacion/{participacion}', [AdminController::class, 'nominaDisputaEliminarParticipacion'])->name('nomina.disputa.eliminar');

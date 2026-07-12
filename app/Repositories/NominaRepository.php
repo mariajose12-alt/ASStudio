@@ -71,7 +71,7 @@ class NominaRepository implements NominaRepositoryInterface
     public function periodoYaProcesado(string $periodo): bool
     {
         return Nomina::where('periodo', $periodo)
-            ->whereIn('estado', ['CALCULADA', 'PAGADA', 'CERRADA'])
+            ->whereIn('estado', ['CALCULADA', 'CONFIRMADA', 'PAGADA', 'CERRADA'])
             ->exists();
     }
 

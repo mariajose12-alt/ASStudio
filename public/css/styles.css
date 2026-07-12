@@ -5606,3 +5606,54 @@ textarea { resize: vertical; min-height: 100px; }
     background: rgba(220,53,69,0.08);
     color: #b02a37;
 }
+
+/* ============================================
+   MODAL DE CONFIRMACIÓN — nómina pagada
+   (patrón de animación igual al de galeria.css)
+   ============================================ */
+.mp-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(3px);
+    align-items: center;
+    justify-content: center;
+}
+.mp-overlay.open { display: flex; }
+
+.mp-panel {
+    width: 100%;
+    max-width: 420px;
+    margin: 16px;
+    padding: 28px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: mpModalIn 0.2s ease;
+}
+@keyframes mpModalIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.mp-titulo { margin: 0 0 10px; font-size: 18px; }
+.mp-texto { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+.mp-acciones { margin-bottom: 10px; }
+.mp-acciones .btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.mp-cancelar {
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 8px;
+    cursor: pointer;
+}

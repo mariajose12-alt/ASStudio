@@ -3,6 +3,7 @@
 @section('title', 'Resumen de Nómina')
 
 @section('topbar-actions')
+    <a href="{{ route('admin.nomina.pdf', $nomina) }}" class="btn btn-outline btn-sm">📄 Exportar PDF</a>
     <a href="{{ route('admin.nomina') }}" class="btn btn-outline btn-sm">← Volver</a>
 @endsection
 
@@ -73,9 +74,19 @@
                 @endif
             </div>
         @elseif($nomina->estado === 'CONFIRMADA')
-            <div
-                style="padding:16px 20px; border-top:1px solid var(--border); background:#d1fae5; color:#065f46; text-align:right;">
-                ✓ Todos los fotógrafos confirmaron. Nómina cerrada.
+            <div style="padding:16px 20px; border-top:1px solid var(--border); background:#d1fae5; color:#065f46; display:flex; justify-content:space-between; align-items:center;">
+                <span>✓ Todos los fotógrafos confirmaron.</span>
+                <button type="button" class="btn btn-primary" data-modal="marcar-pagada">
+                    Marcar como pagada
+                </button>
+            </div>
+        @elseif($nomina->estado === 'PAGADA')
+            <div style="padding:16px 20px; border-top:1px solid var(--border); background:#dbeafe; color:#1e40af;">
+                💰 Nómina pagada. Pendiente de cierre.
+            </div>
+        @elseif($nomina->estado === 'CERRADA')
+            <div style="padding:16px 20px; border-top:1px solid var(--border); background:#e5e7eb; color:#374151;">
+                🔒 Nómina pagada y cerrada. Este proceso ha finalizado.
             </div>
         @endif
     </div>
@@ -138,4 +149,57 @@
             </div>
         </div>
     @endforeach
+
+    {{-- Modal: confirmar marcar como pagada --}}
+    <div id="modal-marcar-pagada" class="mp-overlay">
+        <div class="mp-panel">
+            <h3 class="mp-titulo">Marcar nómina como pagada</h3>
+            <p class="mp-texto">
+                ¿Ya realizaste el pago a todos los fotógrafos de este período?
+                Puedes marcarla solo como pagada, o pagarla y cerrar el proceso
+                definitivamente.
+            </p>
+
+            <form method="POST" action="{{ route('admin.nomina.pagar', $nomina) }}" class="mp-acciones">
+                @csrf
+                <input type="hidden" name="cerrar" value="0">
+                <button type="submit" class="btn btn-outline">Solo marcar como pagada</button>
+            </form>
+
+            <form method="POST" action="{{ route('admin.nomina.pagar', $nomina) }}" class="mp-acciones"
+                  onsubmit="return confirm('Esto cerrará el proceso de esta nómina de forma definitiva. ¿Continuar?')">
+                @csrf
+                <input type="hidden" name="cerrar" value="1">
+                <button type="submit" class="btn btn-primary">Marcar como pagada y cerrar</button>
+            </form>
+
+            <button type="button" class="mp-cancelar">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const modal = document.getElementById('modal-marcar-pagada');
+            if (!modal) return;
+
+            document.addEventListener('click', e => {
+                if (e.target.closest('[data-modal="marcar-pagada"]')) {
+                    modal.classList.add('open');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+
+            modal.querySelector('.mp-cancelar').addEventListener('click', () => {
+                modal.classList.remove('open');
+                document.body.style.overflow = '';
+            });
+
+            modal.addEventListener('click', e => {
+                if (e.target === modal) {
+                    modal.classList.remove('open');
+                    document.body.style.overflow = '';
+                }
+            });
+        })();
+    </script>
 @endsection

@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 use App\Models\Pago;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
-
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\DTOs\NominaCalculoDTO;
 use App\Services\NominaService;
 use App\Repositories\Contracts\NominaRepositoryInterface;
@@ -387,5 +387,53 @@ class AdminController extends Controller
         return redirect()
             ->route('admin.nomina')
             ->with('success', 'Ajuste rechazado. El detalle queda confirmado con el cálculo original.');
+    }
+
+    public function nominaPagar(Request $request, Nomina $nomina): RedirectResponse
+    {
+        if (! $nomina->estaConfirmada()) {
+            return back()->with('error', 'Solo se puede marcar como pagada una nómina que esté CONFIRMADA.');
+        }
+
+        $cerrarTambien = $request->boolean('cerrar');
+
+        $this->nominaRepository->update($nomina->id, [
+            'estado' => $cerrarTambien ? 'CERRADA' : 'PAGADA',
+        ]);
+
+        $mensaje = $cerrarTambien
+            ? 'Nómina marcada como pagada y cerrada. El proceso ha finalizado.'
+            : 'Nómina marcada como pagada.';
+
+        return redirect()
+            ->route('admin.nomina.resumen', $nomina->id)
+            ->with('success', $mensaje);
+    }
+
+    public function nominaExportarPdf(Nomina $nomina)
+    {
+        $nomina->load('detalles.fotografo.empleado.usuario.persona', 'creadaPor.empleado.usuario.persona');
+
+        $fechaInicio = $nomina->fecha_inicio;
+        $fechaFin    = $nomina->fecha_fin;
+
+        $desglose = $nomina->detalles->map(function ($detalle) use ($fechaInicio) {
+            $participaciones = ParticipacionSesion::where('fotografo_id', $detalle->fotografo_id)
+                ->whereHas('sesion', function ($q) use ($fechaInicio) {
+                    $q->where('estado', 'FINALIZADA')
+                        ->whereYear('updated_at', $fechaInicio->year)
+                        ->whereMonth('updated_at', $fechaInicio->month);
+                })
+                ->where('estado_participacion', true)
+                ->with('sesion.reserva')
+                ->get();
+
+            $detalle->participaciones_detalle = $participaciones;
+            return $detalle;
+        });
+
+        $pdf = Pdf::loadView('admin.nomina-pdf', compact('nomina', 'desglose'));
+
+        return $pdf->download("nomina-{$nomina->periodo}.pdf");
     }
 }

@@ -166,7 +166,7 @@ class AdminController extends Controller
             ->latest('id')
             ->get();
 
-        return view('admin.nomina', compact('meses', 'anios', 'fotografos', 'nominas', 'disputas'));
+        return view('admin.nomina.nomina', compact('meses', 'anios', 'fotografos', 'nominas', 'disputas'));
     }
 
     private function fotografosDelPeriodo(int $mes, int $anio)
@@ -259,7 +259,7 @@ class AdminController extends Controller
             return $detalle;
         });
 
-        return view('admin.nomina-resumen', compact('nomina', 'desglose'));
+        return view('admin.nomina.nomina-resumen', compact('nomina', 'desglose'));
     }
 
     public function nominaConfirmar(Nomina $nomina)
@@ -321,7 +321,7 @@ class AdminController extends Controller
             ->with('reserva')
             ->get();
 
-        return view('admin.nomina-disputa', compact('detalle', 'participacionesActuales', 'sesionesDisponibles'));
+        return view('admin.nomina.nomina-disputa', compact('detalle', 'participacionesActuales', 'sesionesDisponibles'));
     }
 
     // Insertar una participación nueva (sesión + rol elegidos por el admin)
@@ -432,7 +432,7 @@ class AdminController extends Controller
             return $detalle;
         });
 
-        $pdf = Pdf::loadView('admin.nomina-pdf', compact('nomina', 'desglose'));
+        $pdf = Pdf::loadView('admin.nomina.nomina-pdf', compact('nomina', 'desglose'));
 
         return $pdf->download("nomina-{$nomina->periodo}.pdf");
     }

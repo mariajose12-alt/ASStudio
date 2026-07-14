@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ConfiguracionNomina extends Model
 {
     protected $table = 'configuracion_nomina';
-    protected $fillable = ['sueldo_base_default', 'id'];
+    protected $fillable = ['salario_base'];
 
     public static function actual(): self
     {

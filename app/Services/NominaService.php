@@ -6,15 +6,19 @@ use App\DTOs\NominaCalculoDTO;
 use App\Mail\NominaDisponibleFotografo;
 use App\Models\DetalleNomina;
 use App\Models\Nomina;
+use App\Models\ParametroNomina;
 use App\Models\ParticipacionSesion;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
 
 class NominaService
 {
-    // Tasas RD vigentes — descuentos al empleado
-    const TASA_SFS_EMPLEADO   = 0.0304; // 3.04 %
-    const TASA_AFP_EMPLEADO   = 0.0287; // 2.87 %
+    // Tasas TSS empleado (AFP, SFS), monto por dependiente adicional y topes
+    // de cotización ya NO están hardcodeados: se leen de ParametroNomina,
+    // versionados por fecha, para poder ajustarlos sin deploy y para poder
+    // recalcular nóminas de meses pasados con la tarifa que estaba vigente
+    // en ese momento.
 
     // Aportes patronales
     const TASA_SFS_PATRONAL   = 0.0709; // 7.09 %
@@ -60,29 +64,35 @@ class NominaService
         $totPatronal   = 0.0;
         $totNeto       = 0.0;
 
+        $fechaVigencia = $dto->fechaInicio;
+
         foreach ($porFotografo as $fotografoId => $grupo) {
             // Sumar el salario base al bruto
             $fotografo    = $grupo->first()->fotografo;
             $salario_base = $fotografo->salarioBaseEfectivo();
+            $dependientes = $fotografo->dependientes_adicionales ?? 0;
 
             $bonoSesiones = $grupo->sum(function (ParticipacionSesion $participacion) {
                 return self::montoComision($participacion);
             });
 
-            $bruto       = round($salario_base + $bonoSesiones, 2);
-            $tss         = $this->descuentoTSS($bruto);
-            $isr         = $this->calcularISR($bruto);
-            $descuento   = round($tss + $isr, 2);
-            $patronal    = $this->aportesPatronales($bruto);
-            $neto        = round($bruto - $descuento, 2);
+            $bruto     = round($salario_base + $bonoSesiones, 2);
+            $tss       = $this->descuentoTSS($bruto, $dependientes, $fechaVigencia);
+            $isr       = $this->calcularISR($bruto, $dependientes, $fechaVigencia);
+            $descuento = round($tss['afp'] + $tss['sfs'] + $tss['dependientes'] + $isr, 2);
+            $patronal  = $this->aportesPatronales($bruto);
+            $neto      = round($bruto - $descuento, 2);
 
             $detalle = DetalleNomina::create([
                 'nomina_id'          => $nomina->id,
                 'fotografo_id'       => $fotografoId,
                 'salario_bruto'      => $bruto,
                 'descuentos_legales' => $descuento,
-                'descuento_tss'      => $tss,
+                'descuento_tss'      => round($tss['afp'] + $tss['sfs'], 2),
                 'descuento_isr'      => $isr,
+                'dependientes_adicionales_aplicados' => $dependientes,
+                'monto_dependiente_unitario_usado'   => $tss['monto_dependiente_unitario'],
+                'descuento_dependientes'             => $tss['dependientes'],
                 'sueldo_neto'        => $neto,
             ]);
 
@@ -137,23 +147,31 @@ class NominaService
             ->get();
 
         $salarioBase  = $fotografo->salarioBaseEfectivo();
+        $dependientes = $fotografo->dependientes_adicionales ?? 0;
         $bonoSesiones = $participaciones->sum(fn($p) => self::montoComision($p));
 
+        // Recalcular con la tarifa vigente en el período original de la nómina,
+        // no con la de hoy, para no alterar retroactivamente un recibo ya emitido.
+        $fechaVigencia = $nomina->fecha_inicio;
+
         $bruto     = round($salarioBase + $bonoSesiones, 2);
-        $tss       = $this->descuentoTSS($bruto);
-        $isr       = $this->calcularISR($bruto);
-        $descuento = round($tss + $isr, 2);
+        $tss       = $this->descuentoTSS($bruto, $dependientes, $fechaVigencia);
+        $isr       = $this->calcularISR($bruto, $dependientes, $fechaVigencia);
+        $descuento = round($tss['afp'] + $tss['sfs'] + $tss['dependientes'] + $isr, 2);
         $neto      = round($bruto - $descuento, 2);
 
         $detalle->update([
             'salario_bruto'      => $bruto,
             'descuentos_legales' => $descuento,
-            'descuento_tss'      => $tss,
+            'descuento_tss'      => round($tss['afp'] + $tss['sfs'], 2),
             'descuento_isr'      => $isr,
+            'dependientes_adicionales_aplicados' => $dependientes,
+            'monto_dependiente_unitario_usado'   => $tss['monto_dependiente_unitario'],
+            'descuento_dependientes'             => $tss['dependientes'],
             'sueldo_neto'        => $neto,
         ]);
 
-        // Recalcular los totales de la Nomina padre también
+        // Recalcular los totales de la Nómina padre también
         $this->recalcularTotalesNomina($nomina);
 
         return $detalle;
@@ -177,21 +195,51 @@ class NominaService
     }
 
     /**
-     * Descuento de Tesorería de la Seguridad Social (SFS + AFP) al empleado.
+     * Descuento de Tesorería de la Seguridad Social (SFS + AFP + dependientes
+     * adicionales) al empleado. Devuelve el desglose completo porque se
+     * necesita guardar cada componente por separado en DetalleNomina para
+     * auditoría.
+     *
+     * $dependientesAdicionales son SOLO los registrados fuera del núcleo
+     * familiar directo (cónyuge/hijos menores, que ya están cubiertos sin
+     * costo extra por el 3.04% de SFS).
+     *
+     * @return array{afp: float, sfs: float, dependientes: float, monto_dependiente_unitario: float, total: float}
      */
-    private function descuentoTSS(float $bruto): float
+    private function descuentoTSS(float $bruto, int $dependientesAdicionales, Carbon $fecha): array
     {
-        return round($bruto * (self::TASA_SFS_EMPLEADO + self::TASA_AFP_EMPLEADO), 2);
+        $tasaAfp = ParametroNomina::valorVigente('tasa_afp_empleado', $fecha);
+        $tasaSfs = ParametroNomina::valorVigente('tasa_sfs_empleado', $fecha);
+        $montoDependiente = ParametroNomina::valorVigente('monto_dependiente_adicional', $fecha);
+
+        $topeSfs = ParametroNomina::valorVigente('tope_cotizacion_sfs', $fecha);
+        $topeAfp = ParametroNomina::valorVigente('tope_cotizacion_afp', $fecha);
+
+        $baseSfs = min($bruto, $topeSfs);
+        $baseAfp = min($bruto, $topeAfp);
+
+        $afp = round($baseAfp * $tasaAfp, 2);
+        $sfs = round($baseSfs * $tasaSfs, 2);
+        $dependientes = round($dependientesAdicionales * $montoDependiente, 2);
+
+        return [
+            'afp'          => $afp,
+            'sfs'          => $sfs,
+            'dependientes' => $dependientes,
+            'monto_dependiente_unitario' => $montoDependiente,
+            'total'        => round($afp + $sfs + $dependientes, 2),
+        ];
     }
 
     /**
      * ISR retenido al empleado (agente de retención: el estudio, a favor de la DGII).
-     * Se calcula sobre el neto gravable (bruto - TSS), anualizado, según la
-     * escala progresiva vigente (Resolución DDG-AR1-2026-00001).
+     * Se calcula sobre el neto gravable (bruto - TSS incluyendo dependientes),
+     * anualizado, según la escala progresiva vigente (Resolución DDG-AR1-2026-00001).
      */
-    private function calcularISR(float $bruto): float
+    private function calcularISR(float $bruto, int $dependientesAdicionales, Carbon $fecha): float
     {
-        $netoGravable = $bruto - $this->descuentoTSS($bruto);
+        $tss = $this->descuentoTSS($bruto, $dependientesAdicionales, $fecha);
+        $netoGravable = $bruto - $tss['total'];
         $anualizado   = $netoGravable * 12;
 
         $isrAnual = match (true) {

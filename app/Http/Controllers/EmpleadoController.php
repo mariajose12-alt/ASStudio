@@ -36,6 +36,7 @@ class EmpleadoController extends Controller
             'estado'   => 'required|in:ACTIVO,INACTIVO',
             'experiencia_laboral' => 'nullable|string',
             'salario_base' => 'nullable|numeric|min:0',
+            'dependientes_adicionales' => 'nullable|integer|min:0|max:20',
         ]);
 
         $dto      = EmpleadoCreateDTO::fromRequest($request);
@@ -71,7 +72,8 @@ class EmpleadoController extends Controller
             'rol'      => 'required|in:FOTOGRAFO,ADMINISTRADOR',
             'estado'   => 'required|in:ACTIVO,INACTIVO',
             'password' => 'nullable|string|min:8',
-            'salario_base' => 'nullable|numeric|min:0'
+            'salario_base' => 'nullable|numeric|min:0',
+            'dependientes_adicionales' => 'nullable|integer|min:0|max:20',
         ]);
 
         $dto = EmpleadoCreateDTO::fromRequest($request);

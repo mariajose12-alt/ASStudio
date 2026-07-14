@@ -35,7 +35,13 @@
     <tr>
         <td>TSS (SFS + AFP empleado)</td>
         <td class="text-right">
-            RD$ {{ number_format($nomina->total_descuentos_legales - $nomina->total_isr_retenido, 2) }}
+            RD$ {{ number_format($nomina->detalles->sum('descuento_tss'), 2) }}
+        </td>
+    </tr>
+    <tr>
+        <td>Dependientes adicionales (TSS)</td>
+        <td class="text-right">
+            RD$ {{ number_format($nomina->detalles->sum('descuento_dependientes'), 2) }}
         </td>
     </tr>
     <tr>
@@ -113,13 +119,33 @@
 
     <table class="resumen-fotografo">
         <tr>
-            <td>Salario base</td>
+            <td>Salario bruto</td>
             <td class="text-right">
                 RD$ {{ number_format($detalle->salario_bruto, 2) }}
             </td>
         </tr>
         <tr>
-            <td>Descuentos legales</td>
+            <td>TSS (SFS + AFP)</td>
+            <td class="text-right">
+                RD$ {{ number_format($detalle->descuento_tss, 2) }}
+            </td>
+        </tr>
+        @if($detalle->dependientes_adicionales_aplicados > 0)
+            <tr>
+                <td>Dependientes adicionales </td>
+                <td class="text-right">
+                    RD$ {{ number_format($detalle->descuento_dependientes, 2) }}
+                </td>
+            </tr>
+        @endif
+        <tr>
+            <td>ISR retenido</td>
+            <td class="text-right">
+                RD$ {{ number_format($detalle->descuento_isr, 2) }}
+            </td>
+        </tr>
+        <tr>
+            <td>Descuentos legales (total)</td>
             <td class="text-right">
                 RD$ {{ number_format($detalle->descuentos_legales, 2) }}
             </td>

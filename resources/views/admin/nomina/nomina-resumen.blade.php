@@ -27,7 +27,11 @@
                 <table class="detail-table">
                     <tr>
                         <td>TSS (SFS + AFP empleado)</td>
-                        <td>RD$ {{ number_format($nomina->total_descuentos_legales - $nomina->total_isr_retenido, 2) }}</td>
+                        <td>RD$ {{ number_format($nomina->detalles->sum('descuento_tss'), 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Dependientes adicionales (TSS)</td>
+                        <td>RD$ {{ number_format($nomina->detalles->sum('descuento_dependientes'), 2) }}</td>
                     </tr>
                     <tr>
                         <td>ISR retenido (a favor de la DGII)</td>
@@ -82,11 +86,11 @@
             </div>
         @elseif($nomina->estado === 'PAGADA')
             <div style="padding:16px 20px; border-top:1px solid var(--border); background:#dbeafe; color:#1e40af;">
-                💰 Nómina pagada. Pendiente de cierre.
+                 Nómina pagada. Pendiente de cierre.
             </div>
         @elseif($nomina->estado === 'CERRADA')
             <div style="padding:16px 20px; border-top:1px solid var(--border); background:#e5e7eb; color:#374151;">
-                🔒 Nómina pagada y cerrada. Este proceso ha finalizado.
+                 Nómina pagada y cerrada. Este proceso ha finalizado.
             </div>
         @endif
     </div>
@@ -144,6 +148,9 @@
                 <span>Salario Base: <strong>RD$ {{ number_format($detalle->fotografo->salarioBaseEfectivo(), 2) }}</strong></span>
                 <span>Bruto: <strong>RD$ {{ number_format($detalle->salario_bruto, 2) }}</strong></span>
                 <span>TSS: <strong>RD$ {{ number_format($detalle->descuento_tss, 2) }}</strong></span>
+                @if($detalle->dependientes_adicionales_aplicados > 0)
+                    <span>Dependientes ({{ $detalle->dependientes_adicionales_aplicados }}): <strong>RD$ {{ number_format($detalle->descuento_dependientes, 2) }}</strong></span>
+                @endif
                 <span>ISR: <strong>RD$ {{ number_format($detalle->descuento_isr, 2) }}</strong></span>
                 <span>Neto: <strong>RD$ {{ number_format($detalle->sueldo_neto, 2) }}</strong></span>
             </div>

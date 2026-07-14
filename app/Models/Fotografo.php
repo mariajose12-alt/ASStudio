@@ -16,6 +16,7 @@ class Fotografo extends Model
         'certificaciones',
         'experiencia_laboral',
         'salario_base',
+        'dependientes_adicionales'
     ];
 
     protected $casts = [

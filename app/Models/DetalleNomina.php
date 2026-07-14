@@ -16,6 +16,9 @@ class DetalleNomina extends Model
         'descuentos_legales',
         'descuento_tss',
         'descuento_isr',
+        'dependientes_adicionales_aplicados',
+        'monto_dependiente_unitario_usado',
+        'descuento_dependientes',
         'sueldo_neto',
         'estado_confirmacion',
         'confirmado_at',
@@ -28,6 +31,8 @@ class DetalleNomina extends Model
         'descuentos_legales' => 'decimal:2',
         'descuento_tss'      => 'decimal:2',
         'descuento_isr'      => 'decimal:2',
+        'monto_dependiente_unitario_usado' => 'decimal:2',
+        'descuento_dependientes'           => 'decimal:2',
         'sueldo_neto'        => 'decimal:2',
         'confirmado_at'      => 'datetime',
     ];

@@ -129,6 +129,18 @@
                                        placeholder="Ej: 25000.00">
                                 @error('salario_base')<span class="error-msg">{{ $message }}</span>@enderror
                             </div>
+                            <div class="form-group full">
+                                <label>Dependientes adicionales (TSS)</label>
+                                <input type="number" step="1" min="0" max="20" name="dependientes_adicionales"
+                                       value="{{ old('dependientes_adicionales', $fotografo?->dependientes_adicionales ?? 0) }}">
+                                <small style="color: var(--text-muted, #666); display:block; margin-top:4px;">
+                                    Solo dependientes registrados fuera del núcleo familiar directo (ej. padres).
+                                    No incluyas cónyuge/concubino ni hijos menores — esos ya están cubiertos sin costo
+                                    adicional por el 3.04% de SFS. Cada dependiente adicional genera un descuento
+                                    extra fijado por la TSS (Resolución 624-02 CNSS).
+                                </small>
+                                @error('dependientes_adicionales')<span class="error-msg">{{ $message }}</span>@enderror
+                            </div>
                         </div>
                     </div>
                 </div>

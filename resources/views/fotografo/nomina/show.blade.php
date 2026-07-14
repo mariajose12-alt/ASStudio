@@ -25,6 +25,12 @@
                     <td>TSS (SFS + AFP)</td>
                     <td>RD$ {{ number_format($detalle->descuento_tss, 2) }}</td>
                 </tr>
+                @if($detalle->dependientes_adicionales_aplicados > 0)
+                    <tr>
+                        <td>Dependientes adicionales TSS ({{ $detalle->dependientes_adicionales_aplicados }})</td>
+                        <td>RD$ {{ number_format($detalle->descuento_dependientes, 2) }}</td>
+                    </tr>
+                @endif
                 <tr>
                     <td>ISR retenido</td>
                     <td>RD$ {{ number_format($detalle->descuento_isr, 2) }}</td>

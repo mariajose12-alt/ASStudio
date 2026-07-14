@@ -17,6 +17,7 @@ class EmpleadoCreateDTO
         public readonly array   $certificaciones,
         public readonly ?string $password = null,
         public readonly ?float $salario_base = null,
+        public readonly int $dependientes_adicionales = 0,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -38,6 +39,7 @@ class EmpleadoCreateDTO
             salario_base:         $request->tipo_salario === 'personalizado'
                 ? (float) $request->salario_base
                 : null,
+            dependientes_adicionales: (int) $request->input('dependientes_adicionales', 0),
         );
     }
 }

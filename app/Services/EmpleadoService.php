@@ -44,6 +44,7 @@ class EmpleadoService
                 'experiencia_laboral' => $dto->experiencia_laboral,
                 'certificaciones'     => $dto->certificaciones,
                 'salario_base'        => $dto->salario_base,
+                'dependientes_adicionales' => $dto->dependientes_adicionales,
             ]);
         }
 
@@ -80,6 +81,7 @@ class EmpleadoService
                     'experiencia_laboral' => $dto->experiencia_laboral,
                     'certificaciones'     => $dto->certificaciones,
                     'salario_base'        => $dto->salario_base,
+                    'dependientes_adicionales' => $dto->dependientes_adicionales,
                 ]
             );
         }

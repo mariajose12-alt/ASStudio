@@ -21,17 +21,25 @@ class FotografiaController extends Controller
         $sesion = Sesion::with([
             'reserva.cliente.usuario.persona',
             'reserva.paquete',
-            'fotografias',
+            'fotografias.subidaPor.empleado.usuario.persona',
         ])
-            ->whereHas('reserva', fn($q) => $q->where('fotografo_id', $fotografo->id))
             ->whereIn('estado', ['EN_PROCESO', 'EN_EDICION', 'GALERIA_DISPONIBLE'])
             ->findOrFail($id);
 
-        $totalPendientes = $sesion->fotografias->where('estado', 'PENDIENTE_EDICION')->count();
-        $totalEditadas   = $sesion->fotografias->where('estado', 'EDITADA')->count();
+        if (! $sesion->fotografoTieneAcceso($fotografo)) {
+            abort(403, 'No tienes acceso a esta sesión.');
+        }
+
+        $esPrincipal = $sesion->esPrincipalDe($fotografo);
+
+        // Los RAW nunca requieren aprobación, así que esto en la práctica solo excluye editadas pendientes
+        $aprobadas = $sesion->fotografias->where('aprobada', true);
+
+        $totalPendientes = $aprobadas->where('estado', 'PENDIENTE_EDICION')->count();
+        $totalEditadas   = $aprobadas->where('estado', 'EDITADA')->count();
         $todasEditadas   = $totalPendientes > 0 && $totalEditadas >= $totalPendientes;
 
-        $pendientesEdicion = $sesion->fotografias
+        $pendientesEdicion = $aprobadas
             ->where('seleccionada', true)
             ->where('estado', 'PENDIENTE_EDICION')
             ->map(function ($foto) use ($todasEditadas) {
@@ -39,7 +47,17 @@ class FotografiaController extends Controller
                 return $foto;
             });
 
-        return view('fotografo.fotografias', compact('sesion', 'pendientesEdicion'));
+        // Solo el principal ve y gestiona las editadas pendientes de aprobación
+        $pendientesAprobacion = $esPrincipal
+            ? $sesion->fotografias->where('aprobada', false)->values()
+            : collect();
+
+        return view('fotografo.fotografias', compact(
+            'sesion',
+            'pendientesEdicion',
+            'pendientesAprobacion',
+            'esPrincipal'
+        ));
     }
 
     public function store(Request $request, int $sesionId)
@@ -52,9 +70,13 @@ class FotografiaController extends Controller
 
         $fotografo = auth()->user()->empleado->fotografo;
 
-        $sesion = Sesion::with('reserva.cliente.usuario')
-            ->whereHas('reserva', fn($q) => $q->where('fotografo_id', $fotografo->id))
-            ->findOrFail($sesionId);
+        $sesion = Sesion::with('reserva.cliente.usuario')->findOrFail($sesionId);
+
+        if (! $sesion->fotografoTieneAcceso($fotografo)) {
+            abort(403, 'No tienes acceso a esta sesión.');
+        }
+
+        $esPrincipal = $sesion->esPrincipalDe($fotografo);
 
         $estado  = $request->estado;
         $carpeta = $estado === 'ORIGINAL' ? 'raw' : 'editadas';
@@ -69,14 +91,17 @@ class FotografiaController extends Controller
             );
 
             $guardadas[] = Fotografia::create([
-                'sesion_id'       => $sesionId,
-                'url'             => $path,
-                'nombre_original' => $nombreOriginal,
-                'estado'          => $estado,
+                'sesion_id'                => $sesionId,
+                'subido_por_fotografo_id'  => $fotografo->id,
+                'url'                      => $path,
+                'nombre_original'          => $nombreOriginal,
+                'estado'                   => $estado,
+                // Los RAW nunca requieren aprobación; las editadas sí, si las sube un asistente
+                'aprobada'                 => $estado === 'ORIGINAL' ? true : $esPrincipal,
             ]);
         }
 
-        // Avance de estado + notificación al cliente cuando se suben las originales
+        // Avance de estado + notificación al cliente — los RAW siempre cuentan, sin importar quién los suba
         if ($estado === 'ORIGINAL' && $sesion->estado === 'EN_PROCESO') {
             $sesion->update(['estado' => 'GALERIA_DISPONIBLE']);
 
@@ -86,15 +111,56 @@ class FotografiaController extends Controller
             }
         }
 
+        $huboPendientes = ! $esPrincipal && $estado === 'EDITADA';
+
         return response()->json([
-            'message' => count($guardadas) . ' foto(s) subida(s) correctamente',
+            'message' => count($guardadas) . ' foto(s) subida(s) correctamente'
+                . ($huboPendientes ? ' — pendientes de aprobación del fotógrafo principal.' : ''),
             'fotos' => collect($guardadas)->map(fn($f) => [
                 'id'           => $f->id,
                 'nombre'       => $f->nombre_original ?? basename($f->url),
                 'estado'       => $f->estado,
                 'estado_lower' => strtolower($f->estado),
+                'aprobada'     => $f->aprobada,
             ])->values(),
         ], 201);
+    }
+
+    /**
+     * El fotógrafo principal aprueba una foto EDITADA subida por un asistente.
+     */
+    public function aprobar(int $id)
+    {
+        $fotografo = auth()->user()->empleado->fotografo;
+
+        $foto = Fotografia::with('sesion.reserva')->findOrFail($id);
+
+        if (! $foto->sesion->esPrincipalDe($fotografo)) {
+            abort(403, 'Solo el fotógrafo principal puede aprobar fotos.');
+        }
+
+        $foto->update(['aprobada' => true]);
+
+        return response()->json(['message' => 'Foto editada aprobada correctamente.']);
+    }
+
+    /**
+     * El fotógrafo principal rechaza (y elimina) una foto EDITADA subida por un asistente.
+     */
+    public function rechazar(int $id)
+    {
+        $fotografo = auth()->user()->empleado->fotografo;
+
+        $foto = Fotografia::with('sesion')->findOrFail($id);
+
+        if (! $foto->sesion->esPrincipalDe($fotografo)) {
+            abort(403, 'Solo el fotógrafo principal puede rechazar fotos.');
+        }
+
+        Storage::disk('r2')->delete($foto->url);
+        $foto->delete();
+
+        return response()->json(['message' => 'Foto rechazada y eliminada.']);
     }
 
     /**

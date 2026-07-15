@@ -48,6 +48,11 @@ class Sesion extends Model
         return $this->hasMany(Fotografia::class, 'sesion_id');
     }
 
+    public function solicitudesAyudante(): HasMany
+    {
+        return $this->hasMany(SolicitudAyudante::class, 'sesion_id');
+    }
+
     // Helpers
     public function estaActiva(): bool
     {
@@ -59,4 +64,21 @@ class Sesion extends Model
         return in_array($this->estado, ['FINALIZADA', 'CERRADA']);
     }
 
+    public function esPrincipalDe(Fotografo $fotografo): bool
+    {
+        return $this->reserva->fotografo_id === $fotografo->id;
+    }
+
+    public function fotografoTieneAcceso(Fotografo $fotografo): bool
+    {
+        if ($this->esPrincipalDe($fotografo)) {
+            return true;
+        }
+
+        return $this->participaciones()
+            ->where('fotografo_id', $fotografo->id)
+            ->where('rol', 'ASISTENTE')
+            ->where('estado_participacion', true)
+            ->exists();
+    }
 }

@@ -1,4 +1,4 @@
-<div class="sesion-card">
+tienes<div class="sesion-card">
     <div class="sesion-card-header">
         <div>
             <h3 class="sesion-tipo">
@@ -35,11 +35,24 @@
     <div class="sesion-card-footer">
         <div class="footer-actions">
             {{-- Botón provisional: pasar a EN_PROCESO --}}
-            @if($sesion->estado === 'CONFIRMADA')
+            @if($sesion->estado === 'CONFIRMADA' && $sesion->reserva->fotografo_id === $fotografo->id)
                 <form method="POST" action="{{ route('fotografo.sesiones.iniciar', $sesion->id) }}">
                     @csrf
                     <button type="submit" class="btn-iniciar">Iniciar Sesión</button>
                 </form>
+            @endif
+
+            {{-- Solicitar ayudantes --}}
+            @php $yaSolicito = $sesion->solicitudesAyudante->isNotEmpty(); @endphp
+
+            @if($sesion->reserva->fotografo_id === $fotografo->id && ! $yaSolicito)
+                <button type="button" class="btn-ayudante"
+                        onclick="abrirSolicitudAyudante({{ $sesion->id }}, '{{ addslashes($sesion->reserva->tipo) }}')">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                    </svg>
+                    Solicitar ayudantes
+                </button>
             @endif
 
             {{-- Ver selección del cliente (solo EN_EDICION y si hay fotos seleccionadas) --}}

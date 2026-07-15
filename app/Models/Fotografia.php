@@ -10,16 +10,19 @@ class Fotografia extends Model
 {
     protected $fillable = [
         'sesion_id',
+        'subido_por_fotografo_id',
         'url',
         'nombre_original',
         'fecha_captura',
         'estado',
         'seleccionada',
+        'aprobada',
     ];
 
     protected $casts = [
         'fecha_captura' => 'datetime',
         'seleccionada'  => 'boolean',
+        'aprobada'      => 'boolean',
         'estado'        => 'string',
     ];
 
@@ -33,6 +36,11 @@ class Fotografia extends Model
     public function sesion(): BelongsTo
     {
         return $this->belongsTo(Sesion::class);
+    }
+
+    public function subidaPor(): BelongsTo
+    {
+        return $this->belongsTo(Fotografo::class, 'subido_por_fotografo_id');
     }
 
     // Accessor — genera la URL firmada al vuelo
@@ -58,5 +66,15 @@ class Fotografia extends Model
     public function scopeSeleccionadas($query)
     {
         return $query->where('seleccionada', true);
+    }
+
+    public function scopeAprobadas($query)
+    {
+        return $query->where('aprobada', true);
+    }
+
+    public function scopePendientesAprobacion($query)
+    {
+        return $query->where('aprobada', false);
     }
 }

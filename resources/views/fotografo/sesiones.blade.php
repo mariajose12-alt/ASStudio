@@ -6,7 +6,13 @@
 
     {{-- Pestañas --}}
     <div class="tabs">
-        <button class="tab active" onclick="switchTab('en-proceso', this)">
+        <button class="tab active" onclick="switchTab('confirmadas', this)">
+            Confirmadas
+            @if($confirmadas->count() > 0)
+                <span class="tab-badge">{{ $confirmadas->count() }}</span>
+            @endif
+        </button>
+        <button class="tab" onclick="switchTab('en-proceso', this)">
             En Proceso
             @if($enProceso->count() > 0)
                 <span class="tab-badge">{{ $enProceso->count() }}</span>
@@ -18,10 +24,28 @@
                 <span class="tab-badge">{{ $enEdicion->count() }}</span>
             @endif
         </button>
+        <button class="tab" onclick="switchTab('ayudantes', this)">
+            Ayudantes
+            @php $totalAyudantes = $solicitudesPropias->count() + $solicitudesDisponibles->count(); @endphp
+            @if($totalAyudantes > 0)
+                <span class="tab-badge">{{ $totalAyudantes }}</span>
+            @endif
+        </button>
+    </div>
+
+    {{-- Confirmadas --}}
+    <div id="tab-confirmadas" class="tab-content active">
+        <div class="sesiones-grid">
+            @forelse($confirmadas as $sesion)
+                @include('fotografo.sesion.card', ['sesion' => $sesion])
+            @empty
+                @include('fotografo.sesion.empty', ['mensaje' => 'No tienes sesiones confirmadas.'])
+            @endforelse
+        </div>
     </div>
 
     {{-- En Proceso --}}
-    <div id="tab-en-proceso" class="tab-content active">
+    <div id="tab-en-proceso" class="tab-content">
         <div class="sesiones-grid">
             @forelse($enProceso as $sesion)
                 @include('fotografo.sesion.card', ['sesion' => $sesion])
@@ -42,6 +66,28 @@
         </div>
     </div>
 
+    {{-- Ayudantes --}}
+    <div id="tab-ayudantes" class="tab-content">
+
+        @if($solicitudesPropias->count() > 0)
+            <h3 class="ayudante-subtitulo">Tus solicitudes</h3>
+            <div class="sesiones-grid">
+                @foreach($solicitudesPropias as $solicitud)
+                    @include('fotografo.solicitud-ayudante.propia', ['solicitud' => $solicitud])
+                @endforeach
+            </div>
+        @endif
+
+        <h3 class="ayudante-subtitulo">Solicitudes disponibles</h3>
+        <div class="sesiones-grid">
+            @forelse($solicitudesDisponibles as $solicitud)
+                @include('fotografo.solicitud-ayudante.disponible', ['solicitud' => $solicitud])
+            @empty
+                @include('fotografo.sesion.empty', ['mensaje' => 'No hay solicitudes de ayudante disponibles por ahora.'])
+            @endforelse
+        </div>
+    </div>
+
     {{-- Modal: fotos seleccionadas por el cliente --}}
     <div class="seleccion-backdrop" id="seleccionModal">
         <div class="seleccion-modal">
@@ -57,6 +103,35 @@
                 </button>
             </div>
             <ul class="seleccion-list" id="seleccionList"></ul>
+        </div>
+    </div>
+
+    {{-- Modal: solicitar ayudantes --}}
+    <div class="seleccion-backdrop" id="ayudanteModal">
+        <div class="seleccion-modal">
+            <div class="seleccion-modal-header">
+                <div>
+                    <h3 class="seleccion-modal-title">Solicitar ayudantes</h3>
+                    <p class="seleccion-modal-sub" id="ayudanteSub"></p>
+                </div>
+                <button type="button" class="seleccion-close" onclick="cerrarSolicitudAyudante()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="ayudanteForm" method="POST" class="ayudante-form">
+                @csrf
+                <div class="ayudante-campo">
+                    <label for="cantidad_ayudantes">¿Cuántos ayudantes necesitas?</label>
+                    <input type="number" name="cantidad_ayudantes" id="cantidad_ayudantes" min="1" max="10" value="1" required>
+                </div>
+                <div class="ayudante-campo">
+                    <label for="mensaje">Nota para los fotógrafos (opcional)</label>
+                    <textarea name="mensaje" id="mensaje" rows="3" placeholder="Ej. Necesito ayuda con la iluminación..."></textarea>
+                </div>
+                <button type="submit" class="btn-iniciar">Enviar solicitud</button>
+            </form>
         </div>
     </div>
 
@@ -170,6 +245,11 @@
                 color: #5b21b6;
             }
 
+            .badge-estado.confirmada {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
             .sesion-meta {
                 display: grid;
                 grid-template-columns: repeat(4, 1fr);
@@ -250,11 +330,20 @@
                 color: #fff;
                 font-size: 13px;
                 font-weight: 600;
-                padding: 9px 18px;
+                padding: 9px 10px;
                 border-radius: 8px;
                 border: none;
                 cursor: pointer;
                 transition: opacity 0.15s;
+            }
+
+            .ayudante-form .btn-iniciar {
+                width: fit-content;
+                align-self: center;
+                justify-content: center;
+                padding: 10px 22px;
+                font-size: 13px;
+                font-family: 'DM Sans', sans-serif;
             }
 
             .btn-iniciar:hover {
@@ -373,10 +462,129 @@
             .seleccion-list li svg { flex-shrink: 0; color: #E8A020; }
 
 
-            text-align: center;
-            padding: 48px 20px;
-            color: var(--muted);
-            font-size: 14px;
+            .sesion-empty {
+                text-align: center;
+                padding: 48px 20px;
+                color: var(--muted);
+                font-size: 14px;
+            }
+
+            .ayudante-subtitulo {
+                font-family: 'Playfair Display', serif;
+                font-size: 15px;
+                font-weight: 600;
+                color: var(--navy);
+                margin: 24px 0 12px;
+            }
+
+            .btn-ayudante {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                background: #fff;
+                color: var(--navy, #1a2340);
+                font-family: 'DM Sans', sans-serif;
+                font-size: 13px;
+                font-weight: 600;
+                padding: 9px 18px;
+                border-radius: 8px;
+                border: 1.5px solid var(--navy, #1a2340);
+                cursor: pointer;
+                transition: background 0.15s, color 0.15s;
+            }
+
+            .btn-ayudante:hover {
+                background: var(--navy, #1a2340);
+                color: #fff;
+            }
+
+            .btn-ayudante svg {
+                stroke: currentColor;
+            }
+
+            .ayudante-form {
+                padding: 16px 24px 24px;
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+            .ayudante-campo label {
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--navy);
+                margin-bottom: 6px;
+            }
+            .ayudante-campo input,
+            .ayudante-campo textarea {
+                width: 100%;
+                padding: 9px 12px;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                font-size: 13px;
+                font-family: inherit;
+            }
+
+            .postulante-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 14px;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                margin-bottom: 8px;
+            }
+            .postulante-nombre {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--navy);
+            }
+            .postulante-acciones {
+                display: flex;
+                gap: 8px;
+            }
+            .btn-confirmar {
+                background: #16a34a;
+                color: #fff;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+            .btn-rechazar {
+                background: var(--white);
+                color: #b91c1c;
+                border: 1px solid #fecaca;
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+            .cupos-info {
+                font-size: 12px;
+                color: var(--muted);
+                margin-bottom: 12px;
+            }
+
+            .btn-cancelar-solicitud {
+                background: var(--white);
+                color: var(--muted);
+                border: 1px solid var(--border);
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.15s, color 0.15s;
+            }
+            .btn-cancelar-solicitud:hover {
+                background: #fef2f2;
+                color: #b91c1c;
+                border-color: #fecaca;
             }
         </style>
     @endpush
@@ -405,7 +613,6 @@
                 document.getElementById('seleccionModal').classList.remove('open');
             }
 
-            // Cerrar al hacer clic en el backdrop
             document.getElementById('seleccionModal').addEventListener('click', function(e) {
                 if (e.target === this) cerrarSeleccion();
             });
@@ -416,6 +623,20 @@
                 document.getElementById('tab-' + name).classList.add('active');
                 el.classList.add('active');
             }
+
+            function abrirSolicitudAyudante(sesionId, tipo) {
+                document.getElementById('ayudanteSub').textContent = tipo;
+                document.getElementById('ayudanteForm').action = '/fotografo/sesiones/' + sesionId + '/solicitudes-ayudante';
+                document.getElementById('ayudanteModal').classList.add('open');
+            }
+
+            function cerrarSolicitudAyudante() {
+                document.getElementById('ayudanteModal').classList.remove('open');
+            }
+
+            document.getElementById('ayudanteModal').addEventListener('click', function(e) {
+                if (e.target === this) cerrarSolicitudAyudante();
+            });
         </script>
     @endpush
 @endsection

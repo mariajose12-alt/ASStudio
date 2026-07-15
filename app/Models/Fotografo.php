@@ -39,6 +39,16 @@ class Fotografo extends Model
         return $this->hasMany(ParticipacionSesion::class, 'fotografo_id');
     }
 
+    public function solicitudesAyudanteCreadas(): HasMany
+    {
+        return $this->hasMany(SolicitudAyudante::class, 'fotografo_solicitante_id');
+    }
+
+    public function postulacionesAyudante(): HasMany
+    {
+        return $this->hasMany(PostulacionAyudante::class, 'fotografo_id');
+    }
+
     public function horarios()
     {
         return $this->hasMany(HorarioFotografo::class);

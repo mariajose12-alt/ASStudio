@@ -23,6 +23,8 @@ use App\Listeners\EnviarNotificacionReservaModificada;
 use App\Listeners\EnviarNotificacionReservaRechazada;
 use App\Listeners\EnviarNotificacionSeleccion;
 use App\Listeners\EnviarNotificacionZipListo;
+use App\Events\SolicitudAyudanteCreada;
+use App\Listeners\EnviarNotificacionSolicitudAyudante;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -58,6 +60,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         ZipGaleriaListo::class => [
             EnviarNotificacionZipListo::class,
+        ],
+        SolicitudAyudanteCreada::class => [
+            EnviarNotificacionSolicitudAyudante::class,
         ],
     ];
 }

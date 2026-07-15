@@ -22,6 +22,7 @@ use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\ClienteReservaController;
 use App\Http\Controllers\GaleriaController;
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\SolicitudAyudanteController;
 
 // PÚBLICAS
 
@@ -152,6 +153,15 @@ Route::middleware(['auth', 'rol:FOTOGRAFO'])
         Route::get('sesiones/{id}/fotografias/create',  [FotografiaController::class, 'create'])         ->name('fotografias.create');
         Route::post('sesiones/{id}/fotografias',        [FotografiaController::class, 'store'])           ->name('fotografias.store');
         Route::patch('sesiones/{id}/entregar',          [FotografiaController::class, 'marcarEntregada']) ->name('fotografias.entregar');
+        Route::post('fotografias/{id}/aprobar',         [FotografiaController::class, 'aprobar'])         ->name('fotografias.aprobar');
+        Route::delete('fotografias/{id}/rechazar',      [FotografiaController::class, 'rechazar'])        ->name('fotografias.rechazar');
+
+        // Solicitudes de ayudante
+        Route::post('sesiones/{sesion}/solicitudes-ayudante', [SolicitudAyudanteController::class, 'store'])->name('solicitudes-ayudante.store');
+        Route::post('solicitudes-ayudante/{solicitud}/postular', [SolicitudAyudanteController::class, 'postularse'])->name('solicitudes-ayudante.postularse');
+        Route::post('solicitudes-ayudante/{solicitud}/postulaciones/{postulacion}/confirmar', [SolicitudAyudanteController::class, 'confirmar'])->name('solicitudes-ayudante.confirmar');
+        Route::post('solicitudes-ayudante/{solicitud}/postulaciones/{postulacion}/rechazar', [SolicitudAyudanteController::class, 'rechazar'])->name('solicitudes-ayudante.rechazar');
+        Route::post('solicitudes-ayudante/{solicitud}/cancelar', [SolicitudAyudanteController::class, 'cancelar'])->name('solicitudes-ayudante.cancelar');
 
         //Confirmacionde detalle Nomina
         Route::get('nomina',                      [FotografoNominaController::class, 'index'])->name('nomina.index');

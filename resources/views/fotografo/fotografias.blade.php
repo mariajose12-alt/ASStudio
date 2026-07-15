@@ -38,6 +38,38 @@
         </div>
     </div>
 
+    {{-- Fotos editadas de ayudantes pendientes de aprobación (solo el principal las ve) --}}
+    @if($esPrincipal && $pendientesAprobacion->isNotEmpty())
+        <div class="aprobacion-card" id="aprobacionCard">
+            <div class="pendientes-header">
+                <div class="pendientes-header-left">
+                    <span class="aprobacion-badge">{{ $pendientesAprobacion->count() }}</span>
+                    <h4 class="pendientes-title">Fotos editadas de ayudantes pendientes de aprobación</h4>
+                </div>
+            </div>
+
+            <div class="pendientes-list" id="aprobacionList">
+                @foreach($pendientesAprobacion as $foto)
+                    <div class="aprobacion-item" id="aprobacion-item-{{ $foto->id }}">
+                        <div class="pendiente-icon aprobacion-icon">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <span class="pendiente-nombre">{{ $foto->nombre_original ?? basename($foto->url) }}</span>
+                        <span class="aprobacion-autor">
+                            subida por {{ $foto->subidaPor?->getPersona()->nombre ?? 'un ayudante' }}
+                        </span>
+                        <div class="aprobacion-acciones">
+                            <button type="button" class="btn-confirmar" onclick="aprobarFoto({{ $foto->id }})">Aprobar</button>
+                            <button type="button" class="btn-rechazar" onclick="rechazarFoto({{ $foto->id }})">Rechazar</button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     {{-- Fotos pendientes de edición (solo si la sesión está en EN_EDICION) --}}
     @if($pendientesEdicion->isNotEmpty())
         <div class="pendientes-card">
@@ -72,8 +104,8 @@
                 @endforeach
             </div>
 
-            {{-- Botón marcar como entregada — solo si hay fotos y todas están editadas --}}
-            @if($sesion->estado === 'EN_EDICION' && $pendientesEdicion->where('ya_editada', false)->count() === 0)
+            {{-- Botón marcar como entregada — solo si hay fotos y todas están editadas solo el fotografo principal--}}
+            @if($esPrincipal && $sesion->estado === 'EN_EDICION' && $pendientesEdicion->where('ya_editada', false)->count() === 0)
                 <div style="margin-top: 20px; text-align: right;">
                     <button type="button" class="btn-entregar" id="btnEntregar" onclick="marcarEntregada()">
                         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +114,7 @@
                         Marcar sesión como entregada
                     </button>
                 </div>
-            @elseif($sesion->estado === 'EN_EDICION')
+            @elseif($esPrincipal && $sesion->estado === 'EN_EDICION')
                 <div style="margin-top: 16px;">
                     <p class="entregar-hint">Sube todas las fotos editadas para poder marcar la sesión como entregada.</p>
                 </div>
@@ -114,15 +146,12 @@
             @endif
         </div>
 
-        {{-- SOLO DESARROLLO
-        @if(app()->isLocal())
-            <div style="margin-bottom: 12px; text-align: right;">
-                <button type="button" onclick="simularSubida()" style="font-size: 12px; background: #f0f0f0; border: 1px dashed #ccc; padding: 6px 14px; border-radius: 6px; cursor: pointer; color: #666;">
-                    Simular subida (dev)
-                </button>
-            </div>
+        @if(! $esPrincipal)
+            <p class="ayudante-aviso">
+                Estás subiendo fotos como ayudante. Las <strong>RAW/Original</strong> entran directo a la sesión;
+                las <strong>Editadas</strong> quedarán pendientes de aprobación del fotógrafo principal.
+            </p>
         @endif
-        --}}
 
         <div class="dropzone" id="dropzone">
             <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: #ccc; margin-bottom: 12px;">
@@ -185,7 +214,11 @@
                     </div>
                     <div class="uploaded-info">
                         <span class="uploaded-name">{{ $foto->nombre_original ?? basename($foto->url) }}</span>
-                        <span class="uploaded-estado {{ strtolower($foto->estado) }}">{{ $foto->estado }}</span>
+                        @if(! $foto->aprobada)
+                            <span class="uploaded-estado pendiente-aprobacion">Pendiente de aprobación</span>
+                        @else
+                            <span class="uploaded-estado {{ strtolower($foto->estado) }}">{{ $foto->estado }}</span>
+                        @endif
                     </div>
                 </div>
             @endforeach
@@ -324,6 +357,17 @@
                 cursor: pointer;
             }
             .estado-option input[type="radio"] { accent-color: #E8A020; }
+
+            .ayudante-aviso {
+                font-size: 12px;
+                color: #92400e;
+                background: #fef3c7;
+                border: 1px solid #fde68a;
+                border-radius: 8px;
+                padding: 10px 14px;
+                margin: 0 0 16px 0;
+                line-height: 1.5;
+            }
 
             /* ── Dropzone ── */
             .dropzone {
@@ -558,8 +602,9 @@
             .uploaded-estado.editada               { background: #dbeafe; color: #1e40af; }
             .uploaded-estado.entregada             { background: #d1fae5; color: #065f46; }
             .uploaded-estado.pendiente_edicion     { background: #fef3c7; color: #92400e; }
+            .uploaded-estado.pendiente-aprobacion  { background: #fee2e2; color: #991b1b; }
 
-            /* ── Pendientes ── */
+            /* ── Pendientes edición ── */
             .pendientes-card {
                 background: var(--white);
                 border: 1.5px solid #E8A020;
@@ -644,6 +689,71 @@
                 color: #15803d;
                 background: #dcfce7;
                 border-color: #86efac;
+            }
+
+            /* ── Pendientes de aprobación (editadas de ayudantes) ── */
+            .aprobacion-card {
+                background: var(--white);
+                border: 1.5px solid #b91c1c;
+                border-radius: 12px;
+                padding: 20px 24px;
+                margin-bottom: 24px;
+            }
+            .aprobacion-badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                background: #b91c1c;
+                color: #fff;
+                font-size: 12px;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+            .aprobacion-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 9px 12px;
+                background: #fef2f2;
+                border: 1px solid #fecaca;
+                border-radius: 8px;
+            }
+            .aprobacion-icon {
+                background: #fee2e2;
+                color: #b91c1c;
+            }
+            .aprobacion-autor {
+                font-size: 12px;
+                color: var(--muted);
+                white-space: nowrap;
+            }
+            .aprobacion-acciones {
+                display: flex;
+                gap: 8px;
+                flex-shrink: 0;
+            }
+            .btn-confirmar {
+                background: #16a34a;
+                color: #fff;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+            .btn-rechazar {
+                background: var(--white);
+                color: #b91c1c;
+                border: 1px solid #fecaca;
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
             }
 
             /* ── Modal ── */
@@ -899,18 +1009,18 @@
                 @if($sesion->estado === 'EN_EDICION')
                     termineSection.style.display = 'none';
 
-                    // Mostrar el botón de entregar dinámicamente
-                    const hint = document.querySelector('.entregar-hint');
-                    if (hint) hint.style.display = 'none';
+                // Mostrar el botón de entregar dinámicamente
+                const hint = document.querySelector('.entregar-hint');
+                if (hint) hint.style.display = 'none';
 
-                    let btnEntregar = document.getElementById('btnEntregar');
-                    if (!btnEntregar) {
-                        // El botón no existía en el DOM (aún había pendientes al cargar)
-                        // lo creamos y lo insertamos al final de pendientes-card
-                        const wrap = document.createElement('div');
-                        wrap.id = 'btnEntregarWrap';
-                        wrap.style.cssText = 'margin-top: 20px; text-align: right;';
-                        wrap.innerHTML = `
+                let btnEntregar = document.getElementById('btnEntregar');
+                if (!btnEntregar) {
+                    // El botón no existía en el DOM (aún había pendientes al cargar)
+                    // lo creamos y lo insertamos al final de pendientes-card
+                    const wrap = document.createElement('div');
+                    wrap.id = 'btnEntregarWrap';
+                    wrap.style.cssText = 'margin-top: 20px; text-align: right;';
+                    wrap.innerHTML = `
                             <button type="button" class="btn-entregar" id="btnEntregar" onclick="marcarEntregada()">
                                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -918,15 +1028,15 @@
                                 Marcar sesión como entregada
                             </button>
                         `;
-                        const card = document.querySelector('.pendientes-card');
-                        if (card) card.appendChild(wrap);
-                    } else {
-                        // El botón ya existía pero estaba oculto
-                        btnEntregar.closest('div').style.display = 'block';
-                        btnEntregar.disabled = false;
-                    }
+                    const card = document.querySelector('.pendientes-card');
+                    if (card) card.appendChild(wrap);
+                } else {
+                    // El botón ya existía pero estaba oculto
+                    btnEntregar.closest('div').style.display = 'block';
+                    btnEntregar.disabled = false;
+                }
                 @else
-                    document.getElementById('successModal').classList.add('open');
+                document.getElementById('successModal').classList.add('open');
                 @endif
             }
 
@@ -949,6 +1059,10 @@
                 // Agregar item al grid
                 const div = document.createElement('div');
                 div.className = 'uploaded-item';
+
+                const badgeClass = foto.aprobada ? foto.estado_lower : 'pendiente-aprobacion';
+                const badgeTexto = foto.aprobada ? foto.estado : 'Pendiente de aprobación';
+
                 div.innerHTML = `
                     <div class="uploaded-thumb">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--muted)">
@@ -958,7 +1072,7 @@
                     </div>
                     <div class="uploaded-info">
                         <span class="uploaded-name">${foto.nombre}</span>
-                        <span class="uploaded-estado ${foto.estado_lower}">${foto.estado}</span>
+                        <span class="uploaded-estado ${badgeClass}">${badgeTexto}</span>
                     </div>
                 `;
                 uploadedGrid.appendChild(div);
@@ -990,6 +1104,46 @@
                     btn.disabled = false;
                     btn.textContent = 'Marcar sesión como entregada';
                     alert('Error de conexión. Intenta de nuevo.');
+                }
+            }
+
+            async function aprobarFoto(id) {
+                try {
+                    const res = await fetch(`/fotografo/fotografias/${id}/aprobar`, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrfToken },
+                    });
+                    if (!res.ok) throw new Error('Error al aprobar');
+                    document.getElementById(`aprobacion-item-${id}`).remove();
+                    actualizarBadgeAprobacion();
+                } catch (e) {
+                    alert('No se pudo aprobar la foto. Intenta de nuevo.');
+                }
+            }
+
+            async function rechazarFoto(id) {
+                if (!confirm('¿Seguro que quieres rechazar y eliminar esta foto?')) return;
+                try {
+                    const res = await fetch(`/fotografo/fotografias/${id}/rechazar`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-TOKEN': csrfToken },
+                    });
+                    if (!res.ok) throw new Error('Error al rechazar');
+                    document.getElementById(`aprobacion-item-${id}`).remove();
+                    actualizarBadgeAprobacion();
+                } catch (e) {
+                    alert('No se pudo rechazar la foto. Intenta de nuevo.');
+                }
+            }
+
+            function actualizarBadgeAprobacion() {
+                const card = document.getElementById('aprobacionCard');
+                if (!card) return;
+                const restantes = card.querySelectorAll('.aprobacion-item').length;
+                if (restantes === 0) {
+                    card.remove();
+                } else {
+                    card.querySelector('.aprobacion-badge').textContent = restantes;
                 }
             }
 

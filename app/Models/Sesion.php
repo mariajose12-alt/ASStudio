@@ -18,11 +18,13 @@ class Sesion extends Model
         'lugar',
         'estado',
         'observaciones',
+        'fecha_finalizacion',
     ];
 
     protected $casts = [
-        'fecha_inicio' => 'datetime',
-        'fecha_fin'    => 'datetime',
+        'fecha_inicio'       => 'datetime',
+        'fecha_fin'          => 'datetime',
+        'fecha_finalizacion' => 'datetime',
     ];
 
     // Relaciones

@@ -84,11 +84,14 @@ class GaleriaService
 
         $sesion->update(['estado' => 'EN_EDICION']);
     }
-
     public function confirmarRecepcion(Sesion $sesion): void
     {
-        $sesion->update(['estado' => 'FINALIZADA']);
+        $sesion->update([
+            'estado' => 'FINALIZADA',
+            'fecha_finalizacion' => now(),
+        ]);
     }
+
 
     public function urlTemporalFoto(Fotografia $foto, int $minutos = 5): string
     {

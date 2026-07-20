@@ -10,10 +10,6 @@ class ParametrosNominaSeeder extends Seeder
     /**
      * Valores oficiales DGII/TSS vigentes, validados contra fuentes primarias
      * (presidencia.gob.do / tss.gob.do) en julio 2026.
-     *
-     * IMPORTANTE: los topes de cotización SFS/AFP y las fechas exactas de
-     * vigencia de cada tramo deben reconfirmarse contra la comunicación
-     * oficial de la TSS antes de usar esto en producción.
      */
     public function run(): void
     {
@@ -45,6 +41,30 @@ class ParametrosNominaSeeder extends Seeder
             [
                 'clave'         => 'tope_cotizacion_afp',
                 'valor'         => 464460.00,
+                'vigente_desde' => '2026-02-01',
+                'fuente'        => 'TSS — Resolución 01-2025, tss.gob.do/tss-informa-nuevos-topes-de-cotizacion-del-regimen-contributivo-del-sdss',
+            ],
+            [
+                'clave'         => 'tasa_sfs_patronal',
+                'valor'         => 0.0709,
+                'vigente_desde' => '2026-02-01',
+                'fuente'        => 'Ley 87-01 / TSS',
+            ],
+            [
+                'clave'         => 'tasa_afp_patronal',
+                'valor'         => 0.0710,
+                'vigente_desde' => '2026-02-01',
+                'fuente'        => 'Ley 87-01 / TSS',
+            ],
+            [
+                'clave'         => 'tasa_riesgo_laboral',
+                'valor'         => 0.0120,
+                'vigente_desde' => '2026-02-01',
+                'fuente'        => 'Ley 87-01 / TSS (tasa mínima estándar)',
+            ],
+            [
+                'clave'         => 'tope_cotizacion_riesgo_laboral',
+                'valor'         => 92892.00,
                 'vigente_desde' => '2026-02-01',
                 'fuente'        => 'TSS — Resolución 01-2025, tss.gob.do/tss-informa-nuevos-topes-de-cotizacion-del-regimen-contributivo-del-sdss',
             ],

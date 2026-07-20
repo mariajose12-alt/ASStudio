@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             HorarioSeeder::class,
             ConfiguracionNominaSeeder::class,
             ParametrosNominaSeeder::class,
+            TramosIsrSeeder::class,
             CuentaBancoSeeder::class,
         ]);
     }

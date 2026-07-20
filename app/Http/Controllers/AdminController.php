@@ -176,8 +176,8 @@ class AdminController extends Controller
             ->whereHas('participaciones', function($q) use ($mes, $anio){
                 $q->whereHas('sesion', function($q2) use ($mes, $anio){
                     $q2->where('estado','FINALIZADA')
-                        ->whereYear('updated_at', $anio)
-                        ->whereMonth('updated_at', $mes);
+                        ->whereYear('fecha_finalizacion', $anio)
+                        ->whereMonth('fecha_finalizacion', $mes);
                 });
             })
             ->get()
@@ -185,8 +185,8 @@ class AdminController extends Controller
                 $participaciones = $fotografo->participaciones()
                     ->whereHas('sesion', function($q) use ($mes, $anio){
                         $q->where('estado','FINALIZADA')
-                            ->whereYear('updated_at', $anio)
-                            ->whereMonth('updated_at', $mes);
+                            ->whereYear('fecha_finalizacion', $anio)
+                            ->whereMonth('fecha_finalizacion', $mes);
                     })
                     ->get();
 
@@ -248,8 +248,8 @@ class AdminController extends Controller
             $participaciones = ParticipacionSesion::where('fotografo_id', $detalle->fotografo_id)
                 ->whereHas('sesion', function ($q) use ($fechaInicio, $fechaFin) {
                     $q->where('estado', 'FINALIZADA')
-                        ->whereYear('updated_at', $fechaInicio->year)
-                        ->whereMonth('updated_at', $fechaInicio->month);
+                        ->whereYear('fecha_finalizacion', $fechaInicio->year)
+                        ->whereMonth('fecha_finalizacion', $fechaInicio->month);
                 })
                 ->where('estado_participacion', true)
                 ->with('sesion.reserva')
@@ -303,8 +303,8 @@ class AdminController extends Controller
         $participacionesActuales = ParticipacionSesion::where('fotografo_id', $detalle->fotografo_id)
             ->whereHas('sesion', function ($q) use ($fechaInicio, $fechaFin) {
                 $q->where('estado', 'FINALIZADA')
-                    ->whereYear('updated_at', $fechaInicio->year)
-                    ->whereMonth('updated_at', $fechaInicio->month);
+                    ->whereYear('fecha_finalizacion', $fechaInicio->year)
+                    ->whereMonth('fecha_finalizacion', $fechaInicio->month);
             })
             ->where('estado_participacion', true)
             ->with('sesion.reserva')
@@ -315,8 +315,8 @@ class AdminController extends Controller
         $idsConParticipacion = $participacionesActuales->pluck('sesion_id');
 
         $sesionesDisponibles = \App\Models\Sesion::where('estado', 'FINALIZADA')
-            ->whereYear('updated_at', $fechaInicio->year)
-            ->whereMonth('updated_at', $fechaInicio->month)
+            ->whereYear('fecha_finalizacion', $fechaInicio->year)
+            ->whereMonth('fecha_finalizacion', $fechaInicio->month)
             ->whereNotIn('id', $idsConParticipacion)
             ->with('reserva')
             ->get();
@@ -421,8 +421,8 @@ class AdminController extends Controller
             $participaciones = ParticipacionSesion::where('fotografo_id', $detalle->fotografo_id)
                 ->whereHas('sesion', function ($q) use ($fechaInicio) {
                     $q->where('estado', 'FINALIZADA')
-                        ->whereYear('updated_at', $fechaInicio->year)
-                        ->whereMonth('updated_at', $fechaInicio->month);
+                        ->whereYear('fecha_finalizacion', $fechaInicio->year)
+                        ->whereMonth('fecha_finalizacion', $fechaInicio->month);
                 })
                 ->where('estado_participacion', true)
                 ->with('sesion.reserva')

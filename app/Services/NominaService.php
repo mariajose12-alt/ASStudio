@@ -8,33 +8,22 @@ use App\Models\DetalleNomina;
 use App\Models\Nomina;
 use App\Models\ParametroNomina;
 use App\Models\ParticipacionSesion;
+use App\Models\TramoIsr;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
 
 class NominaService
 {
-    // Tasas TSS empleado (AFP, SFS), monto por dependiente adicional y topes
-    // de cotización ya NO están hardcodeados: se leen de ParametroNomina,
-    // versionados por fecha, para poder ajustarlos sin deploy y para poder
-    // recalcular nóminas de meses pasados con la tarifa que estaba vigente
-    // en ese momento.
-
-    // Aportes patronales
-    const TASA_SFS_PATRONAL   = 0.0709; // 7.09 %
-    const TASA_AFP_PATRONAL   = 0.0710; // 7.10 %
-    const TASA_RIESGO_LABORAL = 0.0120; // 1.20 %
+    // Tasas TSS empleado (AFP, SFS), tasas patronales, monto por dependiente
+    // adicional y topes de cotización ya NO están hardcodeados: se leen de
+    // ParametroNomina, versionados por fecha, para poder ajustarlos sin
+    // deploy y para poder recalcular nóminas de meses pasados con la tarifa
+    // que estaba vigente en ese momento.
 
     // Comisiones por defecto según rol (fallback si porcentaje_comision = 0)
     const COMISION_PRINCIPAL = 40.00;
     const COMISION_ASISTENTE = 20.00;
-
-    // ISR — escala DGII 2026
-    const ISR_EXENCION_ANUAL = 416220.00;
-    const ISR_TRAMO_2_LIMITE = 624329.00;
-    const ISR_TRAMO_3_LIMITE = 867123.00;
-    const ISR_CUOTA_TRAMO_2  = 31216.00;
-    const ISR_CUOTA_TRAMO_3  = 79776.00;
 
     public function calcular(NominaCalculoDTO $dto): Nomina
     {
@@ -49,8 +38,8 @@ class NominaService
         // Una sesión pertenece al período en el que pasó a FINALIZADA, usando updated_at
         $participaciones = ParticipacionSesion::whereHas('sesion', function ($q) use ($dto) {
             $q->where('estado', 'FINALIZADA')
-                ->whereYear('updated_at', $dto->fechaInicio->year)
-                ->whereMonth('updated_at', $dto->fechaInicio->month);
+                ->whereYear('fecha_finalizacion', $dto->fechaInicio->year)
+                ->whereMonth('fecha_finalizacion', $dto->fechaInicio->month);
         })
             ->where('estado_participacion', true)
             ->with(['sesion.reserva', 'fotografo'])
@@ -80,7 +69,7 @@ class NominaService
             $tss       = $this->descuentoTSS($bruto, $dependientes, $fechaVigencia);
             $isr       = $this->calcularISR($bruto, $dependientes, $fechaVigencia);
             $descuento = round($tss['afp'] + $tss['sfs'] + $tss['dependientes'] + $isr, 2);
-            $patronal  = $this->aportesPatronales($bruto);
+            $patronal  = $this->aportesPatronales($bruto, $fechaVigencia);
             $neto      = round($bruto - $descuento, 2);
 
             $detalle = DetalleNomina::create([
@@ -97,7 +86,7 @@ class NominaService
             ]);
 
             $emailFotografo = $detalle->fotografo->empleado->usuario->email;
-            Mail::to($emailFotografo)->send(new NominaDisponibleFotografo($detalle));
+            Mail::to($emailFotografo)->queue(new NominaDisponibleFotografo($detalle));
 
             $totBruto     += $bruto;
             $totDescuento += $descuento;
@@ -139,8 +128,8 @@ class NominaService
         $participaciones = ParticipacionSesion::where('fotografo_id', $fotografo->id)
             ->whereHas('sesion', function ($q) use ($nomina) {
                 $q->where('estado', 'FINALIZADA')
-                    ->whereYear('updated_at', $nomina->fecha_inicio->year)
-                    ->whereMonth('updated_at', $nomina->fecha_inicio->month);
+                    ->whereYear('fecha_finalizacion', $nomina->fecha_inicio->year)
+                    ->whereMonth('fecha_finalizacion', $nomina->fecha_inicio->month);
             })
             ->where('estado_participacion', true)
             ->with('sesion.reserva')
@@ -171,7 +160,7 @@ class NominaService
             'sueldo_neto'        => $neto,
         ]);
 
-        // Recalcular los totales de la Nómina padre también
+        // Recalcular los totales de la Nomina padre también
         $this->recalcularTotalesNomina($nomina);
 
         return $detalle;
@@ -181,10 +170,18 @@ class NominaService
     {
         $nomina->load('detalles');
 
+        // Los aportes patronales no se guardan por detalle (solo el total a
+        // nivel de Nomina), así que hay que recalcularlos sumando cada
+        // fotógrafo con la tarifa vigente en el período original
+        $totPatronal = $nomina->detalles->sum(
+            fn (DetalleNomina $detalle) => $this->aportesPatronales($detalle->salario_bruto, $nomina->fecha_inicio)
+        );
+
         $nomina->update([
             'total_salarios_brutos'    => round($nomina->detalles->sum('salario_bruto'), 2),
             'total_descuentos_legales' => round($nomina->detalles->sum('descuentos_legales'), 2),
             'total_isr_retenido'       => round($nomina->detalles->sum('descuento_isr'), 2),
+            'total_aportes_patronales' => round($totPatronal, 2),
             'total_nomina_neta'        => round($nomina->detalles->sum('sueldo_neto'), 2),
         ]);
     }
@@ -234,7 +231,7 @@ class NominaService
     /**
      * ISR retenido al empleado (agente de retención: el estudio, a favor de la DGII).
      * Se calcula sobre el neto gravable (bruto - TSS incluyendo dependientes),
-     * anualizado, según la escala progresiva vigente (Resolución DDG-AR1-2026-00001).
+     * anualizado, según la escala progresiva vigente en TramoIsr.
      */
     private function calcularISR(float $bruto, int $dependientesAdicionales, Carbon $fecha): float
     {
@@ -242,22 +239,32 @@ class NominaService
         $netoGravable = $bruto - $tss['total'];
         $anualizado   = $netoGravable * 12;
 
-        $isrAnual = match (true) {
-            $anualizado <= self::ISR_EXENCION_ANUAL => 0,
-            $anualizado <= self::ISR_TRAMO_2_LIMITE  => ($anualizado - self::ISR_EXENCION_ANUAL) * 0.15,
-            $anualizado <= self::ISR_TRAMO_3_LIMITE  => self::ISR_CUOTA_TRAMO_2 + ($anualizado - self::ISR_TRAMO_2_LIMITE) * 0.20,
-            default                                   => self::ISR_CUOTA_TRAMO_3 + ($anualizado - self::ISR_TRAMO_3_LIMITE) * 0.25,
-        };
+        $tramo = TramoIsr::paraMonto($anualizado, $fecha);
+
+        $isrAnual = ($anualizado - (float) $tramo->desde_anual) * (float) $tramo->tasa + (float) $tramo->monto_fijo_adicional;
 
         return round($isrAnual / 12, 2);
     }
 
     /**
      * Aportes patronales (SFS + AFP + Riesgo Laboral) que paga el estudio
-     * directamente — no se descuenta al fotógrafo.
+     * directamente — no se descuenta al fotógrafo. Cada componente tiene su
+     * propio tope de cotización, así que se aplican por separado antes de sumar.
      */
-    private function aportesPatronales(float $bruto): float
+    private function aportesPatronales(float $bruto, Carbon $fecha): float
     {
-        return round($bruto * (self::TASA_SFS_PATRONAL + self::TASA_AFP_PATRONAL + self::TASA_RIESGO_LABORAL), 2);
+        $tasaSfs    = ParametroNomina::valorVigente('tasa_sfs_patronal', $fecha);
+        $tasaAfp    = ParametroNomina::valorVigente('tasa_afp_patronal', $fecha);
+        $tasaRiesgo = ParametroNomina::valorVigente('tasa_riesgo_laboral', $fecha);
+
+        $topeSfs    = ParametroNomina::valorVigente('tope_cotizacion_sfs', $fecha);
+        $topeAfp    = ParametroNomina::valorVigente('tope_cotizacion_afp', $fecha);
+        $topeRiesgo = ParametroNomina::valorVigente('tope_cotizacion_riesgo_laboral', $fecha);
+
+        $sfs    = round(min($bruto, $topeSfs) * $tasaSfs, 2);
+        $afp    = round(min($bruto, $topeAfp) * $tasaAfp, 2);
+        $riesgo = round(min($bruto, $topeRiesgo) * $tasaRiesgo, 2);
+
+        return round($sfs + $afp + $riesgo, 2);
     }
 }

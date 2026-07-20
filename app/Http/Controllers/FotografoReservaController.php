@@ -42,9 +42,11 @@ class FotografoReservaController extends Controller
             'duracion_horas' => 'nullable|numeric|min:0.5|max:12',
         ]);
 
+        $fotografo = Auth::user()->empleado->fotografo;
+
         try {
             $dto = AccionReservaDTO::fromRequest($request);
-            $this->reservaService->procesarAccion($reserva, $dto);
+            $this->reservaService->procesarAccion($reserva, $dto, $fotografo);
 
             $mensaje = match ($request->accion) {
                 'APROBADA'   => 'Reserva aprobada. El cliente fue notificado.',
@@ -62,13 +64,17 @@ class FotografoReservaController extends Controller
         }
     }
 
-    // Evita que un fotógrafo gestione reservas de otro
+    // Permite gestionar una reserva si es suya, o si está en la bolsa
+    // compartida (sin dueño todavía y en estado PENDIENTE).
     private function autorizarFotografo(Reserva $reserva): void
     {
         $fotografo = Auth::user()->empleado->fotografo;
 
+        $esSuya       = $reserva->fotografo_id === $fotografo->id;
+        $esDisponible = is_null($reserva->fotografo_id) && $reserva->estado === 'PENDIENTE';
+
         abort_if(
-            $reserva->fotografo_id !== $fotografo->id,
+            ! $esSuya && ! $esDisponible,
             403,
             'No tienes permiso para gestionar esta reserva.'
         );

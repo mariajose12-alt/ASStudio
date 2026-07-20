@@ -119,13 +119,18 @@ class SolicitudAyudanteService
         DB::transaction(function () use ($solicitud, $postulacion) {
             $postulacion->update(['estado' => 'CONFIRMADO']);
 
+            $horasTrabajadas = $solicitud->sesion
+                ->participaciones()
+                ->where('rol', 'PRINCIPAL')
+                ->value('horas_trabajadas');
+
             ParticipacionSesion::create([
                 'sesion_id'             => $solicitud->sesion_id,
                 'fotografo_id'          => $postulacion->fotografo_id,
                 'rol'                   => 'ASISTENTE',
                 'porcentaje_comision'   => 0, // usa el fallback de NominaService
                 'estado_participacion'  => true,
-                'horas_trabajadas'      => 0,
+                'horas_trabajadas'      => $horasTrabajadas,
             ]);
 
             $solicitud->increment('cupos_confirmados');

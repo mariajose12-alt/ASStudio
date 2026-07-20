@@ -8,7 +8,7 @@ class ReservaCreateDTO
         public readonly int     $cliente_id,
         public readonly int     $paquete_id,
         public readonly int     $catalogo_id,
-        public readonly int     $fotografo_id,
+        public readonly ?int    $fotografo_id,
         public readonly string  $tipo,
         public readonly string  $descripcion, // La descripcion nunca puede ser null
         public readonly string  $fecha_inicio,
@@ -19,11 +19,11 @@ class ReservaCreateDTO
 
     // Se arma desde los datos de sesión en el Controller
     public static function fromSesion(
-        array $paso1,
-        array $paso2,
-        int   $cliente_id,
-        int   $fotografo_id,
-        float $precio_total
+        array  $paso1,
+        array  $paso2,
+        int    $cliente_id,
+        ?int   $fotografo_id,
+        float  $precio_total
     ): self {
         return new self(
             cliente_id:   $cliente_id,

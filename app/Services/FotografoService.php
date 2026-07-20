@@ -87,8 +87,9 @@ class FotografoService
             ->groupBy('estado')
             ->pluck('total', 'estado');
 
-        $reservasPendientes  = (int) ($porEstadoReserva['PENDIENTE']              ?? 0)
-            + (int) ($porEstadoReserva['MODIFICACION_PROPUESTA'] ?? 0);
+        $reservasPendientes = Reserva::whereNull('fotografo_id')
+            ->where('estado', 'PENDIENTE')
+            ->count();
         $reservasAprobadas   = (int) ($porEstadoReserva['APROBADA']               ?? 0);
         $reservasCanceladas  = (int) ($porEstadoReserva['CANCELADA']              ?? 0)
             + (int) ($porEstadoReserva['RECHAZADA']              ?? 0);

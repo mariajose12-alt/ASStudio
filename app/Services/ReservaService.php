@@ -49,9 +49,8 @@ class ReservaService
             throw new Exception('No hay fotógrafos disponibles en esa fecha y hora.');
         }
 
-        $fotografo = $disponibles->count() === 1
-            ? $disponibles->first()
-            : $disponibles->random();
+        // Ya no se asigna un fotógrafo específico al crear la reserva — queda
+        // disponible para que cualquier fotógrafo libre en ese horario la tome.
 
         $paquete = PaqueteFotografico::findOrFail($paso1['paquete_id']);
         $cliente = Cliente::firstOrCreate(['usuario_id' => $usuario_id]);
@@ -68,7 +67,7 @@ class ReservaService
             paso1:        $paso1,
             paso2:        $paso2,
             cliente_id:   $cliente->id,
-            fotografo_id: $fotografo->id,
+            fotografo_id: null,
             precio_total: $paquete->precio_base,
         );
 

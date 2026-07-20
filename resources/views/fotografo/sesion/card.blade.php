@@ -1,4 +1,4 @@
-tienes<div class="sesion-card">
+<div class="sesion-card">
     <div class="sesion-card-header">
         <div>
             <h3 class="sesion-tipo">

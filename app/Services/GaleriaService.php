@@ -26,18 +26,9 @@ class GaleriaService
             ->get();
     }
 
-    public function sesionParaSeleccion(int $sesionId, int $clienteId): Sesion
-    {
-        return Sesion::with([
-            'reserva.paquete',
-            'reserva.cliente.usuario.persona',
-            'fotografias',
-        ])
-            ->whereHas('reserva', fn($q) => $q->where('cliente_id', $clienteId))
-            ->findOrFail($sesionId);
-    }
-
-    public function sesionParaFinal(int $sesionId, int $clienteId): Sesion
+    // Consolidado de sesionParaSeleccion() y sesionParaFinal() (M-9): ambos
+    // métodos eran idénticos byte a byte, así que se unificaron en uno solo.
+    public function sesionConPermisoCliente(int $sesionId, int $clienteId): Sesion
     {
         return Sesion::with([
             'reserva.paquete',
@@ -52,16 +43,15 @@ class GaleriaService
     {
         return $sesion->fotografias
             ->where('estado', 'ORIGINAL')
-            ->values()
-            ->map(fn($foto) => $this->agregarUrlFirmada($foto));
+            ->values();
+        // url_firmada se genera automáticamente vía accessor (ver Fotografia::getUrlFirmadaAttribute)
     }
 
     public function fotosFinalesConUrl(Sesion $sesion): Collection
     {
         return $sesion->fotografias
             ->whereIn('estado', ['ORIGINAL', 'PENDIENTE_EDICION', 'EDITADA'])
-            ->values()
-            ->map(fn($foto) => $this->agregarUrlFirmada($foto));
+            ->values();
     }
 
     // Acciones
@@ -113,13 +103,5 @@ class GaleriaService
         }
 
         GenerarZipGaleria::dispatch($sesion, $tipo, $fotos->pluck('id')->all());
-    }
-
-    // Helpers
-
-    private function agregarUrlFirmada(Fotografia $foto, int $minutos = 60): Fotografia
-    {
-        $foto->url_firmada = Storage::disk('r2')->temporaryUrl($foto->url, now()->addMinutes($minutos));
-        return $foto;
     }
 }

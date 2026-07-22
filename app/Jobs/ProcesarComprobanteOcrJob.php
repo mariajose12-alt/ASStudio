@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Mail\ComprobantePendienteAdmin;
 use App\Models\Comprobante;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -42,23 +41,27 @@ class ProcesarComprobanteOcrJob implements ShouldQueue
                 ->run();
 
             if (blank($textoDetectado)) {
-                $this->comprobante->update([
-                    'estado_ocr'        => 'FALLIDO',
-                    'respuesta_ocr_raw' => ['error' => 'Tesseract no detectó texto'],
-                ]);
+                $this->comprobante->marcarFallido('Tesseract no detectó texto');
                 $this->notificarAdmins();
                 return;
             }
 
             $datos = $this->extraerDatos($textoDetectado);
 
-            $this->comprobante->update([
-                'monto_detectado'      => $datos['monto'],
-                'fecha_detectada'      => $datos['fecha'],
-                'banco_detectado'      => $datos['banco'],
-                'referencia_detectada' => $datos['referencia'],
-                'estado_ocr'           => 'PROCESADO',
-                'respuesta_ocr_raw'    => ['texto_completo' => $textoDetectado],
+            $cuentaValida = $this->validarCuentaDestino($datos['cuentaDestino']);
+
+            $pago = $this->comprobante->pago;
+            $fechaValida = $this->validarFechaComprobante($datos['fecha'], $pago?->reserva);
+
+            $this->comprobante->marcarProcesado([
+                'monto'         => $datos['monto'],
+                'fecha'         => $datos['fecha'],
+                'banco'         => $datos['banco'],
+                'referencia'    => $datos['referencia'],
+                'cuentaDestino' => $datos['cuentaDestino'],
+                'cuentaValida'  => $cuentaValida,
+                'fechaValida'   => $fechaValida,
+                'textoCompleto' => $textoDetectado,
             ]);
 
             $this->notificarAdmins();
@@ -69,7 +72,7 @@ class ProcesarComprobanteOcrJob implements ShouldQueue
                 'error'          => $e->getMessage(),
             ]);
 
-            $this->comprobante->update(['estado_ocr' => 'FALLIDO']);
+            $this->comprobante->marcarFallido($e->getMessage());
             $this->notificarAdmins();
 
         } finally {
@@ -88,21 +91,9 @@ class ProcesarComprobanteOcrJob implements ShouldQueue
             return;
         }
 
-        $reserva = $pago->reserva;
-
-        if (!$reserva) {
-            Log::warning('Pago sin reserva asociada al notificar admins', [
-                'comprobante_id' => $this->comprobante->id,
-                'pago_id'        => $pago->id,
-            ]);
-            return;
-        }
-
         try {
-            \App\Models\Usuario::administradores()->each(function ($admin) use ($reserva) {
-                if ($admin->email) {
-                    Mail::to($admin->email)->send(new ComprobantePendienteAdmin($reserva));
-                }
+            \App\Models\Usuario::administradores()->get()->each(function ($admin) use ($pago) {
+                $admin->notify(new \App\Notifications\ComprobantePendienteAdmin($pago));
             });
         } catch (\Throwable $e) {
             Log::error('Error notificando admins de comprobante pendiente', [
@@ -169,6 +160,45 @@ class ProcesarComprobanteOcrJob implements ShouldQueue
             $referencia = $m[1];
         }
 
-        return compact('monto', 'fecha', 'banco', 'referencia');
+
+        // Cuenta destino
+        $cuentaDestino = null;
+        if (preg_match('/beneficiario\s*:?\s*(.+)/i', $texto, $m)) {
+            if (preg_match('/(\d{8,20})\s*$/', trim($m[1]), $m2)) {
+                $cuentaDestino = $m2[1];
+            }
+        } elseif (preg_match('/(?:cuenta\s*destino|cuenta\s*receptora)[^\n]*?(\d{8,20})/i', $texto, $m)) {
+            $cuentaDestino = $m[1];
+        }
+
+        return compact('monto', 'fecha', 'banco', 'referencia', 'cuentaDestino');
+    }
+
+    private function validarCuentaDestino(?string $cuentaDetectada): ?bool
+    {
+        if (!$cuentaDetectada) {
+            return null;
+        }
+
+        return \App\Models\CuentaBanco::activas()
+            ->where('numero_cuenta', $cuentaDetectada)
+            ->exists();
+    }
+
+    private function validarFechaComprobante(?string $fechaDetectada, ?\App\Models\Reserva $reserva): ?bool
+    {
+        if (!$fechaDetectada || !$reserva) {
+            return null;
+        }
+
+        try {
+            $fechaComprobante = \Carbon\Carbon::parse($fechaDetectada)->startOfDay();
+        } catch (\Throwable $e) {
+            return null; // el OCR detectó algo que no es una fecha parseable
+        }
+
+        return $fechaComprobante->greaterThanOrEqualTo(
+            $reserva->fecha_solicitud->copy()->startOfDay()
+        );
     }
 }

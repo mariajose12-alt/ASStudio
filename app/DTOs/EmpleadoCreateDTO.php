@@ -2,6 +2,7 @@
 
 namespace App\DTOs;
 
+use App\Exceptions\NegocioException;
 use Illuminate\Http\Request;
 
 class EmpleadoCreateDTO
@@ -22,6 +23,10 @@ class EmpleadoCreateDTO
 
     public static function fromRequest(Request $request): self
     {
+        if ($request->tipo_salario === 'personalizado' && !$request->filled('salario_base')) {
+            throw new NegocioException('Debes indicar el salario base cuando eliges salario personalizado.');
+        }
+
         return new self(
             nombre:               $request->nombre,
             apellido:             $request->apellido,

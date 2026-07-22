@@ -12,14 +12,11 @@ class Pago extends Model
     protected $fillable = [
         'reserva_id',
         'cliente_id',
-        'comprobante_id',
         'monto',
         'fecha_registro',
         'fecha_completado',
-        'estado',
         'metodo',
         'tipo',
-        'motivo_rechazo',
     ];
 
     protected $casts = [
@@ -87,5 +84,11 @@ class Pago extends Model
     public function asociarComprobante(Comprobante $comprobante): void
     {
         $this->update(['comprobante_id' => $comprobante->id]);
+    }
+
+    public function marcarEnRevision(): void
+    {
+        $this->estado = 'EN_REVISION';
+        $this->save();
     }
 }

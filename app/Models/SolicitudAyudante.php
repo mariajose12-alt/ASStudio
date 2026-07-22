@@ -14,8 +14,6 @@ class SolicitudAyudante extends Model
         'sesion_id',
         'fotografo_solicitante_id',
         'cantidad_ayudantes',
-        'cupos_confirmados',
-        'estado',
         'mensaje',
     ];
 

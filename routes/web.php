@@ -9,6 +9,7 @@ use App\Http\Controllers\FotografiaController;
 use App\Http\Controllers\FotografoNominaController;
 use App\Http\Controllers\FotografoReservaController;
 use App\Http\Controllers\NotificacionController;
+use App\Http\Controllers\PasswordOlvidadoController;
 use App\Http\Controllers\SesionController;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +78,12 @@ Route::get('/preview-mail', function () {
     return new App\Mail\ReservaModificadaCliente($reserva);
 });
 
+Route::prefix('notificaciones')->name('notificaciones.')->group(function () {
+    Route::get('/', [NotificacionController::class, 'index'])->name('index');
+    Route::patch('/marcar-leidas', [NotificacionController::class, 'marcarLeidas'])->name('marcar-leidas');
+    Route::patch('/{id}/marcar-leida', [NotificacionController::class, 'marcarLeida'])->name('marcar-leida');
+});
+
 // AUTENTICACIÓN
 
 Route::get('/login',    [LoginController::class, 'showForm'])->name('login');
@@ -89,6 +96,8 @@ Route::get('/auth/google',          [GoogleController::class, 'redirect'])->name
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 Route::get('/activar-cuenta/{usuario}/{token}', [ActivacionCuentaController::class, 'mostrar'])->name('activacion.mostrar');
 Route::post('/activar-cuenta/{usuario}/{token}', [ActivacionCuentaController::class, 'procesar'])->name('activacion.procesar');
+Route::get('/olvide-password',  [PasswordOlvidadoController::class, 'mostrarFormulario'])->name('password.olvidada.form');
+Route::post('/olvide-password', [PasswordOlvidadoController::class, 'enviarLink'])->middleware('throttle:3,1')->name('password.olvidada.enviar');
 
 // AUTENTICADO — sin rol específico (perfil + reservas cliente)
 Route::middleware('auth')->group(function () {

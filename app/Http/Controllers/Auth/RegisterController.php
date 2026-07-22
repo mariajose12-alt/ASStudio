@@ -58,20 +58,13 @@ class RegisterController extends Controller
             'usuario_id' => $usuario->id,
         ]);
 
-        //Enviar correo de verificacion
+        // Enviar correo de verificación
         Mail::to($usuario->email)->send(new VerificacionEmail($usuario));
 
-        //event(new Registered($usuario));
-        //Auth::login($usuario);
+        // Iniciar sesión automáticamente para llevarlo directo a la pantalla de espera
+        Auth::login($usuario);
 
-
-        /*$redirect = $request->input('redirect');
-        if ($redirect && $this->esRedirectSeguro($redirect)) {
-            return redirect($redirect);
-        }
-
-        return redirect()->route('cliente.dashboard');*/
-        return redirect()->route('login')->with('success', 'Registro exitoso. Revisa tu correo para verificar tu cuenta antes de iniciar sesión.');
+        return redirect()->route('cliente.verificacion.pendiente');
     }
 
     // Valida que la URL de redirect sea interna y esté en la whitelist.

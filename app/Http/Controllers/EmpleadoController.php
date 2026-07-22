@@ -7,6 +7,7 @@ use App\Models\ConfiguracionNomina;
 use App\Models\Empleado;
 use App\Services\EmpleadoService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 
 class EmpleadoController extends Controller
 {
@@ -39,12 +40,12 @@ class EmpleadoController extends Controller
             'dependientes_adicionales' => 'nullable|integer|min:0|max:20',
         ]);
 
-        $dto      = EmpleadoCreateDTO::fromRequest($request);
-        $resultado = $this->empleadoService->crear($dto);
+        $dto = EmpleadoCreateDTO::fromRequest($request);
+        $this->empleadoService->crear($dto);
 
         return redirect()->route('admin.empleados.index')
             ->with('success', 'Empleado creado correctamente.')
-            ->with('nueva_password', $resultado['password_inicial'])
+            ->with('empleado_creado', true)
             ->with('nuevo_email', $request->email);
     }
 
@@ -71,7 +72,7 @@ class EmpleadoController extends Controller
             'email'    => 'required|email|unique:usuarios,email,' . $empleado->usuario->id,
             'rol'      => 'required|in:FOTOGRAFO,ADMINISTRADOR',
             'estado'   => 'required|in:ACTIVO,INACTIVO',
-            'password' => 'nullable|string|min:8',
+            'password' => ['nullable', Password::defaults()],
             'salario_base' => 'nullable|numeric|min:0',
             'dependientes_adicionales' => 'nullable|integer|min:0|max:20',
         ]);

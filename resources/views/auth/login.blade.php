@@ -15,7 +15,7 @@
         <div>
             <div style="filter: brightness(0) invert(1);">
                 <a href="/" class="navbar-logo">
-                    <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+                    <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
                 </a>
             </div>
             <div class="brand-sub">Fotografía profesional</div>
@@ -26,7 +26,7 @@
             </div>
             <div class="left-cite">Panel Administrativo</div>
         </div>
-        <div class="left-bottom">© {{ date('Y') }} AS Studio</div>
+        <div class="left-bottom">© {{ date('Y') }} AStudio</div>
     </div>
 
     <!-- Formulario -->
@@ -59,7 +59,7 @@
             <div class="remember-row">
                 <input type="checkbox" id="remember" name="remember">
                 <span>Recordarme</span>
-                {{-- <a href="{{ route('password.request') }}" class="forgot-link">¿Olvidaste tu contraseña?</a> --}}
+                <a href="{{ route('password.olvidada.form') }}" class="forgot-link">¿Olvidaste tu contraseña?</a>
             </div>
 
             <button type="submit" class="btn-submit">Iniciar sesión</button>

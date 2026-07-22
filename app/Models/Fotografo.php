@@ -87,7 +87,7 @@ class Fotografo extends Model
 
     public function salarioBaseEfectivo(): float
     {
-        return $this->salario_base
-            ?? ConfiguracionNomina::actual()->salario_base;
+        return (float) ($this->salario_base
+            ?? ConfiguracionNomina::actual()->salario_base_default);
     }
 }

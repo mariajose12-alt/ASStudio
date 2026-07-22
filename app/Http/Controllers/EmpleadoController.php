@@ -51,14 +51,14 @@ class EmpleadoController extends Controller
     public function show(Empleado $empleado)
     {
         $empleado->load('usuario.persona', 'fotografo');
-        $configDefault = ConfiguracionNomina::actual()->salario_base;
+        $configDefault = ConfiguracionNomina::actual()->salario_base_default;
         return view('admin.empleados.show', compact('empleado', 'configDefault'));
     }
 
     public function edit(Empleado $empleado)
     {
         $empleado->load('usuario.persona', 'fotografo');
-        $configDefault = ConfiguracionNomina::actual()->salario_base;
+        $configDefault = ConfiguracionNomina::actual()->salario_base_default;
         return view('admin.empleados.edit', compact('empleado', 'configDefault'));
     }
 

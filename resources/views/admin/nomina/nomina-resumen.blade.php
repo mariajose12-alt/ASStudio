@@ -1,4 +1,5 @@
 @php use App\Services\NominaService; @endphp
+@php use App\Support\Dinero; @endphp
 @extends('layouts.admin')
 @section('title', 'Resumen de Nómina')
 
@@ -17,8 +18,14 @@
             <table class="detail-table">
                 <tr><td>Período</td><td>{{ $nomina->fecha_inicio->format('d/m/Y') }} — {{ $nomina->fecha_fin->format('d/m/Y') }}</td></tr>
                 <tr><td>Creada por</td><td>{{ $nomina->creadaPor->empleado->usuario->persona->nombre ?? '—' }} {{ $nomina->creadaPor->empleado->usuario->persona->apellido ?? '' }}</td></tr>
-                <tr><td>Total Bruto</td><td>RD$ {{ number_format($nomina->total_salarios_brutos, 2) }}</td></tr>
-                <tr><td><strong>Total Neto a Pagar</strong></td><td><strong>RD$ {{ number_format($nomina->total_nomina_neta, 2) }}</strong></td></tr>
+                <tr><td>Total Bruto</td><td>{{ Dinero::formato($nomina->total_salarios_brutos) }}</td></tr>
+                @if($nomina->total_regalia_pascual > 0)
+                    <tr><td>Regalía Pascual</td><td>{{ Dinero::formato($nomina->total_regalia_pascual) }}</td></tr>
+                @endif
+                @if($nomina->total_incentivos > 0)
+                    <tr><td>Incentivos por Ventas</td><td>{{ Dinero::formato($nomina->total_incentivos) }}</td></tr>
+                @endif
+                <tr><td><strong>Total Neto a Pagar</strong></td><td><strong>{{ Dinero::formato($nomina->total_nomina_neta) }}</strong></td></tr>
             </table>
 
             {{-- Retenciones a los empleados, a favor de la DGII/TSS --}}
@@ -27,19 +34,19 @@
                 <table class="detail-table">
                     <tr>
                         <td>TSS (SFS + AFP empleado)</td>
-                        <td>RD$ {{ number_format($nomina->detalles->sum('descuento_tss'), 2) }}</td>
+                        <td>{{ Dinero::formato($nomina->detalles->sum('descuento_tss')) }}</td>
                     </tr>
                     <tr>
                         <td>Dependientes adicionales (TSS)</td>
-                        <td>RD$ {{ number_format($nomina->detalles->sum('descuento_dependientes'), 2) }}</td>
+                        <td>{{ Dinero::formato($nomina->detalles->sum('descuento_dependientes')) }}</td>
                     </tr>
                     <tr>
                         <td>ISR retenido (a favor de la DGII)</td>
-                        <td>RD$ {{ number_format($nomina->total_isr_retenido, 2) }}</td>
+                        <td>{{ Dinero::formato($nomina->total_isr_retenido) }}</td>
                     </tr>
                     <tr>
                         <td><strong>Total retenido a empleados</strong></td>
-                        <td><strong>RD$ {{ number_format($nomina->total_descuentos_legales, 2) }}</strong></td>
+                        <td><strong>{{ Dinero::formato($nomina->total_descuentos_legales) }}</strong></td>
                     </tr>
                 </table>
             </div>
@@ -49,11 +56,37 @@
                 <strong style="font-size:13px; display:block; margin-bottom:10px;">Aportes patronales </strong>
                 <table class="detail-table">
                     <tr>
-                        <td>SFS + AFP + Riesgo Laboral (patronal)</td>
-                        <td>RD$ {{ number_format($nomina->total_aportes_patronales, 2) }}</td>
+                        <td>SFS + AFP + Riesgo Laboral </td>
+                        <td>{{ Dinero::formato($nomina->total_aportes_patronales) }}</td>
                     </tr>
                 </table>
             </div>
+
+            @if($nomina->total_regalia_pascual > 0)
+                {{-- Regalía Pascual: pago especial de diciembre, no lleva descuentos --}}
+                <div style="margin-top:12px; padding:16px; background:#f9fafb; border-radius:8px;">
+                    <strong style="font-size:13px; display:block; margin-bottom:10px;">Regalía Pascual </strong>
+                    <table class="detail-table">
+                        <tr>
+                            <td>Total regalía pagada (sin descuentos de TSS/ISR)</td>
+                            <td>{{ Dinero::formato($nomina->total_regalia_pascual) }}</td>
+                        </tr>
+                    </table>
+                </div>
+            @endif
+
+            @if($nomina->total_incentivos > 0)
+                {{-- Incentivo por ventas: sí lleva TSS/ISR (ya incluido en el bruto de cada detalle) --}}
+                <div style="margin-top:12px; padding:16px; background:#fff3e8; border-radius:8px;">
+                    <strong style="font-size:13px; display:block; margin-bottom:10px;">Incentivos por Ventas </strong>
+                    <table class="detail-table">
+                        <tr>
+                            <td>Total incentivos pagados (incluido en el bruto, con descuentos aplicados)</td>
+                            <td>{{ Dinero::formato($nomina->total_incentivos) }}</td>
+                        </tr>
+                    </table>
+                </div>
+            @endif
         </div>
 
         {{-- Confirmación del admin, condicionada a que todos los fotógrafos confirmaron --}}
@@ -84,13 +117,9 @@
                     Marcar como pagada
                 </button>
             </div>
-        @elseif($nomina->estado === 'PAGADA')
-            <div style="padding:16px 20px; border-top:1px solid var(--border); background:#dbeafe; color:#1e40af;">
-                 Nómina pagada. Pendiente de cierre.
-            </div>
         @elseif($nomina->estado === 'CERRADA')
             <div style="padding:16px 20px; border-top:1px solid var(--border); background:#e5e7eb; color:#374151;">
-                 Nómina pagada y cerrada. Este proceso ha finalizado.
+                Nómina pagada y cerrada. Este proceso ha finalizado.
             </div>
         @endif
     </div>
@@ -101,7 +130,7 @@
             <div class="card-header">
                 <h2>{{ $persona->nombre }} {{ $persona->apellido }}</h2>
                 <span style="font-size:13px; color:var(--muted);">
-                    Neto: RD$ {{ number_format($detalle->sueldo_neto, 2) }}
+                    Neto: {{ Dinero::formato($detalle->sueldo_neto) }}
                     @if($detalle->estaConfirmado())
                         <span class="badge badge-active" style="margin-left:6px;">Confirmado</span>
                     @elseif($detalle->estaEnDisputa())
@@ -135,9 +164,9 @@
                             <td><span
                                     class="badge {{ $p->rol === 'PRINCIPAL' ? 'badge-foto' : 'badge-admin' }}">{{ $p->rol }}</span>
                             </td>
-                            <td>RD$ {{ number_format($p->sesion->reserva->precio_total, 2) }}</td>
+                            <td>{{ Dinero::formato($p->sesion->reserva->precio_total) }}</td>
                             <td>{{ $tasa }}%</td>
-                            <td>RD$ {{ number_format($monto, 2) }}</td>
+                            <td>{{ Dinero::formato($monto) }}</td>
                         </tr>
                     @endforeach
                     </tbody>
@@ -145,14 +174,20 @@
             </div>
 
             <div style="padding:16px 20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; font-size:13px; flex-wrap:wrap; gap:8px;">
-                <span>Salario Base: <strong>RD$ {{ number_format($detalle->fotografo->salarioBaseEfectivo(), 2) }}</strong></span>
-                <span>Bruto: <strong>RD$ {{ number_format($detalle->salario_bruto, 2) }}</strong></span>
-                <span>TSS: <strong>RD$ {{ number_format($detalle->descuento_tss, 2) }}</strong></span>
+                <span>Salario Base: <strong>{{ Dinero::formato($detalle->fotografo->salarioBaseEfectivo()) }}</strong></span>
+                <span>Bruto: <strong>{{ Dinero::formato($detalle->salario_bruto) }}</strong></span>
+                <span>TSS: <strong>{{ Dinero::formato($detalle->descuento_tss) }}</strong></span>
                 @if($detalle->dependientes_adicionales_aplicados > 0)
-                    <span>Dependientes ({{ $detalle->dependientes_adicionales_aplicados }}): <strong>RD$ {{ number_format($detalle->descuento_dependientes, 2) }}</strong></span>
+                    <span>Dependientes ({{ $detalle->dependientes_adicionales_aplicados }}): <strong>{{ Dinero::formato($detalle->descuento_dependientes) }}</strong></span>
                 @endif
-                <span>ISR: <strong>RD$ {{ number_format($detalle->descuento_isr, 2) }}</strong></span>
-                <span>Neto: <strong>RD$ {{ number_format($detalle->sueldo_neto, 2) }}</strong></span>
+                <span>ISR: <strong>{{ Dinero::formato($detalle->descuento_isr) }}</strong></span>
+                @if($detalle->regalia_pascual > 0)
+                    <span>Regalía Pascual: <strong>{{ Dinero::formato($detalle->regalia_pascual) }}</strong></span>
+                @endif
+                @if($detalle->incentivo_ventas > 0)
+                    <span>Incentivo: <strong>{{ Dinero::formato($detalle->incentivo_ventas) }}</strong></span>
+                @endif
+                <span>Neto: <strong>{{ Dinero::formato($detalle->sueldo_neto) }}</strong></span>
             </div>
         </div>
     @endforeach
@@ -163,20 +198,12 @@
             <h3 class="mp-titulo">Marcar nómina como pagada</h3>
             <p class="mp-texto">
                 ¿Ya realizaste el pago a todos los fotógrafos de este período?
-                Puedes marcarla solo como pagada, o pagarla y cerrar el proceso
-                definitivamente.
+                Esto cerrará el proceso de esta nómina de forma definitiva.
             </p>
-
-            <form method="POST" action="{{ route('admin.nomina.pagar', $nomina) }}" class="mp-acciones">
-                @csrf
-                <input type="hidden" name="cerrar" value="0">
-                <button type="submit" class="btn btn-outline">Solo marcar como pagada</button>
-            </form>
 
             <form method="POST" action="{{ route('admin.nomina.pagar', $nomina) }}" class="mp-acciones"
                   onsubmit="return confirm('Esto cerrará el proceso de esta nómina de forma definitiva. ¿Continuar?')">
                 @csrf
-                <input type="hidden" name="cerrar" value="1">
                 <button type="submit" class="btn btn-primary">Marcar como pagada y cerrar</button>
             </form>
 

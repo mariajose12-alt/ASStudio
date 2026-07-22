@@ -1,4 +1,5 @@
 @php use App\Services\NominaService; @endphp
+@php use App\Support\Dinero; @endphp
 @extends('layouts.fotografo')
 @section('title', 'Detalle de Nómina')
 
@@ -19,29 +20,41 @@
             <table class="detail-table">
                 <tr>
                     <td>Salario Bruto</td>
-                    <td>RD$ {{ number_format($detalle->salario_bruto, 2) }}</td>
+                    <td>{{ Dinero::formato($detalle->salario_bruto) }}</td>
                 </tr>
                 <tr>
                     <td>TSS (SFS + AFP)</td>
-                    <td>RD$ {{ number_format($detalle->descuento_tss, 2) }}</td>
+                    <td>{{ Dinero::formato($detalle->descuento_tss) }}</td>
                 </tr>
                 @if($detalle->dependientes_adicionales_aplicados > 0)
                     <tr>
                         <td>Dependientes adicionales TSS ({{ $detalle->dependientes_adicionales_aplicados }})</td>
-                        <td>RD$ {{ number_format($detalle->descuento_dependientes, 2) }}</td>
+                        <td>{{ Dinero::formato($detalle->descuento_dependientes) }}</td>
                     </tr>
                 @endif
                 <tr>
                     <td>ISR retenido</td>
-                    <td>RD$ {{ number_format($detalle->descuento_isr, 2) }}</td>
+                    <td>{{ Dinero::formato($detalle->descuento_isr) }}</td>
                 </tr>
                 <tr>
                     <td>Total Descuentos</td>
-                    <td>RD$ {{ number_format($detalle->descuentos_legales, 2) }}</td>
+                    <td>{{ Dinero::formato($detalle->descuentos_legales) }}</td>
                 </tr>
+                @if($detalle->regalia_pascual > 0)
+                    <tr>
+                        <td>Regalía Pascual</td>
+                        <td>{{ Dinero::formato($detalle->regalia_pascual) }}</td>
+                    </tr>
+                @endif
+                @if($detalle->incentivo_ventas > 0)
+                    <tr>
+                        <td>Incentivo por Ventas</td>
+                        <td>{{ Dinero::formato($detalle->incentivo_ventas) }}</td>
+                    </tr>
+                @endif
                 <tr>
                     <td><strong>Neto a Recibir</strong></td>
-                    <td><strong>RD$ {{ number_format($detalle->sueldo_neto, 2) }}</strong></td>
+                    <td><strong>{{ Dinero::formato($detalle->sueldo_neto) }}</strong></td>
                 </tr>
             </table>
         </div>
@@ -138,9 +151,9 @@
                         <td><span
                                 class="badge {{ $p->rol === 'PRINCIPAL' ? 'badge-foto' : 'badge-admin' }}">{{ $p->rol }}</span>
                         </td>
-                        <td>RD$ {{ number_format($p->sesion->reserva->precio_total, 2) }}</td>
+                        <td>{{ Dinero::formato($p->sesion->reserva->precio_total) }}</td>
                         <td>{{ $tasa }}%</td>
-                        <td>RD$ {{ number_format($monto, 2) }}</td>
+                        <td>{{ Dinero::formato($monto) }}</td>
                     </tr>
                 @endforeach
                 </tbody>

@@ -19,9 +19,23 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\DTOs\NominaCalculoDTO;
 use App\Services\NominaService;
 use App\Repositories\Contracts\NominaRepositoryInterface;
+use App\Models\ConfiguracionNomina;
+use App\Models\ParametroNomina;
 
 class AdminController extends Controller
 {
+    private const CLAVES_PARAMETROS_LEGALES = [
+        'tasa_afp_empleado',
+        'tasa_sfs_empleado',
+        'tasa_afp_patronal',
+        'tasa_sfs_patronal',
+        'tasa_riesgo_laboral',
+        'tope_cotizacion_afp',
+        'tope_cotizacion_sfs',
+        'tope_cotizacion_riesgo_laboral',
+        'monto_dependiente_adicional',
+    ];
+
     public function __construct(
         private AdminService $adminService,
          private NominaRepositoryInterface $nominaRepository
@@ -166,7 +180,20 @@ class AdminController extends Controller
             ->latest('id')
             ->get();
 
-        return view('admin.nomina.nomina', compact('meses', 'anios', 'fotografos', 'nominas', 'disputas'));
+        // Datos para la pestaña de Configuración
+        $configuracion = ConfiguracionNomina::actual();
+
+        $parametrosLegales = collect(self::CLAVES_PARAMETROS_LEGALES)
+            ->mapWithKeys(fn ($clave) => [$clave => ParametroNomina::valorVigente($clave)]);
+
+        $topeVentasIncentivo = ParametroNomina::valorVigente('tope_ventas_incentivo');
+        $porcentajeIncentivo = ParametroNomina::valorVigente('porcentaje_incentivo');
+        $tasaCambioUsd       = ParametroNomina::valorVigente('tasa_cambio_usd');
+
+        return view('admin.nomina.nomina', compact(
+            'meses', 'anios', 'fotografos', 'nominas', 'disputas',
+            'configuracion', 'parametrosLegales', 'topeVentasIncentivo', 'porcentajeIncentivo', 'tasaCambioUsd'
+        ));
     }
 
     private function fotografosDelPeriodo(int $mes, int $anio)
@@ -212,10 +239,16 @@ class AdminController extends Controller
         $fechaFin    = $fechaInicio->copy()->endOfMonth();
         $periodo     = $fechaInicio->format('Y-m');
 
-        //Si el período ya fue procesado y el admin no confirmó
-        //explícitamente el recálculo, frenar y pedir confirmación.
-        if($this->nominaRepository->periodoYaProcesado($periodo) && !$request->boolean('confirmar_recalculo'))
-        {
+        $existente = $this->nominaRepository->porPeriodo($periodo);
+        // CONFIRMADA o CERRADA: no hay checkbox que permita el recalculo, se bloquea siempre.
+        if ($existente && !$existente->puedeModificarse()) {
+            return redirect()
+                ->route('admin.nomina', ['mes' => $mes, 'anio' => $anio])
+                ->with('error', "La nómina de {$periodo} ya está {$existente->estado} y no puede recalcularse.");
+        }
+
+        // PENDIENTE o CALCULADA: se puede recalcular, pero pidiendo confirmación explícita.
+        if ($existente && !$request->boolean('confirmar_recalculo')) {
             return redirect()
                 ->route('admin.nomina', ['mes' => $mes, 'anio' => $anio])
                 ->with('periodo_ya_procesado', $periodo);
@@ -293,6 +326,7 @@ class AdminController extends Controller
     public function nominaDisputaShow(DetalleNomina $detalle)
     {
         abort_unless($detalle->estaEnDisputa(), 404);
+        abort_unless($detalle->nomina->puedeModificarse(), 403, 'Esta nómina ya no puede modificarse.');
 
         $detalle->load('fotografo.empleado.usuario.persona', 'nomina');
 
@@ -328,6 +362,7 @@ class AdminController extends Controller
     public function nominaDisputaAgregarParticipacion(Request $request, DetalleNomina $detalle)
     {
         abort_unless($detalle->estaEnDisputa(), 404);
+        abort_unless($detalle->nomina->puedeModificarse(), 403, 'Esta nómina ya no puede modificarse.');
 
         $request->validate([
             'sesion_id' => 'required|exists:sesiones,id',
@@ -350,6 +385,7 @@ class AdminController extends Controller
     public function nominaDisputaEliminarParticipacion(DetalleNomina $detalle, ParticipacionSesion $participacion)
     {
         abort_unless($detalle->estaEnDisputa(), 404);
+        abort_unless($detalle->nomina->puedeModificarse(), 403, 'Esta nómina ya no puede modificarse.');
         abort_if($participacion->fotografo_id !== $detalle->fotografo_id, 403);
 
         $participacion->delete();
@@ -361,6 +397,7 @@ class AdminController extends Controller
     public function nominaDisputaAceptar(DetalleNomina $detalle, NominaService $nominaService)
     {
         abort_unless($detalle->estaEnDisputa(), 404);
+        abort_unless($detalle->nomina->puedeModificarse(), 403, 'Esta nómina ya no puede modificarse.');
 
         $nominaService->recalcularDetalle($detalle);
 
@@ -378,6 +415,7 @@ class AdminController extends Controller
     public function nominaDisputaRechazar(DetalleNomina $detalle)
     {
         abort_unless($detalle->estaEnDisputa(), 404);
+        abort_unless($detalle->nomina->puedeModificarse(), 403, 'Esta nómina ya no puede modificarse.');
 
         $detalle->update([
             'estado_confirmacion' => 'CONFIRMADO',
@@ -389,25 +427,17 @@ class AdminController extends Controller
             ->with('success', 'Ajuste rechazado. El detalle queda confirmado con el cálculo original.');
     }
 
-    public function nominaPagar(Request $request, Nomina $nomina): RedirectResponse
+    public function nominaPagar(Nomina $nomina): RedirectResponse
     {
         if (! $nomina->estaConfirmada()) {
             return back()->with('error', 'Solo se puede marcar como pagada una nómina que esté CONFIRMADA.');
         }
 
-        $cerrarTambien = $request->boolean('cerrar');
-
-        $this->nominaRepository->update($nomina->id, [
-            'estado' => $cerrarTambien ? 'CERRADA' : 'PAGADA',
-        ]);
-
-        $mensaje = $cerrarTambien
-            ? 'Nómina marcada como pagada y cerrada. El proceso ha finalizado.'
-            : 'Nómina marcada como pagada.';
+        $this->nominaRepository->update($nomina->id, ['estado' => 'CERRADA']);
 
         return redirect()
             ->route('admin.nomina.resumen', $nomina->id)
-            ->with('success', $mensaje);
+            ->with('success', 'Nómina marcada como cerrada. El proceso ha finalizado.');
     }
 
     public function nominaExportarPdf(Nomina $nomina)
@@ -435,5 +465,67 @@ class AdminController extends Controller
         $pdf = Pdf::loadView('admin.nomina.nomina-pdf', compact('nomina', 'desglose'));
 
         return $pdf->download("nomina-{$nomina->periodo}.pdf");
+    }
+
+    public function nominaConfiguracionParametros(Request $request)
+    {
+        $request->validate([
+            'valores' => 'required|array',
+            'valores.*' => 'required|numeric|min:0',
+        ]);
+
+        foreach ($request->valores as $clave => $valor) {
+            if (!in_array($clave, self::CLAVES_PARAMETROS_LEGALES, true)) {
+                continue; // se ignora cualquier clave que no esté en la lista permitida
+            }
+
+            ParametroNomina::actualizarVersion(
+                clave: $clave,
+                nuevoValor: (float) $valor,
+                vigenteDesde: now(),
+                fuente: 'Actualizado manualmente por ' . auth()->user()->empleado->usuario->persona->nombre,
+            );
+        }
+
+        return redirect()->route('admin.nomina', ['tab' => 'configuracion'])
+            ->with('success', 'Parámetros actualizados correctamente. El nuevo valor aplica a partir de hoy.');
+    }
+
+    public function nominaConfiguracionIncentivos(Request $request)
+    {
+        $request->validate([
+            'incentivos_activos'    => 'required|boolean',
+            'tope_ventas_incentivo' => 'required|numeric|min:0',
+            'porcentaje_incentivo'  => 'required|numeric|min:0|max:100',
+        ]);
+
+        ConfiguracionNomina::actual()->update([
+            'incentivos_activos' => $request->boolean('incentivos_activos'),
+            'actualizado_por_id' => auth()->user()->empleado->administrador->id,
+        ]);
+
+        ParametroNomina::actualizarVersion('tope_ventas_incentivo', (float) $request->tope_ventas_incentivo, now());
+        ParametroNomina::actualizarVersion('porcentaje_incentivo', (float) $request->porcentaje_incentivo, now());
+
+        return redirect()->route('admin.nomina', ['tab' => 'configuracion'])
+            ->with('success', 'Parámetros actualizados correctamente. El nuevo valor aplica a partir de hoy.');
+    }
+
+    public function nominaConfiguracionMoneda(Request $request)
+    {
+        $request->validate([
+            'moneda_display'  => 'required|in:RD$,USD',
+            'tasa_cambio_usd' => 'required|numeric|min:0.01',
+        ]);
+
+        ConfiguracionNomina::actual()->update([
+            'moneda_display'     => $request->moneda_display,
+            'actualizado_por_id' => auth()->user()->empleado->administrador->id,
+        ]);
+
+        ParametroNomina::actualizarVersion('tasa_cambio_usd', (float) $request->tasa_cambio_usd, now());
+
+        return redirect()->route('admin.nomina', ['tab' => 'configuracion'])
+            ->with('success', 'Parámetros actualizados correctamente. El nuevo valor aplica a partir de hoy.');
     }
 }

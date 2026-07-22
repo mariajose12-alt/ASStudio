@@ -12,6 +12,8 @@ use App\Models\TramoIsr;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
+use App\Models\ConfiguracionNomina;
+use App\Models\Fotografo;
 
 class NominaService
 {
@@ -27,37 +29,76 @@ class NominaService
 
     public function calcular(NominaCalculoDTO $dto): Nomina
     {
-        $nomina = Nomina::create([
-            'creada_por_id' => $dto->creadaPorId,
-            'periodo'       => $dto->periodo,
-            'fecha_inicio'  => $dto->fechaInicio->toDateString(),
-            'fecha_fin'     => $dto->fechaFin->toDateString(),
-            'estado'        => 'PENDIENTE',
-        ]);
+        $existente = Nomina::where('periodo', $dto->periodo)->first();
 
-        // Una sesión pertenece al período en el que pasó a FINALIZADA, usando updated_at
+        if ($existente && !$existente->puedeModificarse()) {
+            // El controller ya bloquea esto antes de llegar aquí, pero el
+            // service se protege también por si se llama desde otro lugar.
+            throw new \RuntimeException("La nómina de {$dto->periodo} ya está {$existente->estado} y no puede recalcularse.");
+        }
+
+        if ($existente) {
+            // Recalculo de una nómina aún no oficial (PENDIENTE/CALCULADA):
+            // se limpian sus detalles viejos y se reutiliza la misma fila,
+            // en vez de crear una nueva y violar el unique de periodo.
+            $existente->detalles()->delete();
+
+            $nomina = tap($existente)->update([
+                'creada_por_id' => $dto->creadaPorId,
+                'fecha_inicio'  => $dto->fechaInicio->toDateString(),
+                'fecha_fin'     => $dto->fechaFin->toDateString(),
+                'estado'        => 'PENDIENTE',
+            ]);
+        } else {
+            $nomina = Nomina::create([
+                'creada_por_id' => $dto->creadaPorId,
+                'periodo'       => $dto->periodo,
+                'fecha_inicio'  => $dto->fechaInicio->toDateString(),
+                'fecha_fin'     => $dto->fechaFin->toDateString(),
+                'estado'        => 'PENDIENTE',
+            ]);
+        }
+
+        // Ya NO se agrupa por "quién tuvo participaciones" — eso dejaba
+        // fuera a cualquier fotógrafo activo sin sesiones ese mes, y un
+        // fotógrafo activo siempre debe cobrar al menos su salario base.
+        // En vez de eso: se parte de TODOS los fotógrafos activos, y para
+        // cada uno se buscan sus participaciones del período (que pueden
+        // ser una colección vacía sin ningún problema).
         $participaciones = ParticipacionSesion::whereHas('sesion', function ($q) use ($dto) {
             $q->where('estado', 'FINALIZADA')
                 ->whereYear('fecha_finalizacion', $dto->fechaInicio->year)
                 ->whereMonth('fecha_finalizacion', $dto->fechaInicio->month);
         })
             ->where('estado_participacion', true)
-            ->with(['sesion.reserva', 'fotografo'])
+            ->with(['sesion.reserva'])
             ->get();
 
-        $porFotografo = $participaciones->groupBy('fotografo_id');
+        $participacionesPorFotografo = $participaciones->groupBy('fotografo_id');
+
+        $fotografosActivos = Fotografo::whereHas('empleado', function ($q) {
+            $q->where('estado', 'ACTIVO');
+        })->with('empleado.usuario.persona')->get();
+
+        // Se congela el toggle de incentivos vigente AHORA, al momento de
+        // calcular. Si el admin lo activa/desactiva después, esta nómina ya
+        // calculada no se ve afectada retroactivamente (mismo criterio que
+        // ya se usa con $fechaVigencia para las tarifas de TSS/ISR).
+        $incentivosActivos = ConfiguracionNomina::actual()->incentivos_activos;
 
         $totBruto      = 0.0;
         $totDescuento  = 0.0;
         $totIsr        = 0.0;
         $totPatronal   = 0.0;
         $totNeto       = 0.0;
+        $totRegalia    = 0.0;
+        $totIncentivos = 0.0;
 
         $fechaVigencia = $dto->fechaInicio;
 
-        foreach ($porFotografo as $fotografoId => $grupo) {
-            // Sumar el salario base al bruto
-            $fotografo    = $grupo->first()->fotografo;
+        foreach ($fotografosActivos as $fotografo) {
+            $fotografoId  = $fotografo->id;
+            $grupo        = $participacionesPorFotografo->get($fotografoId, collect());
             $salario_base = $fotografo->salarioBaseEfectivo();
             $dependientes = $fotografo->dependientes_adicionales ?? 0;
 
@@ -65,12 +106,25 @@ class NominaService
                 return self::montoComision($participacion);
             });
 
-            $bruto     = round($salario_base + $bonoSesiones, 2);
+            // El "tope de ventas" se mide sobre lo que el fotógrafo generó en
+            // comisiones ese mes (bonoSesiones), no sobre el bruto total.
+            $incentivo = $incentivosActivos
+                ? $this->calcularIncentivo($bonoSesiones, $fechaVigencia)
+                : 0.0;
+
+            $bruto     = round($salario_base + $bonoSesiones + $incentivo, 2);
             $tss       = $this->descuentoTSS($bruto, $dependientes, $fechaVigencia);
             $isr       = $this->calcularISR($bruto, $dependientes, $fechaVigencia);
             $descuento = round($tss['afp'] + $tss['sfs'] + $tss['dependientes'] + $isr, 2);
             $patronal  = $this->aportesPatronales($bruto, $fechaVigencia);
             $neto      = round($bruto - $descuento, 2);
+
+            // Diciembre: se suma la Regalía Pascual, sin descuentos, aparte del neto ordinario.
+            $regalia = $dto->fechaInicio->month === 12
+                ? $this->regaliaPascual($fotografoId, $dto->fechaInicio->year, $bruto)
+                : 0.0;
+
+            $netoConRegalia = round($neto + $regalia, 2);
 
             $detalle = DetalleNomina::create([
                 'nomina_id'          => $nomina->id,
@@ -82,17 +136,21 @@ class NominaService
                 'dependientes_adicionales_aplicados' => $dependientes,
                 'monto_dependiente_unitario_usado'   => $tss['monto_dependiente_unitario'],
                 'descuento_dependientes'             => $tss['dependientes'],
-                'sueldo_neto'        => $neto,
+                'regalia_pascual'    => $regalia,
+                'incentivo_ventas'   => $incentivo,
+                'sueldo_neto'        => $netoConRegalia,
             ]);
 
-            $emailFotografo = $detalle->fotografo->empleado->usuario->email;
+            $emailFotografo = $fotografo->empleado->usuario->email;
             Mail::to($emailFotografo)->queue(new NominaDisponibleFotografo($detalle));
 
-            $totBruto     += $bruto;
-            $totDescuento += $descuento;
-            $totIsr       += $isr;
-            $totPatronal  += $patronal;
-            $totNeto      += $neto;
+            $totBruto      += $bruto;
+            $totDescuento  += $descuento;
+            $totIsr        += $isr;
+            $totPatronal   += $patronal;
+            $totNeto       += $netoConRegalia;
+            $totRegalia    += $regalia;
+            $totIncentivos += $incentivo;
         }
 
         $nomina->update([
@@ -101,6 +159,9 @@ class NominaService
             'total_isr_retenido'       => round($totIsr, 2),
             'total_aportes_patronales' => round($totPatronal, 2),
             'total_nomina_neta'        => round($totNeto, 2),
+            'total_regalia_pascual'    => round($totRegalia, 2),
+            'total_incentivos'         => round($totIncentivos, 2),
+            'incentivos_activos'       => $incentivosActivos,
             'estado'                   => 'CALCULADA',
         ]);
 
@@ -143,11 +204,30 @@ class NominaService
         // no con la de hoy, para no alterar retroactivamente un recibo ya emitido.
         $fechaVigencia = $nomina->fecha_inicio;
 
+        // Importante: usar el toggle YA CONGELADO en esta Nomina
+        // ($nomina->incentivos_activos), no ConfiguracionNomina::actual().
+        // Si se usara el valor actual, un cambio de toggle del admin después
+        // de calcular podría activar/desactivar el incentivo retroactivamente
+        // en un ajuste de disputa, lo cual sería inconsistente con el resto
+        // de fotógrafos de la misma nómina que no se recalculan.
+        $incentivo = $nomina->incentivos_activos
+            ? $this->calcularIncentivo($bonoSesiones, $fechaVigencia)
+            : 0.0;
+
+
         $bruto     = round($salarioBase + $bonoSesiones, 2);
         $tss       = $this->descuentoTSS($bruto, $dependientes, $fechaVigencia);
         $isr       = $this->calcularISR($bruto, $dependientes, $fechaVigencia);
         $descuento = round($tss['afp'] + $tss['sfs'] + $tss['dependientes'] + $isr, 2);
         $neto      = round($bruto - $descuento, 2);
+
+        // Diciembre: recalcular también la Regalía Pascual, excluyendo el
+        // propio detalle viejo de la suma (se recalcula con el bruto nuevo).
+        $regalia = $fechaVigencia->month === 12
+            ? $this->regaliaPascual($fotografo->id, $fechaVigencia->year, $bruto, $nomina->id)
+            : 0.0;
+
+        $netoConRegalia = round($neto + $regalia, 2);
 
         $detalle->update([
             'salario_bruto'      => $bruto,
@@ -157,7 +237,9 @@ class NominaService
             'dependientes_adicionales_aplicados' => $dependientes,
             'monto_dependiente_unitario_usado'   => $tss['monto_dependiente_unitario'],
             'descuento_dependientes'             => $tss['dependientes'],
-            'sueldo_neto'        => $neto,
+            'regalia_pascual'    => $regalia,
+            'incentivo_ventas'   => $incentivo,
+            'sueldo_neto'        => $netoConRegalia,
         ]);
 
         // Recalcular los totales de la Nomina padre también
@@ -183,6 +265,8 @@ class NominaService
             'total_isr_retenido'       => round($nomina->detalles->sum('descuento_isr'), 2),
             'total_aportes_patronales' => round($totPatronal, 2),
             'total_nomina_neta'        => round($nomina->detalles->sum('sueldo_neto'), 2),
+            'total_regalia_pascual'    => round($nomina->detalles->sum('regalia_pascual'), 2),
+            'total_incentivos'         => round($nomina->detalles->sum('incentivo_ventas'), 2),
         ]);
     }
 
@@ -266,5 +350,52 @@ class NominaService
         $riesgo = round(min($bruto, $topeRiesgo) * $tasaRiesgo, 2);
 
         return round($sfs + $afp + $riesgo, 2);
+    }
+    /**
+     * Regalía Pascual (Art. 219 Código de Trabajo RD): 1/12 del salario
+     * ordinario total devengado en el año (enero-diciembre), pagadero en
+     * diciembre. Al sumar el salario_bruto real de cada DetalleNomina del
+     * fotógrafo en el año, el prorrateo por meses no trabajados sale solo
+     * — un fotógrafo que empezó en marzo simplemente no tiene detalles en
+     * enero/febrero, que aportan 0 a la suma.
+     *
+     * No lleva descuentos de TSS ni ISR: la ley la trata como un pago
+     * especial, no como salario ordinario del mes.
+     *
+     * $excluirNominaId excluye una nómina puntual de la suma (usado en
+     * recalcularDetalle, para no arrastrar el propio registro de diciembre
+     * si en algún momento se recalculara sobre sí mismo).
+     */
+    private function regaliaPascual(int $fotografoId, int $anio, float $brutoDiciembre, ?int $excluirNominaId = null): float
+    {
+        $brutoEneroANoviembre = DetalleNomina::where('fotografo_id', $fotografoId)
+            ->when($excluirNominaId, fn($q) => $q->where('nomina_id', '!=', $excluirNominaId))
+            ->whereHas('nomina', function ($q) use ($anio) {
+                $q->whereYear('fecha_inicio', $anio)
+                    ->whereMonth('fecha_inicio', '<', 12);
+            })
+            ->sum('salario_bruto');
+
+        $brutoAnual = (float) $brutoEneroANoviembre + $brutoDiciembre;
+
+        return round($brutoAnual / 12, 2);
+    }
+
+    /**
+     * Incentivo por ventas: si el fotógrafo generó en comisiones ese mes más
+     * que el tope configurado por el admin, se le paga un % fijo sobre el
+     * excedente. Se trata como bruto normal (lleva TSS/ISR), a diferencia de
+     * la regalía, así que se suma ANTES del cálculo de descuentos, no después.
+     */
+    private function calcularIncentivo(float $ventasGeneradas, Carbon $fecha): float
+    {
+        $tope       = ParametroNomina::valorVigente('tope_ventas_incentivo', $fecha);
+        $porcentaje = ParametroNomina::valorVigente('porcentaje_incentivo', $fecha);
+
+        if ($ventasGeneradas <= $tope) {
+            return 0.0;
+        }
+
+        return round(($ventasGeneradas - $tope) * ($porcentaje / 100), 2);
     }
 }

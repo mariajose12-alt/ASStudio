@@ -20,6 +20,9 @@ class Nomina extends Model
         'total_isr_retenido',
         'total_aportes_patronales',
         'total_nomina_neta',
+        'total_regalia_pascual',
+        'incentivos_activos',
+        'total_incentivos',
         'estado',
     ];
 
@@ -31,6 +34,9 @@ class Nomina extends Model
         'total_isr_retenido'       => 'decimal:2',
         'total_aportes_patronales' => 'decimal:2',
         'total_nomina_neta'        => 'decimal:2',
+        'total_regalia_pascual'    => 'decimal:2',
+        'incentivos_activos'       => 'boolean',
+        'total_incentivos'         => 'decimal:2',
     ];
 
     public function creadaPor(): BelongsTo
@@ -53,14 +59,14 @@ class Nomina extends Model
         return $this->estado === 'CONFIRMADA';
     }
 
-    public function estaPagada(): bool
-    {
-        return $this->estado === 'PAGADA';
-    }
-
     public function estaCerrada(): bool
     {
         return $this->estado === 'CERRADA';
+    }
+
+    public function puedeModificarse(): bool
+    {
+        return in_array($this->estado, ['PENDIENTE', 'CALCULADA']);
     }
 
     public function todosFotografosConfirmaron(): bool

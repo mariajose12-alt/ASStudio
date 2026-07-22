@@ -20,10 +20,11 @@ class DetalleNomina extends Model
         'monto_dependiente_unitario_usado',
         'descuento_dependientes',
         'sueldo_neto',
+        'regalia_pascual',
+        'incentivo_ventas',
         'estado_confirmacion',
         'confirmado_at',
         'observacion_fotografo',
-
     ];
 
     protected $casts = [
@@ -34,6 +35,8 @@ class DetalleNomina extends Model
         'monto_dependiente_unitario_usado' => 'decimal:2',
         'descuento_dependientes'           => 'decimal:2',
         'sueldo_neto'        => 'decimal:2',
+        'regalia_pascual'    => 'decimal:2',
+        'incentivo_ventas'    => 'decimal:2',
         'confirmado_at'      => 'datetime',
     ];
 

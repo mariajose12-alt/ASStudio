@@ -36,8 +36,8 @@ class FotografoNominaController extends Controller
         $participaciones = ParticipacionSesion::where('fotografo_id', $fotografo->id)
             ->whereHas('sesion', function ($q) use ($fechaInicio) {
                 $q->where('estado', 'FINALIZADA')
-                    ->whereYear('updated_at', $fechaInicio->year)
-                    ->whereMonth('updated_at', $fechaInicio->month);
+                    ->whereYear('fecha_finalizacion', $fechaInicio->year)
+                    ->whereMonth('fecha_finalizacion', $fechaInicio->month);
             })
             ->where('estado_participacion', true)
             ->with('sesion.reserva')
@@ -52,6 +52,7 @@ class FotografoNominaController extends Controller
 
         abort_if($detalle->fotografo_id !== $fotografo->id,
             403, 'No tienes permiso para confirmar este detalle.');
+        abort_unless($detalle->nomina->puedeModificarse(), 403, 'Esta nómina ya no puede modificarse.');
 
         if($detalle->confirmado_por_fotografo){
             return back()->with('error', 'Este detalle ya ha sido confirmado.');
@@ -71,6 +72,7 @@ class FotografoNominaController extends Controller
 
         abort_if($detalle->fotografo_id !== $fotografo->id,
             403, 'No tienes permiso para reportar este detalle.');
+        abort_unless($detalle->nomina->puedeModificarse(), 403, 'Esta nómina ya no puede modificarse.');
 
         if(!$detalle->estaPendiente()){
             return back()->with('error', 'Este detalle ya ha sido reportado.');

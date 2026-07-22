@@ -5657,3 +5657,72 @@ textarea { resize: vertical; min-height: 100px; }
     padding: 8px;
     cursor: pointer;
 }
+
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.config-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.config-field label {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.config-field input,
+.config-field select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 14px;
+}
+
+.config-toggle-row {
+    margin-bottom: 16px;
+}
+
+.config-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    width: fit-content;
+}
+
+.config-nota {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 12px;
+}
+
+.config-acciones {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.alert-success {
+    padding: 12px 16px;
+    background: #d1fae5;
+    color: #065f46;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+
+
+    .config-toggle input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+}

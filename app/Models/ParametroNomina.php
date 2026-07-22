@@ -48,4 +48,26 @@ class ParametroNomina extends Model
 
         return (float) $parametro->valor;
     }
+
+    /**
+     * Actualiza una clave creando una NUEVA versión vigente desde la fecha
+     * dada, y cierra la vigencia de la versión anterior (vigente_hasta).
+     * Nunca se sobrescribe una fila existente: así, si se recalcula una
+     * nómina de un período pasado, sigue usando la tarifa que estaba
+     * vigente en ese momento, no la más reciente.
+     */
+    public static function actualizarVersion(string $clave, float $nuevoValor, Carbon $vigenteDesde, ?string $fuente = null): self
+    {
+        static::where('clave', $clave)
+            ->whereNull('vigente_hasta')
+            ->update(['vigente_hasta' => $vigenteDesde->copy()->subDay()]);
+
+        return static::create([
+            'clave'         => $clave,
+            'valor'         => $nuevoValor,
+            'vigente_desde' => $vigenteDesde->toDateString(),
+            'vigente_hasta' => null,
+            'fuente'        => $fuente,
+        ]);
+    }
 }

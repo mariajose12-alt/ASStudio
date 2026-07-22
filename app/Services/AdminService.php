@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Cliente;
+use App\Models\MetaMensual;
 use App\Models\Reserva;
 use Carbon\Carbon;
 
@@ -30,22 +31,6 @@ class AdminService
             ...$this->graficos(),
             'metas' => $this->metas(),
         ];
-    }
-
-    public function cambiarEstadoReserva(Reserva $reserva, string $estado, ?string $motivoRechazo = null): void
-    {
-        $reserva->update(['estado' => $estado, 'motivo_rechazo' => $motivoRechazo]);
-
-        // Aquí se disparará el evento de notificación al cliente
-        // por ahora comentado (ya revise y funciona)
-        /*
-        match($estado) {
-            'APROBADA'               => ReservaAprobada::dispatch($reserva),
-            'RECHAZADA', 'CANCELADA' => ReservaRechazada::dispatch($reserva),
-            'MODIFICACION_PROPUESTA' => ReservaModificada::dispatch($reserva),
-            default                  => null,
-        };
-        */
     }
 
     // KPIs
@@ -122,7 +107,7 @@ class AdminService
                 EXTRACT(MONTH FROM fecha_inicio) AS mes,
                 SUM(precio_total) AS total
             ")
-            ->where('estado', 'completada')
+            ->where('estado', 'APROBADA')
             ->where('fecha_inicio', '>=', $fechaInicio)
             ->groupByRaw("
                 EXTRACT(YEAR FROM fecha_inicio),
@@ -141,7 +126,7 @@ class AdminService
                 EXTRACT(MONTH FROM fecha_inicio) AS mes,
                 SUM(precio_total) AS total
             ")
-            ->where('estado', 'completada')
+            ->where('estado', 'APROBADA')
             ->whereBetween('fecha_inicio', [
                 $this->hoy
                     ->copy()
@@ -223,7 +208,7 @@ class AdminService
             ->pluck('total', 'estado');
 
         return [
-            'completada' => (int) ($raw['APROBADA'] ?? 0),
+            'aprobada'   => (int) ($raw['APROBADA'] ?? 0),
             'pendiente'  => (int) ($raw['PENDIENTE'] ?? 0),
             'cancelada'  => (int) ($raw['CANCELADA'] ?? 0),
         ];
@@ -350,7 +335,7 @@ class AdminService
             'fecha_inicio',
             [$this->inicioMes, $this->finMes]
         )
-            ->where('estado', 'completada')
+            ->where('estado', 'APROBADA')
             ->sum('precio_total');
     }
 
@@ -360,7 +345,7 @@ class AdminService
             'fecha_inicio',
             [$this->inicioAnt, $this->finAnt]
         )
-            ->where('estado', 'completada')
+            ->where('estado', 'APROBADA')
             ->sum('precio_total');
     }
 
@@ -378,10 +363,16 @@ class AdminService
 
     private function metas(): array
     {
+        $mes  = (int) $this->inicioMes->format('n');
+        $anio = (int) $this->inicioMes->format('Y');
+
+        $meta = MetaMensual::paraMes($mes, $anio);
+
         return [
-            'ingresos'        => 55000,
-            'reservas'        => 200,
-            'clientes_nuevos' => 50,
+            'ingresos'         => (float) $meta->ingresos,
+            'reservas'         => (int) $meta->reservas,
+            'clientes_nuevos'  => (int) $meta->clientes_nuevos,
+            'meta_configurada' => MetaMensual::existeParaMes($mes, $anio),
         ];
     }
 }

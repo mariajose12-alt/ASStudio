@@ -3,18 +3,28 @@
 namespace App\Listeners;
 
 use App\Events\ReservaModificada;
-use App\Mail\ReservaModificadaCliente;
-use Illuminate\Support\Facades\Mail;
+use App\Notifications\ReservaModificadaCliente;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
 
-class EnviarNotificacionReservaModificada
+class EnviarNotificacionReservaModificada implements ShouldQueue
 {
+    use InteractsWithQueue;
+
     public function handle(ReservaModificada $event): void
     {
         $reserva = $event->reserva;
-        $email   = $reserva->cliente->usuario->email;
+        $usuario = $reserva->cliente->usuario;
+        if (!$usuario) return;
 
-        if (!$email) return;
-
-        Mail::to($email)->send(new ReservaModificadaCliente($reserva));
+        try {
+            $usuario->notify(new ReservaModificadaCliente($reserva));
+        } catch (\Throwable $e) {
+            Log::error('Fallo enviando notificación de reserva modificada', [
+                'reserva_id' => $reserva->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

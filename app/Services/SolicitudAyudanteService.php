@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\SolicitudAyudanteCreada;
+use App\Exceptions\NegocioException;
 use App\Mail\PostulacionConfirmadaFotografo;
 use App\Models\Fotografo;
 use App\Models\ParticipacionSesion;
@@ -20,11 +21,11 @@ class SolicitudAyudanteService
         $this->validarEsPrincipal($sesion, $solicitante);
 
         if (! $sesion->estaActiva()) {
-            throw new \Exception('Solo puedes solicitar ayudantes para una sesión activa.');
+            throw new NegocioException('Solo puedes solicitar ayudantes para una sesión activa.');
         }
 
         if ($cantidad < 1) {
-            throw new \Exception('Debes solicitar al menos 1 ayudante.');
+            throw new NegocioException('Debes solicitar al menos 1 ayudante.');
         }
 
         $solicitud = SolicitudAyudante::create([
@@ -78,20 +79,20 @@ class SolicitudAyudanteService
     public function postular(SolicitudAyudante $solicitud, Fotografo $fotografo): PostulacionAyudante
     {
         if ($fotografo->id === $solicitud->fotografo_solicitante_id) {
-            throw new \Exception('No puedes postularte a tu propia solicitud.');
+            throw new NegocioException('No puedes postularte a tu propia solicitud.');
         }
 
         if (! $solicitud->tieneCupoDisponible()) {
-            throw new \Exception('Esta solicitud ya no tiene cupos disponibles.');
+            throw new NegocioException('Esta solicitud ya no tiene cupos disponibles.');
         }
 
         if (! $this->estaDisponible($solicitud->sesion, $fotografo)) {
-            throw new \Exception('No estás disponible en el horario de esta sesión.');
+            throw new NegocioException('No estás disponible en el horario de esta sesión.');
         }
 
         $existente = $solicitud->postulaciones()->where('fotografo_id', $fotografo->id)->first();
         if ($existente) {
-            throw new \Exception('Ya te postulaste a esta solicitud.');
+            throw new NegocioException('Ya te postulaste a esta solicitud.');
         }
 
         return $solicitud->postulaciones()->create([
@@ -105,15 +106,15 @@ class SolicitudAyudanteService
         $this->validarEsPrincipal($solicitud->sesion, $principal);
 
         if ($postulacion->solicitud_ayudante_id !== $solicitud->id) {
-            throw new \Exception('Esta postulación no pertenece a esta solicitud.');
+            throw new NegocioException('Esta postulación no pertenece a esta solicitud.');
         }
 
         if (! $postulacion->esPendiente()) {
-            throw new \Exception('Esta postulación ya fue procesada.');
+            throw new NegocioException('Esta postulación ya fue procesada.');
         }
 
         if (! $solicitud->tieneCupoDisponible()) {
-            throw new \Exception('Ya no hay cupos disponibles en esta solicitud.');
+            throw new NegocioException('Ya no hay cupos disponibles en esta solicitud.');
         }
 
         DB::transaction(function () use ($solicitud, $postulacion) {
@@ -136,7 +137,8 @@ class SolicitudAyudanteService
             $solicitud->increment('cupos_confirmados');
 
             if ($solicitud->cuposDisponibles() === 0) {
-                $solicitud->update(['estado' => 'CERRADA']);
+                $solicitud->estado = 'CERRADA';
+                $solicitud->save();
 
                 // Los demás postulantes pendientes quedan rechazados automáticamente
                 $solicitud->postulacionesPendientes()->update(['estado' => 'RECHAZADO']);
@@ -154,7 +156,7 @@ class SolicitudAyudanteService
         $this->validarEsPrincipal($solicitud->sesion, $principal);
 
         if (! $postulacion->esPendiente()) {
-            throw new \Exception('Esta postulación ya fue procesada.');
+            throw new NegocioException('Esta postulación ya fue procesada.');
         }
 
         $postulacion->update(['estado' => 'RECHAZADO']);
@@ -165,11 +167,12 @@ class SolicitudAyudanteService
         $this->validarEsPrincipal($solicitud->sesion, $principal);
 
         if (! $solicitud->estaAbierta()) {
-            throw new \Exception('Esta solicitud ya no está abierta.');
+            throw new NegocioException('Esta solicitud ya no está abierta.');
         }
 
         DB::transaction(function () use ($solicitud) {
-            $solicitud->update(['estado' => 'CANCELADA']);
+            $solicitud->estado = 'CANCELADA';
+            $solicitud->save();
             $solicitud->postulacionesPendientes()->update(['estado' => 'RECHAZADO']);
         });
     }
@@ -179,7 +182,7 @@ class SolicitudAyudanteService
         $esPrincipal = $sesion->reserva->fotografo_id === $fotografo->id;
 
         if (! $esPrincipal) {
-            throw new \Exception('Solo el fotógrafo principal de la sesión puede gestionar esta solicitud.');
+            throw new NegocioException('Solo el fotógrafo principal de la sesión puede gestionar esta solicitud.');
         }
     }
 }

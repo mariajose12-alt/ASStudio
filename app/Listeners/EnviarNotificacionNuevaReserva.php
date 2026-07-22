@@ -3,12 +3,15 @@
 namespace App\Listeners;
 
 use App\Events\ReservaCreada;
-use App\Mail\NuevaReservaFotografo;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use App\Notifications\NuevaReservaFotografo;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class EnviarNotificacionNuevaReserva
+class EnviarNotificacionNuevaReserva implements ShouldQueue
 {
+    use InteractsWithQueue;
+
     public function handle(ReservaCreada $event): void
     {
         $reserva   = $event->reserva;
@@ -19,8 +22,16 @@ class EnviarNotificacionNuevaReserva
             return;
         }
 
-        $email = $fotografo->empleado->usuario->email;
+        $usuario = $fotografo->empleado->usuario;
+        if (!$usuario) return;
 
-        Mail::to($email)->send(new NuevaReservaFotografo($reserva));
+        try {
+            $usuario->notify(new NuevaReservaFotografo($reserva));
+        } catch (\Throwable $e) {
+            Log::error('Fallo enviando notificación de nueva reserva', [
+                'reserva_id' => $reserva->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

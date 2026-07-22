@@ -8,6 +8,7 @@ use App\Models\Fotografia;
 use App\Services\GaleriaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class GaleriaController extends Controller
 {
@@ -24,7 +25,7 @@ class GaleriaController extends Controller
     // Paso 1 — selección de RAW (solo si estado es GALERIA_DISPONIBLE)
     public function show(int $id)
     {
-        $sesion = $this->galeria->sesionParaSeleccion($id, $this->clienteId());
+        $sesion = $this->galeria->sesionConPermisoCliente($id, $this->clienteId());
 
         if (in_array($sesion->estado, ['EN_EDICION', 'FINALIZADA'])) {
             return redirect()->route('cliente.galeria.final', $id);
@@ -39,7 +40,7 @@ class GaleriaController extends Controller
     // Confirmar selección → estado pasa a EN_EDICION
     public function confirmar(Request $request, int $id)
     {
-        $sesion = $this->galeria->sesionParaSeleccion($id, $this->clienteId());
+        $sesion = $this->galeria->sesionConPermisoCliente($id, $this->clienteId());
 
         abort_if($sesion->estado !== 'GALERIA_DISPONIBLE', 403);
 
@@ -57,7 +58,7 @@ class GaleriaController extends Controller
     // Paso 2 — galería final con EDITADAS
     public function final(int $id)
     {
-        $sesion = $this->galeria->sesionParaFinal($id, $this->clienteId());
+        $sesion = $this->galeria->sesionConPermisoCliente($id, $this->clienteId());
         $fotos  = $this->galeria->fotosFinalesConUrl($sesion);
 
         return view('cliente.galeria.final', compact('sesion', 'fotos'));
@@ -66,7 +67,7 @@ class GaleriaController extends Controller
     // Confirmar recepción → estado pasa a FINALIZADA
     public function confirmarRecepcion(int $id)
     {
-        $sesion = $this->galeria->sesionParaSeleccion($id, $this->clienteId());
+        $sesion = $this->galeria->sesionConPermisoCliente($id, $this->clienteId());
 
         abort_if($sesion->estado !== 'EN_EDICION', 403);
 
@@ -91,12 +92,17 @@ class GaleriaController extends Controller
     // Encolar generación del ZIP → el cliente recibe notificación cuando esté listo
     public function descargarZip(int $id, string $tipo)
     {
-        $sesion = $this->galeria->sesionParaFinal($id, $this->clienteId());
+        $sesion = $this->galeria->sesionConPermisoCliente($id, $this->clienteId());
 
         try {
             $this->galeria->despacharZip($sesion, $tipo);
         } catch (\InvalidArgumentException $e) {
-            dd('InvalidArgumentException', $e->getMessage(), $e->getFile(), $e->getLine());
+            Log::error('Error al generar ZIP de galería', [
+                'sesion_id' => $id,
+                'tipo'      => $tipo,
+                'message'   => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Error al preparar el ZIP.');
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());
         }

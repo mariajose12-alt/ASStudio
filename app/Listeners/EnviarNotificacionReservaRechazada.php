@@ -3,18 +3,28 @@
 namespace App\Listeners;
 
 use App\Events\ReservaRechazada;
-use App\Mail\ReservaRechazadaCliente;
-use Illuminate\Support\Facades\Mail;
+use App\Notifications\ReservaRechazadaCliente;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
 
-class EnviarNotificacionReservaRechazada
+class EnviarNotificacionReservaRechazada implements ShouldQueue
 {
+    use InteractsWithQueue;
+
     public function handle(ReservaRechazada $event): void
     {
         $reserva = $event->reserva;
-        $email   = $reserva->cliente->usuario->email;
+        $usuario = $reserva->cliente->usuario;
+        if (!$usuario) return;
 
-        if (!$email) return;
-
-        Mail::to($email)->send(new ReservaRechazadaCliente($reserva));
+        try {
+            $usuario->notify(new ReservaRechazadaCliente($reserva));
+        } catch (\Throwable $e) {
+            Log::error('Fallo enviando notificación de reserva rechazada', [
+                'reserva_id' => $reserva->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

@@ -4,7 +4,8 @@ namespace App\Services;
 
 use App\DTOs\ReservaCreateDTO;
 use App\Events\ReservaCreada;
-use App\Http\Controllers\DisponibilidadController;
+use App\Exceptions\NegocioException;
+use App\Models\BloqueoEstudio;
 use App\Models\Cliente;
 use App\Models\Fotografo;
 use App\Models\PaqueteFotografico;
@@ -26,6 +27,13 @@ class ReservaService
         $fechaHora    = Carbon::parse("$fecha $hora");
         $fechaHoraFin = $fechaHora->copy()->addHours(2);
 
+        if (($paso1['tipo'] ?? '') === 'ESTUDIO') {
+            $bloqueado = BloqueoEstudio::solapaCon($fechaHora, $fechaHoraFin)->exists();
+            if ($bloqueado) {
+                throw new NegocioException('El estudio no está disponible en esa fecha y hora.');
+            }
+        }
+
         // día de la semana: 0=Domingo … 6=Sábado (igual que la tabla horarios_fotografo)
         $diaSemana  = (int) $fechaHora->dayOfWeek;
         $horaInicio = $fechaHora->format('H:i:s');
@@ -43,14 +51,25 @@ class ReservaService
                     ->where('fecha_inicio', '<', $fechaHoraFin)
                     ->where('fecha_fin',    '>', $fechaHora);
             })
+            ->whereDoesntHave('participaciones', function ($q) use ($fechaHora, $fechaHoraFin) {
+                // No participa en sesiones que solapen
+                $q->where('estado_participacion', true)
+                    ->whereHas('sesion', function ($q2) use ($fechaHora, $fechaHoraFin) {
+                        $q2->where('fecha_inicio', '<', $fechaHoraFin)
+                            ->where('fecha_fin',    '>', $fechaHora);
+                    });
+            })
             ->get();
 
         if ($disponibles->isEmpty()) {
-            throw new Exception('No hay fotógrafos disponibles en esa fecha y hora.');
+            throw new NegocioException('No hay fotógrafos disponibles en esa fecha y hora.');
         }
 
-        // Ya no se asigna un fotógrafo específico al crear la reserva — queda
-        // disponible para que cualquier fotógrafo libre en ese horario la tome.
+        // Se asigna un fotógrafo principal automáticamente y al azar entre los
+        // disponibles. El fotógrafo, una vez aprobada la reserva, decide si
+        // necesita asistentes (ver ParticipacionSesion).
+
+        $fotografo = $disponibles->random();
 
         $paquete = PaqueteFotografico::findOrFail($paso1['paquete_id']);
         $cliente = Cliente::firstOrCreate(['usuario_id' => $usuario_id]);
@@ -67,7 +86,7 @@ class ReservaService
             paso1:        $paso1,
             paso2:        $paso2,
             cliente_id:   $cliente->id,
-            fotografo_id: null,
+            fotografo_id: $fotografo->id,
             precio_total: $paquete->precio_base,
         );
 

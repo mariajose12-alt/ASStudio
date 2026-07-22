@@ -4,10 +4,6 @@
 
 @section('content')
 
-    @php
-        $pago = $reserva->pagos()->where('estado', 'CONFIRMADO')->latest('fecha_completado')->first();
-    @endphp
-
     {{-- Badge de estado --}}
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">
         <tr>
@@ -30,49 +26,38 @@
         A continuación los detalles:
     </p>
 
-    {{-- Tabla de detalles del pago --}}
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-           style="background-color:#fff3e8;border:1px solid rgba(232,119,34,0.2);border-radius:10px;margin-bottom:28px;">
-        <tr>
-            <td style="padding:24px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                    <tr>
-                        <td style="padding-bottom:14px;font-family:Arial,sans-serif;font-size:13px;color:#9ca3af;">Monto</td>
-                        <td align="right" style="padding-bottom:14px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#1a0d00;">
-                            RD$ {{ number_format($pago->monto, 2) }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding-bottom:14px;font-family:Arial,sans-serif;font-size:13px;color:#9ca3af;">Tipo de pago</td>
-                        <td align="right" style="padding-bottom:14px;font-family:Arial,sans-serif;font-size:14px;font-weight:500;color:#1a1a1a;">
-                            {{ ucfirst(strtolower($pago->tipo)) }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="font-family:Arial,sans-serif;font-size:13px;color:#9ca3af;">Fecha de confirmación</td>
-                        <td align="right" style="font-family:Arial,sans-serif;font-size:14px;font-weight:500;color:#1a1a1a;">
-                            {{ $pago->fecha_completado->translatedFormat('d \\d\\e F, Y') }}
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-
-    <p style="margin:0 0 32px;font-family:Arial,sans-serif;font-size:15px;color:#4a4a4a;line-height:1.7;">
-        Puedes ver el estado completo de tu sesión desde tu panel de cliente.
-    </p>
-
-    {{-- Botón CTA --}}
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
-        <tr>
-            <td style="border-radius:999px;background-color:#e87722;">
-                <a href="{{ route('cliente.reservas.show', $reserva->id) }}" target="_blank"
-                   style="display:inline-block;padding:14px 36px;font-family:Arial,sans-serif;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;letter-spacing:0.3px;">
-                    Ver mi sesión
-                </a>
-            </td>
-        </tr>
-    </table>
-
+    @if($pago)
+        {{-- Tabla de detalles del pago --}}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="background-color:#fff3e8;border:1px solid rgba(232,119,34,0.2);border-radius:10px;margin-bottom:28px;">
+            <tr>
+                <td style="padding:24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                            <td style="padding-bottom:14px;font-family:Arial,sans-serif;font-size:13px;color:#9ca3af;">Monto</td>
+                            <td align="right" style="padding-bottom:14px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#1a0d00;">
+                                RD$ {{ number_format($pago->monto, 2) }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding-bottom:14px;font-family:Arial,sans-serif;font-size:13px;color:#9ca3af;">Tipo de pago</td>
+                            <td align="right" style="padding-bottom:14px;font-family:Arial,sans-serif;font-size:14px;font-weight:500;color:#1a1a1a;">
+                                {{ ucfirst(strtolower($pago->tipo)) }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-family:Arial,sans-serif;font-size:13px;color:#9ca3af;">Fecha de confirmación</td>
+                            <td align="right" style="font-family:Arial,sans-serif;font-size:14px;font-weight:500;color:#1a1a1a;">
+                                {{ $pago->fecha_completado->translatedFormat('d \\d\\e F, Y') }}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    @else
+        <p style="margin:0 0 24px;font-family:Arial,sans-serif;font-size:15px;color:#4a4a4a;line-height:1.7;">
+            No pudimos encontrar el detalle de este pago. Por favor contacta a soporte.
+        </p>
+    @endif
 @endsection

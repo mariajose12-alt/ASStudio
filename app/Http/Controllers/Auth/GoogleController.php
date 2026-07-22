@@ -15,28 +15,17 @@ class GoogleController extends Controller
     public function redirect()
     {
         return Socialite::driver('google')->redirect();
-
-        // para que no revise los certificados
-        /*return Socialite::driver('google')
-            ->stateless()
-            ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
-            ->redirect();
-        */
     }
 
     // Google redirige de vuelta aquí
     public function callback()
     {
         $googleUser = Socialite::driver('google')->user();
-        //para que no revise los certificados
-        /*$googleUser = Socialite::driver('google')
-            ->stateless()
-            ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
-            ->user();
-        */
-
-        // Busca o crea la persona
         $usuario = Usuario::whereEmail($googleUser->getEmail())->first();
+
+        if ($usuario && !$usuario->estaActivo()) {
+            return redirect()->route('login')->with('error', 'Tu cuenta está desactivada. Contacta al administrador.');
+        }
 
         if (!$usuario) {
             $persona = Persona::create([

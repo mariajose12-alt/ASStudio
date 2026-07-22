@@ -6,11 +6,13 @@ use App\DTOs\AccionReservaDTO;
 use App\Events\ReservaAprobada;
 use App\Events\ReservaModificada;
 use App\Events\ReservaRechazada;
+use App\Exceptions\NegocioException;
 use App\Models\Fotografo;
 use App\Models\Pago;
 use App\Models\Reserva;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class FotografoReservaService
 {
@@ -23,7 +25,7 @@ class FotografoReservaService
             'RECHAZADA'   => $this->rechazar($reserva, $dto->motivo),
             'MODIFICACION_PROPUESTA'  => $this->modificar($reserva, $dto),
             'CERRAR_SESION'  => $this->cerrarSesion($reserva),
-            default      => throw new Exception('Acción no válida.'),
+            default      => throw new NegocioException('Acción no válida.'),
         };
     }
 
@@ -43,22 +45,31 @@ class FotografoReservaService
                 ->update(['fotografo_id' => $fotografo->id]);
 
             if ($tomada === 0) {
-                throw new Exception('Esta reserva ya fue gestionada por otro fotógrafo.');
+                throw new NegocioException('Esta reserva ya fue gestionada por otro fotógrafo.');
             }
 
             $reserva->fotografo_id = $fotografo->id;
         } elseif ($reserva->fotografo_id !== $fotografo->id) {
-            throw new Exception('No tienes permiso para gestionar esta reserva.');
+            throw new NegocioException('No tienes permiso para gestionar esta reserva.');
         }
+    }
+
+    public function aprobarPorAceptacionCliente(Reserva $reserva): void
+    {
+        $duracion = $reserva->duracion_horas_propuesta ?? 2.0;
+
+        $this->aprobar($reserva, $duracion);
+
+        $reserva->update([
+            'motivo_rechazo'           => null,
+            'duracion_horas_propuesta' => null,
+        ]);
     }
 
     private function aprobar(Reserva $reserva, float $duracionHoras = 2.0): void
     {
-        // Calcular fecha_fin real según la duración confirmada por el fotógrafo
-        $fechaFin = Carbon::parse($reserva->fecha_inicio)
-            ->addHours($duracionHoras);
+        $fechaFin = Carbon::parse($reserva->fecha_inicio)->addHours($duracionHoras);
 
-        // Verificar que no haya conflicto con otra reserva del mismo fotógrafo
         $conflicto = Reserva::where('fotografo_id', $reserva->fotografo_id)
             ->where('id', '!=', $reserva->id)
             ->whereIn('estado', ['PENDIENTE', 'APROBADA'])
@@ -67,39 +78,40 @@ class FotografoReservaService
             ->exists();
 
         if ($conflicto) {
-            throw new Exception('La duración elegida genera un conflicto con otra reserva existente.');
+            throw new NegocioException('La duración elegida genera un conflicto con otra reserva existente.');
         }
 
-        $reserva->update([
-            'fotografo_id'   => $reserva->fotografo_id,
-            'estado'         => 'APROBADA',
-            'duracion_horas' => $duracionHoras,
-            'fecha_fin'      => $fechaFin,
-        ]);
+        DB::transaction(function () use ($reserva, $duracionHoras, $fechaFin) {
+            $reserva->update([
+                'fotografo_id'   => $reserva->fotografo_id,
+                'estado'         => 'APROBADA',
+                'duracion_horas' => $duracionHoras,
+                'fecha_fin'      => $fechaFin,
+            ]);
 
-        $sesion = $reserva->sesion()->create([
-            'fecha_inicio' => $reserva->fecha_inicio,
-            'fecha_fin'    => $fechaFin,
-            'lugar'        => $reserva->lugar,
-            'estado'       => 'CONFIRMADA',
-        ]);
+            $sesion = $reserva->sesion()->create([
+                'fecha_inicio' => $reserva->fecha_inicio,
+                'fecha_fin'    => $fechaFin,
+                'lugar'        => $reserva->lugar,
+                'estado'       => 'CONFIRMADA',
+            ]);
 
-        // Crear la participación del fotógrafo principal en la sesión (por ahora solo PRINCIPAL)
-        $sesion->participaciones()->create([
-            'fotografo_id'          => $reserva->fotografo_id,
-            'rol'                   => 'PRINCIPAL',
-            'porcentaje_comision'   => 0, // usa el fallback de comisión del NominaService
-            'estado_participacion'  => true,
-            'horas_trabajadas'      => $duracionHoras,
-        ]);
+            $sesion->participaciones()->create([
+                'fotografo_id'          => $reserva->fotografo_id,
+                'rol'                   => 'PRINCIPAL',
+                'porcentaje_comision'   => 0,
+                'estado_participacion'  => true,
+                'horas_trabajadas'      => $duracionHoras,
+            ]);
 
-        Pago::create([
-            'reserva_id' => $reserva->id,
-            'cliente_id' => $reserva->cliente_id,
-            'monto'      => round($reserva->paquete->precio_base * 0.5, 2),
-            'estado'     => 'PENDIENTE',
-            'tipo'       => 'ANTICIPO',
-        ]);
+            Pago::create([
+                'reserva_id' => $reserva->id,
+                'cliente_id' => $reserva->cliente_id,
+                'monto'      => round($reserva->paquete->precio_base * 0.5, 2),
+                'estado'     => 'PENDIENTE',
+                'tipo'       => 'ANTICIPO',
+            ]);
+        });
 
         ReservaAprobada::dispatch($reserva);
     }
@@ -107,7 +119,7 @@ class FotografoReservaService
     private function rechazar(Reserva $reserva, ?string $motivo): void
     {
         if (!$motivo) {
-            throw new Exception('Debes indicar el motivo del rechazo.');
+            throw new NegocioException('Debes indicar el motivo del rechazo.');
         }
 
         $reserva->update([
@@ -122,16 +134,16 @@ class FotografoReservaService
     private function modificar(Reserva $reserva, AccionReservaDTO $dto): void
     {
         if (!$dto->motivo) {
-            throw new Exception('Debes indicar el motivo de la modificación.');
+            throw new NegocioException('Debes indicar el motivo de la modificación.');
         }
 
         $data = [
             'fotografo_id'   => $reserva->fotografo_id,
-            'estado'         => 'MODIFICACION_PROPUESTA',
-            'motivo_rechazo' => $dto->motivo,
+            'estado'                    => 'MODIFICACION_PROPUESTA',
+            'motivo_rechazo'            => $dto->motivo,
+            'duracion_horas_propuesta'  => $dto->duracion_horas,
         ];
 
-        // Si propone nueva fecha/hora, actualizarla
         if ($dto->nueva_fecha && $dto->nueva_hora) {
             $data['fecha_inicio'] = Carbon::parse(
                 $dto->nueva_fecha . ' ' . $dto->nueva_hora
@@ -145,7 +157,7 @@ class FotografoReservaService
     private function cerrarSesion(Reserva $reserva): void
     {
         if (!$reserva->sesion) {
-            throw new Exception('Esta reserva no tiene una sesión asociada.');
+            throw new NegocioException('Esta reserva no tiene una sesión asociada.');
         }
 
         $reserva->sesion->update(['estado' => 'EN_PROCESO']);

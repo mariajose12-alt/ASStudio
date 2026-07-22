@@ -3,21 +3,29 @@
 namespace App\Listeners;
 
 use App\Events\PagoRechazado;
-use App\Mail\PagoRechazadoCliente;
+use App\Notifications\PagoRechazadoCliente;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Mail;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
 
-class EnviarNotificacionPagoRechazado
+class EnviarNotificacionPagoRechazado implements ShouldQueue
 {
+    use InteractsWithQueue;
+
     public function handle(PagoRechazado $event): void
     {
         $pago = $event->pago;
-
         $usuario = $pago->reserva->cliente->usuario ?? null;
 
         if (!$usuario) return;
 
-        Mail::to($usuario->email)->send(new PagoRechazadoCliente($pago->reserva));
+        try {
+            $usuario->notify(new PagoRechazadoCliente($pago));
+        } catch (\Throwable $e) {
+            Log::error('Fallo enviando notificación de pago rechazado', [
+                'pago_id' => $pago->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
-
 }

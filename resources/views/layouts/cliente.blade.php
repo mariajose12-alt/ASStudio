@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>AS Studio — @yield('title', 'Mi Cuenta')</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>AStudio — @yield('title', 'Mi Cuenta')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     {{-- Tabler Icons (outline) --}}
@@ -27,6 +28,7 @@
     $logoOverride = null;
 @endphp
 @include('partials.navbar')
+@include('partials.notif-panel')
 
 <div class="layout">
 
@@ -34,8 +36,8 @@
     <aside class="sidebar" id="appSidebar" aria-label="Menú principal">
 
         <div class="sidebar-logo">
-            <a href="/" class="navbar-logo" aria-label="Ir al inicio de AS Studio">
-                <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+            <a href="/" class="navbar-logo" aria-label="Ir al inicio de AStudio">
+                <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
             </a>
             <div class="brand-sub">Mi Cuenta</div>
         </div>
@@ -141,11 +143,7 @@
                 </a>
 
                 {{-- Notificaciones --}}
-                <a href="#" class="topbar__icon-btn" aria-label="Notificaciones">
-                    <i class="ti ti-bell" aria-hidden="true"></i>
-                    {{-- Quitar el badge cuando no haya notificaciones --}}
-                    <span class="topbar__badge" aria-hidden="true"></span>
-                </a>
+                @include('partials.notificaciones')
 
                 {{-- Avatar / enlace al perfil --}}
                 <a href="{{ route('cliente.perfil') }}" class="topbar__avatar"
@@ -184,6 +182,24 @@
      Utilitarios display (reemplaza d-none/d-md-*)
      ═════════════════════════════════════════ --}}
 <style>
+    @media (max-width: 768px) {
+        .navbar-hamburger {
+            display: flex !important;
+        }
+
+        .layout {
+            padding-top: 80px;
+        }
+
+        .navbar-mobile-menu {
+            display: flex;
+        }
+
+        .navbar-links {
+            display: none !important;
+        }
+    }
+
     /* Badge en sidebar nav */
     .nav-badge {
         margin-left: auto;
@@ -212,13 +228,6 @@
         background: var(--white);
     }
 
-    /* ── Navbar landing: solo visible en móvil ── */
-    .navbar-landing {
-        display: flex; /* visible en móvil */
-    }
-    .navbar-mobile-menu {
-        display: block; /* el drawer también disponible en móvil */
-    }
 
     @media (min-width: 769px) {
         /* En desktop, ocultar el navbar del landing */
@@ -238,27 +247,9 @@
             display: flex;
         }
     }
-
-    /* Menú móvil del navbar — necesita display:flex para que la animación funcione */
-    @media (max-width: 768px) {
-        .navbar-hamburger {
-            display: flex !important;
-        }
-
-        .layout {
-            padding-top: 80px; /* altura del navbar (~64px) + un poco de aire */
-        }
-
-        .navbar-mobile-menu {
-            display: flex; /* necesario; la clase .open controla opacity/pointer-events */
-        }
-        /* Ocultar los links de escritorio dentro del navbar en móvil */
-        .navbar-links {
-            display: none !important;
-        }
-    }
 </style>
 
+<script src="{{ asset('js/notificaciones.js') }}"></script>
 <script>
     /* Drawer lateral (solo móvil si se usa en el futuro) */
     function toggleSidebar() {

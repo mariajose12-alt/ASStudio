@@ -135,7 +135,7 @@
                     <div class="legend-item">
                         <span class="legend-dot" style="background:#10b981"></span>
                         <span class="legend-label">Completadas</span>
-                        <span class="legend-val">{{ $estadosReservas['completada'] }}</span>
+                        <span class="legend-val">{{ $estadosReservas['aprobada'] }}</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-dot" style="background:#f97316"></span>
@@ -205,6 +205,11 @@
                     <div class="panel-title">Objetivo del Mes</div>
                     <div class="panel-sub">Progreso hacia metas</div>
                 </div>
+                @if(!$metas['meta_configurada'])
+                    <a href="{{ route('admin.metas.edit') }}" class="btn-secondary">
+                        Configurar Metas
+                    </a>
+                @endif
             </div>
             <div class="panel-body">
                 @php
@@ -283,7 +288,7 @@
         const ingresosAnterior = @json($ingresosAnterior);
 
         const estadosData = [
-            {{ $estadosReservas['completada'] }},
+            {{ $estadosReservas['aprobada'] }},
             {{ $estadosReservas['pendiente'] }},
             {{ $estadosReservas['cancelada'] }}
         ];
@@ -352,7 +357,7 @@
         new Chart(document.getElementById('chartEstados').getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['Completadas', 'Pendientes', 'Canceladas', 'En Sesión'],
+                labels: ['Aprobadas', 'Pendientes', 'Canceladas', 'En Sesión'],
                 datasets: [{ data: estadosData,
                     backgroundColor: ['#10b981', '#f97316', '#ef4444', O],
                     borderWidth: 0, hoverOffset: 6 }]

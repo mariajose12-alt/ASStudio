@@ -3,20 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AS Studio — @yield('title', 'Panel Admin')</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>AStudio — @yield('title', 'Panel Admin')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x.x/dist/tabler-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
     @stack('styles')
 </head>
 <body>
 
+@include('partials.notif-panel')
+
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <aside class="sidebar">
     <div class="sidebar-logo">
         <a href="/" class="navbar-logo">
-            <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+            <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
         </a>
         <div class="brand-sub">Panel Administrativo</div>
     </div>
@@ -92,28 +96,44 @@
             <div>
                 <h1 class="page-title">@yield('title', 'Dashboard')</h1>
                 @hasSection('subtitle')
-                <p style="color:var(--muted); font-size:14px; margin:8px 0 0 0;">@yield('subtitle')</p>
+                    <p style="color:var(--muted); font-size:14px; margin:8px 0 0 0;">@yield('subtitle')</p>
                 @endif
             </div>
         </div>
-        <div>@yield('topbar-actions')</div>
+        @include('partials.notificaciones')
     </div>
     <div class="content">
         @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success">{{ session('success') }}</div>
         @endif
         @if($errors->any())
-        <div class="alert alert-error">
-            @foreach($errors->all() as $error)
-            <div>{{ $error }}</div>
-            @endforeach
-        </div>
+            <div class="alert alert-error">
+                @foreach($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
         @endif
         @yield('content')
     </div>
 </main>
 
 <style>
+    /* Forzar colores FullCalendar globalmente */
+    :root {
+        --fc-button-bg-color: var(--white);
+        --fc-button-border-color: var(--border);
+        --fc-button-text-color: var(--muted);
+        --fc-button-hover-bg-color: var(--blue-pale);
+        --fc-button-hover-border-color: var(--blue-mid);
+        --fc-button-active-bg-color: var(--blue-mid);
+        --fc-button-active-border-color: var(--blue-mid);
+        --fc-today-bg-color: rgba(232,119,34,0.05);
+        --fc-event-bg-color: var(--blue-mid);
+        --fc-event-border-color: var(--blue-mid);
+        --fc-page-bg-color: var(--white);
+        --fc-neutral-bg-color: var(--cloud);
+        --fc-list-event-hover-bg-color: var(--blue-pale);
+    }
     .sidebar-hamburger {
         display: none;
         background: none;
@@ -130,6 +150,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/wheelzoom@4.0.1/wheelzoom.js"></script>
+<script src="{{ asset('js/notificaciones.js') }}"></script>
 <script>
     function toggleSidebar() {
         document.querySelector('.sidebar').classList.toggle('open');

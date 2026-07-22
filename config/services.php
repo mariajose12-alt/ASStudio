@@ -41,4 +41,12 @@ return [
         'redirect'      => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'google_vision' => ['key' => env('GOOGLE_VISION_API_KEY')],
+
+    'twilio' => [
+        'sid' => env('TWILIO_ACCOUNT_SID'),
+        'token' => env('TWILIO_AUTH_TOKEN'),
+        'from' => env('TWILIO_FROM'),
+    ],
+
 ];

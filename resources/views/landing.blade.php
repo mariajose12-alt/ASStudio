@@ -61,7 +61,7 @@
                     <div class="fotografo-img-frame">
                         <img
                             src="{{ asset('images/perfil.png') }}"
-                            alt="Fotógrafo de AS Studio"
+                            alt="Fotógrafo de AStudio"
                             class="fotografo-img"
                         >
                     </div>

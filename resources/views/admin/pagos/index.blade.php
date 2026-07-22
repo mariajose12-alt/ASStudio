@@ -45,12 +45,14 @@
 
                     {{-- Panel OCR --}}
                     @if($pago->comprobante)
-                        <div class="ocr-panel ocr-panel--{{ strtolower($pago->comprobante->estado_ocr ?? 'pendiente') }}">
+                        <div
+                            class="ocr-panel ocr-panel--{{ strtolower($pago->comprobante->estado_ocr ?? 'pendiente') }}">
                             <div class="ocr-panel__header">
                                 <span class="ocr-panel__titulo">Lectura OCR</span>
-                                <span class="ocr-badge ocr-badge--{{ strtolower($pago->comprobante->estado_ocr ?? 'pendiente') }}">
-                {{ $pago->comprobante->estado_ocr ?? 'PENDIENTE' }}
-            </span>
+                                <span
+                                    class="ocr-badge ocr-badge--{{ strtolower($pago->comprobante->estado_ocr ?? 'pendiente') }}">
+                                    {{ $pago->comprobante->estado_ocr ?? 'PENDIENTE' }}
+                                </span>
                             </div>
 
                             @if($pago->comprobante->estado_ocr === 'PROCESADO')
@@ -61,16 +63,19 @@
                                         <span class="ocr-label">Monto detectado</span>
                                         @php $coincide = $pago->comprobante->montoCoincideCon((float) $pago->monto); @endphp
                                         <span class="ocr-valor">
-                        {{ $pago->comprobante->monto_detectado
-                            ? 'RD$ ' . number_format($pago->comprobante->monto_detectado, 2)
-                            : '—' }}
+                                            {{ $pago->comprobante->monto_detectado
+                                                ? 'RD$ ' . number_format($pago->comprobante->monto_detectado, 2)
+                                                : '—' }}
                                             @if($coincide === true)
-                                                <span class="ocr-match ocr-match--ok" title="Coincide con el monto esperado">✓</span>
+                                                <span class="ocr-match ocr-match--ok"
+                                                      title="Coincide con el monto esperado">✓</span>
                                             @elseif($coincide === false)
-                                                <span class="ocr-match ocr-match--error" title="No coincide con RD$ {{ number_format($pago->monto, 2) }}">✗</span>
+                                                <span class="ocr-match ocr-match--error"
+                                                      title="No coincide con RD$ {{ number_format($pago->monto, 2) }}">✗</span>
                                             @endif
                     </span>
-                                        <span class="ocr-esperado">Esperado: RD$ {{ number_format($pago->monto, 2) }}</span>
+                                        <span
+                                            class="ocr-esperado">Esperado: RD$ {{ number_format($pago->monto, 2) }}</span>
                                     </div>
 
                                     {{-- Fecha --}}
@@ -95,6 +100,21 @@
                                         <span class="ocr-valor ocr-valor--mono">
                         {{ $pago->comprobante->referencia_detectada ?? '—' }}
                     </span>
+                                    </div>
+
+                                    {{-- Cuenta destino --}}
+                                    <div class="ocr-campo">
+                                        <span class="ocr-label">Cuenta destino</span>
+                                        <span class="ocr-valor">
+        {{ $pago->comprobante->cuenta_destino_detectada ?? '—' }}
+                                            @if($pago->comprobante->cuenta_destino_valida === true)
+                                                <span class="ocr-match ocr-match--ok"
+                                                      title="Coincide con una cuenta registrada">✓</span>
+                                            @elseif($pago->comprobante->cuenta_destino_valida === false)
+                                                <span class="ocr-match ocr-match--error"
+                                                      title="No coincide con ninguna cuenta registrada">✗</span>
+                                            @endif
+    </span>
                                     </div>
 
                                     {{-- Texto completo colapsable --}}
@@ -141,7 +161,8 @@
                     {{-- Panel rechazo --}}
                     <div id="rechazo-{{ $pago->id }}" class="reserva-panel" style="display:none;">
                         <span class="dato-label">Motivo del Rechazo</span>
-                        <form method="POST" action="{{ route('admin.pagos.rechazar', $pago) }}" class="reserva-panel-form">
+                        <form method="POST" action="{{ route('admin.pagos.rechazar', $pago) }}"
+                              class="reserva-panel-form">
                             @csrf
                             <div class="form-group">
                                 <label class="panel-label">Indica el motivo *</label>
@@ -151,7 +172,9 @@
                             </div>
                             <div class="panel-actions">
                                 <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
-                                <button type="button" class="btn btn-outline" onclick="toggleRechazo({{ $pago->id }})">Cancelar</button>
+                                <button type="button" class="btn btn-outline" onclick="toggleRechazo({{ $pago->id }})">
+                                    Cancelar
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -164,7 +187,8 @@
                             🔍︎ Previsualizar comprobante
                         </a>
 
-                        <form method="POST" action="{{ route('admin.pagos.aprobar', $pago) }}" class="reserva-panel-form">
+                        <form method="POST" action="{{ route('admin.pagos.aprobar', $pago) }}"
+                              class="reserva-panel-form">
                             @csrf
                             <button type="submit" class="btn btn-aprobar">✓ Aprobar</button>
                         </form>
@@ -201,7 +225,7 @@
                 btn.style.opacity = isHidden ? '0.4' : '1';
                 btn.style.pointerEvents = isHidden ? 'none' : 'auto';
             });
-            if (isHidden) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (isHidden) panel.scrollIntoView({behavior: 'smooth', block: 'nearest'});
         }
 
         function toggleOcrTexto(id) {

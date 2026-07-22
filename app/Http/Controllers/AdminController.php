@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\PagoRechazado;
 use App\Models\DetalleNomina;
 use App\Models\Fotografo;
+use App\Models\MetaMensual;
 use App\Models\Nomina;
 use App\Models\ParticipacionSesion;
 use App\Events\PagoConfirmado;
@@ -75,22 +76,6 @@ class AdminController extends Controller
         return view('admin.reservas.show', compact('reserva'));
     }
 
-    public function reservasCambiarEstado(Request $request, Reserva $reserva)
-    {
-        $request->validate([
-            'estado'         => 'required|in:APROBADA,RECHAZADA,CANCELADA,PENDIENTE,PAGO_RECIBIDO,MODIFICACION_PROPUESTA',
-            'motivo_rechazo' => 'nullable|string|required_if:estado,MODIFICACION_PROPUESTA',
-        ]);
-
-        $this->adminService->cambiarEstadoReserva(
-            $reserva,
-            $request->estado,
-            $request->motivo_rechazo
-        );
-
-        return redirect()->route('admin.reservas.index')
-            ->with('success', 'Estado actualizado correctamente.');
-    }
 
     /**
      * Pantalla de revisión de un pago específico (comprobante, datos OCR, monto esperado).
@@ -527,5 +512,35 @@ class AdminController extends Controller
 
         return redirect()->route('admin.nomina', ['tab' => 'configuracion'])
             ->with('success', 'Parámetros actualizados correctamente. El nuevo valor aplica a partir de hoy.');
+    }
+
+    public function metasEdit()
+    {
+        $mes  = now()->month;
+        $anio = now()->year;
+
+        $meta = MetaMensual::paraMes($mes, $anio);
+
+        return view('admin.metas.edit', compact('meta', 'mes', 'anio'));
+    }
+
+    public function metasActualizar(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'mes'             => 'required|integer|min:1|max:12',
+            'anio'            => 'required|integer|min:2020|max:' . (now()->year + 1),
+            'ingresos'        => 'required|numeric|min:0',
+            'reservas'        => 'required|integer|min:0',
+            'clientes_nuevos' => 'required|integer|min:0',
+        ]);
+
+        MetaMensual::updateOrCreate(
+            ['mes' => $request->mes, 'anio' => $request->anio],
+            $request->only('ingresos', 'reservas', 'clientes_nuevos')
+        );
+
+        return redirect()
+            ->route('admin.dashboard')
+            ->with('success', 'Metas actualizadas correctamente.');
     }
 }

@@ -223,6 +223,7 @@
             justify-content: center;
             position: relative;
             overflow: hidden;
+            border-radius: 16px;
         }
 
         .cp-right {
@@ -232,6 +233,7 @@
             flex-direction: column;
             justify-content: center;
             gap: 16px;
+            border-radius: 16px;
         }
 
         .cp-hero-card__deco {

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\DTOs\PagoRegistrarDTO;
 use App\Events\PagoConfirmado;
+use App\Exceptions\NegocioException;
 use App\Models\Comprobante;
 use App\Models\Pago;
 use App\Models\Reserva;
@@ -20,7 +21,7 @@ class PagoService
         $this->validarReservaParaPago($reserva);
 
         if ($this->tieneAnticipoPendienteOConfirmado($reserva)) {
-            throw new Exception('Esta reserva ya tiene un anticipo registrado.');
+            throw new NegocioException('Esta reserva ya tiene un anticipo registrado.');
         }
 
         $monto = round($reserva->precio_total * self::PORCENTAJE_ANTICIPO, 2);
@@ -45,13 +46,13 @@ class PagoService
             ->sum('monto');
 
         if ($montoAnticipo <= 0) {
-            throw new Exception('Debe confirmarse el anticipo antes de registrar el pago final.');
+            throw new NegocioException('Debe confirmarse el anticipo antes de registrar el pago final.');
         }
 
         $monto = round($reserva->precio_total - $montoAnticipo, 2);
 
         if ($monto <= 0) {
-            throw new Exception('El anticipo ya cubre el total de la reserva.');
+            throw new NegocioException('El anticipo ya cubre el total de la reserva.');
         }
 
         return Pago::create([
@@ -67,7 +68,7 @@ class PagoService
     public function adjuntarComprobante(Pago $pago, UploadedFile $archivo): Pago
     {
         if (!$pago->estaPendiente()) {
-            throw new Exception('Solo se puede adjuntar comprobante a pagos en estado PENDIENTE.');
+            throw new NegocioException('Solo se puede adjuntar comprobante a pagos en estado PENDIENTE.');
         }
 
         $path = Storage::disk('r2')->putFile(
@@ -76,7 +77,7 @@ class PagoService
         );
 
         if (!$path) {
-            throw new Exception('Error al subir el comprobante al almacenamiento.');
+            throw new NegocioException('Error al subir el comprobante al almacenamiento.');
         }
 
         $comprobante = Comprobante::create([
@@ -93,11 +94,11 @@ class PagoService
     public function confirmarPago(Pago $pago): Pago
     {
         if ($pago->estaConfirmado()) {
-            throw new Exception('El pago ya fue confirmado.');
+            throw new NegocioException('El pago ya fue confirmado.');
         }
 
         if (!$pago->comprobante_id) {
-            throw new Exception('No hay comprobante adjunto. No se puede confirmar el pago.');
+            throw new NegocioException('No hay comprobante adjunto. No se puede confirmar el pago.');
         }
 
         $pago->update([
@@ -113,7 +114,7 @@ class PagoService
             $reserva->update(['estado' => 'CONFIRMADA']);
         }
 
-        PagoConfirmado::dispatch($reserva->fresh());
+        PagoConfirmado::dispatch($pago->fresh());
 
         return $pago->fresh(['reserva', 'comprobante']);
     }
@@ -121,7 +122,7 @@ class PagoService
     public function rechazarPago(Pago $pago): Pago
     {
         if ($pago->estaConfirmado()) {
-            throw new Exception('No se puede rechazar un pago ya confirmado.');
+            throw new NegocioException('No se puede rechazar un pago ya confirmado.');
         }
 
         $pago->update(['estado' => 'RECHAZADO']);
@@ -134,7 +135,7 @@ class PagoService
         $estadosValidos = ['APROBADA', 'CONFIRMADA'];
 
         if (!in_array($reserva->estado, $estadosValidos)) {
-            throw new Exception(
+            throw new NegocioException(
                 "La reserva debe estar APROBADA o CONFIRMADA para registrar un pago. Estado actual: {$reserva->estado}"
             );
         }

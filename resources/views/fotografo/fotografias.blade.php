@@ -1,6 +1,5 @@
 @extends('layouts.fotografo')
 @section('title', 'Subir Fotografías')
-@section('subtitle', 'Carga las fotografías de la sesión')
 
 @section('topbar-actions')
     <a href="{{ route('fotografo.sesiones.index') }}" class="btn-volver">← Volver</a>

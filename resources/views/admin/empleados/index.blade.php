@@ -1,10 +1,6 @@
 @extends('layouts.admin')
 @section('title', 'Empleados')
 
-@section('topbar-actions')
-    <a href="{{ route('admin.empleados.create') }}" class="btn btn-primary btn-sm">+ Nuevo Empleado</a>
-@endsection
-
 @section('content')
     @if(session('nueva_password'))
         <div style="background:#fdf8ee; border:1px solid #e8d9b0; border-radius:12px; padding:20px 24px; margin-bottom:24px; display:flex; align-items:flex-start; gap:16px;">
@@ -33,7 +29,11 @@
     @endif
 
     <div class="card">
-        <div class="card-header"><h2>Lista de Empleados</h2></div>
+        <div class="card-header">
+            <h2>Lista de Empleados</h2>
+            <a href="{{ route('admin.empleados.create') }}" class="btn btn-primary btn-sm">+ Nuevo Empleado</a>
+        </div>
+
         <div class="table-wrap">
             <table>
                 <thead>

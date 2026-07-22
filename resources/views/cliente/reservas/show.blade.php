@@ -98,6 +98,7 @@
                     <div class="rf-estado-title">¡Tu reserva fue aprobada!</div>
                     <div class="rf-estado-sub">
                         El fotógrafo ha aprobado tu reserva. Ya puedes realizar el anticipo para confirmar y asegurar tu fecha.
+                        <a href="{{ route('cliente.pagos.index') }}">Ir a pagar →</a>
                     </div>
                 </div>
             </div>

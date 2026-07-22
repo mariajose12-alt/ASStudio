@@ -1660,8 +1660,10 @@ textarea.contacto-input { resize: vertical; min-height: 120px; }
     .btn-nav-signup,
     .btn-nav-login { display: none; }
 
+    .navbar-hamburger-wrap { display: inline-flex; }
     .navbar-hamburger { display: flex; }
     .navbar-mobile-menu { display: flex; }
+
 
     .section-bienvenida { padding: 3.5rem 1.5rem; }
 
@@ -2274,7 +2276,7 @@ textarea.contacto-input { resize: vertical; min-height: 120px; }
 }
 
 /* ════════════════════════════════════════════════════
-   SECCIÓN PAQUETES — AS Studio
+   SECCIÓN PAQUETES — AStudio
    Agregar al final de landing.css
 ════════════════════════════════════════════════════ */
 

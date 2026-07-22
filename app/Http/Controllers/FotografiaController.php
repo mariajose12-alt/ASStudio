@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Mail\FotosEntregadasCliente;
-use App\Mail\GaleriaDisponibleCliente;
-use App\Mail\SeleccionConfirmadaFotografo;
+use App\Notifications\FotosEntregadasCliente;
+use App\Notifications\GaleriaDisponibleCliente;
+use App\Notifications\SeleccionConfirmadaFotografo;
 use App\Models\Fotografia;
 use App\Models\Sesion;
 use Illuminate\Http\Request;
@@ -105,9 +104,9 @@ class FotografiaController extends Controller
         if ($estado === 'ORIGINAL' && $sesion->estado === 'EN_PROCESO') {
             $sesion->update(['estado' => 'GALERIA_DISPONIBLE']);
 
-            $clienteEmail = $sesion->reserva->cliente->usuario->email ?? null;
-            if ($clienteEmail) {
-                Mail::to($clienteEmail)->send(new GaleriaDisponibleCliente($sesion));
+            $usuario = $sesion->reserva->cliente->usuario ?? null;
+            if ($usuario) {
+                $usuario->notify(new GaleriaDisponibleCliente($sesion));
             }
         }
 
@@ -178,9 +177,9 @@ class FotografiaController extends Controller
 
         $sesion->update(['estado' => 'FINALIZADA']);
 
-        $clienteEmail = $sesion->reserva->cliente->usuario->email ?? null;
-        if ($clienteEmail) {
-            Mail::to($clienteEmail)->send(new FotosEntregadasCliente($sesion));
+        $usuario = $sesion->reserva->cliente->usuario ?? null;
+        if ($usuario) {
+            $usuario->notify(new FotosEntregadasCliente($sesion));
         }
 
         return response()->json([
@@ -224,9 +223,9 @@ class FotografiaController extends Controller
         $sesion->update(['estado' => 'EN_EDICION']);
 
         // Notificar al fotógrafo
-        $fotografoEmail = $sesion->reserva->fotografo->empleado->usuario->email ?? null;
-        if ($fotografoEmail) {
-            Mail::to($fotografoEmail)->send(new SeleccionConfirmadaFotografo($sesion));
+        $usuarioFotografo = $sesion->reserva->fotografo->empleado->usuario ?? null;
+        if ($usuarioFotografo) {
+            $usuarioFotografo->notify(new SeleccionConfirmadaFotografo($sesion));
         }
 
         return redirect()->route('cliente.galeria')

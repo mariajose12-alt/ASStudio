@@ -11,6 +11,7 @@ use App\Models\ParticipacionSesion;
 use App\Models\TramoIsr;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+//use App\Notifications\NominaDisponibleFotografo;
 use Illuminate\Support\Facades\Mail;
 use App\Models\ConfiguracionNomina;
 use App\Models\Fotografo;
@@ -141,8 +142,10 @@ class NominaService
                 'sueldo_neto'        => $netoConRegalia,
             ]);
 
-            $emailFotografo = $fotografo->empleado->usuario->email;
-            Mail::to($emailFotografo)->queue(new NominaDisponibleFotografo($detalle));
+            $usuarioFotografo = $detalle->fotografo->empleado->usuario;
+            if ($usuarioFotografo) {
+                $usuarioFotografo->notify(new NominaDisponibleFotografo($detalle));
+            }
 
             $totBruto      += $bruto;
             $totDescuento  += $descuento;

@@ -29,7 +29,7 @@ class NominaDisponibleFotografo extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Tu nómina de ' . $this->detalle->nomina->periodo . ' está lista para revisión — AS Studio',
+            subject: 'Tu nómina de ' . $this->detalle->nomina->periodo . ' está lista para revisión — AStudio',
         );
     }
 

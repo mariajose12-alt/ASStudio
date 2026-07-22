@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 @section('title', 'Reservas')
-@section('subtitle', 'Revisa y gestiona las solicitudes de reserva de tus clientes.')
+
 
 @section('content')
     @if($reservas->isEmpty())
@@ -86,64 +86,6 @@
                             </div>
                         </div>
                     </div>
-
-                    {{-- Panel de proponer cambios (oculto por defecto) --}}
-                    <div id="propuesta-{{ $reserva->id }}" style="display:none; border-top:1px solid var(--border); padding-top:20px; margin-top:4px; margin-bottom:20px;">
-                        <div style="font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:12px;">Proponer Cambios</div>
-                        <form method="POST" action="{{ route('admin.reservas.estado', $reserva) }}">
-                            @csrf @method('PATCH')
-                            <input type="hidden" name="estado" value="MODIFICACION_PROPUESTA">
-                            <div class="form-group" style="margin-bottom:16px;">
-                                <label>Motivo de la modificación</label>
-                                <textarea name="motivo_rechazo" rows="3" placeholder="Describe los cambios que propones..."></textarea>
-                            </div>
-                            <div style="display:flex; gap:10px;">
-                                <button type="submit" class="btn btn-primary">Enviar Propuesta</button>
-                                <button type="button" class="btn btn-outline"
-                                        onclick="document.getElementById('propuesta-{{ $reserva->id }}').style.display='none'">
-                                    Cancelar
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    {{-- Acciones --}}
-                    @if($reserva->estado === 'PENDIENTE')
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
-                            <form method="POST" action="{{ route('admin.reservas.estado', $reserva) }}">
-                                @csrf @method('PATCH')
-                                <input type="hidden" name="estado" value="APROBADA">
-                                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; background:#2e7d52; border-color:#2e7d52;">
-                                    ✓ Aprobar Reserva
-                                </button>
-                            </form>
-                            <button type="button" class="btn btn-primary"
-                                    style="width:100%; justify-content:center; background:var(--blue-mid); border-color:var(--blue-mid);"
-                                    onclick="togglePropuesta({{ $reserva->id }})">
-                                ✎ Sugerir Modificación
-                            </button>
-                            <form method="POST" action="{{ route('admin.reservas.estado', $reserva) }}">
-                                @csrf @method('PATCH')
-                                <input type="hidden" name="estado" value="RECHAZADA">
-                                <button type="submit" class="btn btn-danger" style="width:100%; justify-content:center;"
-                                        onclick="return confirm('¿Rechazar esta reserva?')">
-                                    ✗ Rechazar
-                                </button>
-                            </form>
-                        </div>
-                    @elseif(!in_array($reserva->estado, ['CANCELADA','RECHAZADA']))
-                        <div style="display:flex; gap:10px;">
-                            <form method="POST" action="{{ route('admin.reservas.estado', $reserva) }}">
-                                @csrf @method('PATCH')
-                                <input type="hidden" name="estado" value="CANCELADA">
-                                <button type="submit" class="btn btn-outline"
-                                        onclick="return confirm('¿Cancelar esta reserva?')">
-                                    Cancelar Reserva
-                                </button>
-                            </form>
-                        </div>
-                    @endif
-
                 </div>
             </div>
         @endforeach
@@ -155,17 +97,3 @@
 
 @endsection
 
-@push('scripts')
-    <script>
-        function togglePropuesta(id) {
-            const panel = document.getElementById('propuesta-' + id);
-            const isHidden = panel.style.display === 'none' || panel.style.display === '';
-            panel.style.display = isHidden ? 'block' : 'none';
-
-            // Scroll suave hacia el panel cuando se abre
-            if (isHidden) {
-                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
-    </script>
-@endpush

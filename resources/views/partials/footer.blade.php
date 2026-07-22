@@ -3,7 +3,7 @@
 
         <div class="footer-col footer-col-brand">
             <a href="/" class="footer-logo-link">
-                <img src="{{ asset('images/logo.png') }}" alt="AS Studio" class="footer-logo-img">
+                <img src="{{ asset('images/logo.png') }}" alt="AStudio" class="footer-logo-img">
             </a>
             <p class="footer-desc">
                 Fotografía profesional con alma. Capturamos tus momentos más especiales con luz, emoción y un estilo atemporal que perdura.

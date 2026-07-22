@@ -47,7 +47,7 @@
 
             @if($sesion->reserva->fotografo_id === $fotografo->id && ! $yaSolicito)
                 <button type="button" class="btn-ayudante"
-                        onclick="abrirSolicitudAyudante({{ $sesion->id }}, '{{ addslashes($sesion->reserva->tipo) }}')">
+                        onclick="abrirSolicitudAyudante({{ $sesion->id }}, {{ Illuminate\Support\Js::from($sesion->reserva->tipo) }})">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                     </svg>
@@ -61,10 +61,10 @@
                 @if($seleccionadas->count() > 0)
                     <button type="button" class="btn-seleccion"
                             onclick="verSeleccion(
-                            {{ $sesion->id }},
-                            '{{ addslashes($sesion->reserva->cliente->usuario->persona->nombre . ' ' . $sesion->reserva->cliente->usuario->persona->apellido) }}',
-                            {{ $seleccionadas->map(fn($f) => ['nombre' => $f->nombre_original ?? basename($f->url)])->values()->toJson() }}
-                        )">
+                                {{ $sesion->id }},
+                                {{ Illuminate\Support\Js::from($sesion->reserva->cliente->usuario->persona->nombre . ' ' . $sesion->reserva->cliente->usuario->persona->apellido) }},
+                                {{ $seleccionadas->map(fn($f) => ['nombre' => $f->nombre_original ?? basename($f->url)])->values()->toJson() }}
+                            )">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>

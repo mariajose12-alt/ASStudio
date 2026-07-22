@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class Fotografia extends Model
@@ -43,12 +44,15 @@ class Fotografia extends Model
         return $this->belongsTo(Fotografo::class, 'subido_por_fotografo_id');
     }
 
-    // Accessor — genera la URL firmada al vuelo
+    // Accessor — genera la URL firmada al vuelo, cacheada por foto
+    // para evitar una llamada nueva a R2 cada vez que se serializa
+    // o se accede a esta propiedad (ver L-4 de la auditoría).
     public function getUrlFirmadaAttribute(): string
     {
-        return Storage::disk('r2')->temporaryUrl(
-            $this->url,
-            now()->addMinutes(60)
+        return Cache::remember(
+            "foto_url_firmada_{$this->id}",
+            now()->addMinutes(50), // un poco menos que los 60 min de expiración real
+            fn () => Storage::disk('r2')->temporaryUrl($this->url, now()->addMinutes(60))
         );
     }
 

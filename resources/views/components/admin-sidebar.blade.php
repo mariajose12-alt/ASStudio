@@ -6,8 +6,8 @@
 
             <!-- Logo empresa -->
             <div class="logo">
-                <img src="img/logo-as-studio.png" alt="Logo AS Studio">
-                <div class="company-name">AS Studio</div>
+                <img src="img/logo-as-studio.png" alt="Logo AStudio">
+                <div class="company-name">AStudio</div>
             </div>
 
             <!-- Usuario activo -->

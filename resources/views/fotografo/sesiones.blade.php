@@ -1,11 +1,10 @@
 @extends('layouts.fotografo')
 @section('title', 'Sesiones')
-@section('subtitle', 'Gestiona tus sesiones activas')
 
 @section('content')
 
     {{-- Pestañas --}}
-    <div class="tabs">
+    <div class="reservas-tabs">
         <button class="tab active" onclick="switchTab('confirmadas', this)">
             Confirmadas
             @if($confirmadas->count() > 0)
@@ -137,13 +136,6 @@
 
     @push('styles')
         <style>
-            .tabs {
-                display: flex;
-                gap: 4px;
-                border-bottom: 2px solid var(--border);
-                margin-bottom: 24px;
-            }
-
             .tab {
                 display: flex;
                 align-items: center;
@@ -162,12 +154,6 @@
 
             .tab:hover {
                 color: var(--navy);
-            }
-
-            .tab.active {
-                color: var(--navy);
-                border-bottom-color: #E8A020;
-                font-weight: 600;
             }
 
             .tab-badge {

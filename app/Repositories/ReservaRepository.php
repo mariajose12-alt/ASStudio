@@ -10,22 +10,28 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReservaRepository implements ReservaRepositoryInterface
 {
+    // ReservaRepository.php
     public function crear(ReservaCreateDTO $dto): Reserva
     {
-        return Reserva::create([
-            'cliente_id'   => $dto->cliente_id,
-            'paquete_id'   => $dto->paquete_id,
-            'catalogo_id'  => $dto->catalogo_id,
-            'fotografo_id' => $dto->fotografo_id,
-            'tipo'         => $dto->tipo,
-            'lugar'        => $dto->lugar,
-            'descripcion'  => $dto->descripcion,
-            'fecha_inicio' => $dto->fecha_inicio,
-            'fecha_fin'    => $dto->fecha_fin,
-            'estado'       => 'PENDIENTE',
-            'precio_total' => $dto->precio_total,
+        $reserva = new Reserva([
+            'cliente_id'     => $dto->cliente_id,
+            'paquete_id'     => $dto->paquete_id,
+            'catalogo_id'    => $dto->catalogo_id,
+            'tipo'           => $dto->tipo,
+            'lugar'          => $dto->lugar,
+            'descripcion'    => $dto->descripcion,
+            'fecha_inicio'   => $dto->fecha_inicio,
+            'fecha_fin'      => $dto->fecha_fin,
             'duracion_horas' => 2.0,
         ]);
+
+        $reserva->fotografo_id = $dto->fotografo_id;
+        $reserva->estado       = 'PENDIENTE';
+        $reserva->precio_total = $dto->precio_total;
+
+        $reserva->save();
+
+        return $reserva;
     }
 
     public function porCliente(int $cliente_id): Collection

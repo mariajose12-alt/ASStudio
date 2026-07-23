@@ -22,13 +22,11 @@ class EmpleadoService
             'telefono' => $dto->telefono,
         ]);
 
-        // 2. Password y Usuario
-        $passwordPlano = Str::random(10);
-
+        // 2. Usuario con contraseña inutilizable — nadie la conoce ni la ve
         $usuario = Usuario::create([
             'persona_id' => $persona->id,
             'email'      => $dto->email,
-            'contrasena' => Hash::make($passwordPlano),
+            'contrasena' => Hash::make(Str::random(32)),
             'estado'     => $dto->estado,
         ]);
 
@@ -51,9 +49,14 @@ class EmpleadoService
             $this->asignarHorarioPorDefecto($fotografo);
         }
 
+        // 5. Generar token y enviar correo de activación
+        $tokenCrudo = \App\Models\ActivacionCuenta::generarPara($usuario);
+        \Illuminate\Support\Facades\Mail::to($usuario->email)->send(
+            new \App\Mail\ActivarCuentaFotografo($usuario, $tokenCrudo)
+        );
+
         return [
-            'empleado'         => $empleado,
-            'password_inicial' => $passwordPlano,
+            'empleado' => $empleado,
         ];
     }
 

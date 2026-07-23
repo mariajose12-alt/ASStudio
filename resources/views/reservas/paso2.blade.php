@@ -3,7 +3,7 @@
 @section('formulario')
     <div class="reserva-logo">
         <a href="/" class="navbar-logo">
-            <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+            <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
         </a>
     </div>
 
@@ -106,8 +106,9 @@
         // Se llena con la respuesta del backend; el backend ya filtra
         // los slots sin fotógrafos disponibles, así que aquí solo pintamos.
         let horasPorFecha = {};
+        const tipo = @json(session('reserva.paso1.tipo') ?? 'EXTERIOR');
 
-        fetch('/disponibilidad/fechas')
+        fetch(`/disponibilidad/fechas?tipo=${tipo}`)
             .then(res => res.json())
             .then(data => {
                 horasPorFecha = data.horasPorFecha;

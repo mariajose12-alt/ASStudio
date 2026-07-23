@@ -3,17 +3,27 @@
 namespace App\Listeners;
 
 use App\Events\SeleccionConfirmada;
-use App\Mail\SeleccionConfirmadaFotografo;
-use Illuminate\Support\Facades\Mail;
+use App\Notifications\SeleccionConfirmadaFotografo;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
 
-class EnviarNotificacionSeleccion
+class EnviarNotificacionSeleccion implements ShouldQueue
 {
+    use InteractsWithQueue;
+
     public function handle(SeleccionConfirmada $event): void
     {
-        $email = $event->sesion->reserva->fotografo->empleado->usuario->email;
+        $usuario = $event->sesion->reserva->fotografo?->empleado?->usuario;
+        if (!$usuario) return;
 
-        if (!$email) return;
-
-        Mail::to($email)->send(new SeleccionConfirmadaFotografo($event->sesion));
+        try {
+            $usuario->notify(new SeleccionConfirmadaFotografo($event->sesion));
+        } catch (\Throwable $e) {
+            Log::error('Fallo enviando notificación de selección confirmada', [
+                'sesion_id' => $event->sesion->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

@@ -5,9 +5,9 @@
 @section('content')
 
     @php
-        $pago = $reserva->pago;
         $comprobante = $pago->comprobante;
-        $coincide = $comprobante?->montoCoincideCon((float) $pago->monto);
+        $reserva     = $pago->reserva;
+        $coincide    = $comprobante?->montoCoincideCon((float) $pago->monto);
     @endphp
 
     {{-- Badge de estado --}}

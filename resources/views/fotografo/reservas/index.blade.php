@@ -131,17 +131,53 @@
                     </div>
 
                     {{-- Panel proponer cambios --}}
+                    {{-- Panel proponer cambios --}}
                     <div id="propuesta-{{ $reserva->id }}" class="reserva-panel" style="display:none;">
                         <span class="dato-label">Proponer Cambios en la Descripción</span>
                         <form method="POST" action="{{ route('fotografo.reservas.accion', $reserva) }}" class="reserva-panel-form">
                             @csrf
                             <input type="hidden" name="accion" value="MODIFICACION_PROPUESTA">
+
                             <div class="form-group">
                                 <label class="panel-label">Motivo de la modificación *</label>
                                 <textarea name="motivo" rows="4" class="panel-textarea"
                                           placeholder="Describe qué cambios propones en la descripción de la sesión..."
                                           required></textarea>
                             </div>
+
+                            <div class="form-group">
+                                <label class="panel-label">Duración estimada (uso interno) *</label>
+                                <p style="font-size:12px; color:#9e8c7e; margin:0 0 10px;">
+                                    Esta duración se aplicará automáticamente si el cliente acepta tu propuesta. No se le muestra al cliente.
+                                </p>
+                                <div style="display:flex; align-items:center; gap:2rem;">
+                                    <label style="display:flex; align-items:center; gap:.4rem; cursor:pointer;">
+                                        <input type="radio"
+                                               name="duracion_tipo"
+                                               value="estandar"
+                                               checked
+                                               onchange="toggleDuracionCustomProp({{ $reserva->id }}, false)">
+                                        <span>2 horas (estándar)</span>
+                                    </label>
+
+                                    <label style="display:flex; align-items:center; gap:.4rem; cursor:pointer;">
+                                        <input type="radio"
+                                               name="duracion_tipo"
+                                               value="personalizada"
+                                               onchange="toggleDuracionCustomProp({{ $reserva->id }}, true)">
+                                        <span>Personalizada</span>
+                                    </label>
+                                </div>
+
+                                <div id="duracion-custom-prop-{{ $reserva->id }}" style="display:none; margin-top:.75rem;">
+                                    <input type="number" name="duracion_horas" value="2" min="0.5" max="12" step="0.5"
+                                           class="panel-textarea" style="width:120px;"
+                                           placeholder="ej: 3.5">
+                                    <span style="margin-left:.5rem;">horas</span>
+                                </div>
+                                <input type="hidden" name="duracion_horas_estandar" value="2">
+                            </div>
+
                             <div class="panel-actions">
                                 <button type="submit" class="btn btn-primary">Enviar Propuesta</button>
                                 <button type="button" class="btn btn-outline" onclick="togglePropuesta({{ $reserva->id }})">Cancelar</button>
@@ -247,6 +283,10 @@
                 btn.style.opacity = disable ? '0.4' : '1';
                 btn.style.pointerEvents = disable ? 'none' : 'auto';
             });
+        }
+
+        function toggleDuracionCustomProp(id, show) {
+            document.getElementById('duracion-custom-prop-' + id).style.display = show ? 'block' : 'none';
         }
     </script>
 @endpush

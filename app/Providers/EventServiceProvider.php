@@ -25,6 +25,7 @@ use App\Listeners\EnviarNotificacionSeleccion;
 use App\Listeners\EnviarNotificacionZipListo;
 use App\Events\SolicitudAyudanteCreada;
 use App\Listeners\EnviarNotificacionSolicitudAyudante;
+use App\Listeners\AvanzarReservaPorPagoConfirmado;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -44,6 +45,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         PagoConfirmado::class => [
             EnviarNotificacionPagoConfirmado::class,
+            AvanzarReservaPorPagoConfirmado::class,
         ],
         PagoRechazado::class => [
             EnviarNotificacionPagoRechazado::class

@@ -138,6 +138,30 @@
                                   placeholder="Explica el motivo o los cambios que propones..."></textarea>
                     </div>
 
+                    <div class="rf-motivo-wrap" id="campoDuracion" style="display: none; flex-direction: column; gap: .75rem;">
+                        <label class="rf-motivo-lbl">Duración de la sesión (uso interno) *</label>
+                        <p style="font-size:12px; color:#9e8c7e; margin:0;">No se le muestra al cliente. Si propones un cambio, esta duración se aplicará automáticamente cuando el cliente acepte.</p>
+                        <div style="display:flex; align-items:center; gap:2rem;">
+                            <label style="display:flex; align-items:center; gap:.4rem; cursor:pointer;">
+                                <input type="radio" name="duracion_tipo" value="estandar" checked
+                                       onchange="toggleDuracionCustomShow(false)">
+                                <span>2 horas (estándar)</span>
+                            </label>
+                            <label style="display:flex; align-items:center; gap:.4rem; cursor:pointer;">
+                                <input type="radio" name="duracion_tipo" value="personalizada"
+                                       onchange="toggleDuracionCustomShow(true)">
+                                <span>Personalizada</span>
+                            </label>
+                        </div>
+                        <div id="duracionCustomShow" style="display:none;">
+                            <input type="number" name="duracion_horas" value="2" min="0.5" max="12" step="0.5"
+                                   class="rf-motivo-ta" style="width:120px; padding:8px;"
+                                   placeholder="ej: 3.5">
+                            <span style="margin-left:.5rem;">horas</span>
+                        </div>
+                        <input type="hidden" name="duracion_horas_estandar" value="2">
+                    </div>
+
                     <div id="contenedorEnviar" style="display: none; padding: 0 20px 20px;">
                         <button type="submit" class="rf-btn-submit">
                             <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -185,8 +209,15 @@
                 const ta = motivoWrap.querySelector('textarea');
                 needsMotivo ? ta.setAttribute('required', 'required') : ta.removeAttribute('required');
 
+                const needsDuracion = accion === 'APROBADA' || accion === 'MODIFICACION_PROPUESTA';
+                document.getElementById('campoDuracion').style.display = needsDuracion ? 'flex' : 'none';
+
                 document.getElementById('contenedorEnviar').style.display = 'block';
             });
         });
+
+        function toggleDuracionCustomShow(show) {
+            document.getElementById('duracionCustomShow').style.display = show ? 'block' : 'none';
+        }
     </script>
 @endpush

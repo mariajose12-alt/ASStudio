@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AS Studio — Crear Cuenta</title>
+    <title>AStudio — Crear Cuenta</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
@@ -17,7 +17,7 @@
             <div>
                 <div style="filter: brightness(0) invert(1);">
                     <a href="/" class="navbar-logo">
-                        <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+                        <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
                     </a>
                 </div>
                 <div class="brand-sub">Fotografía profesional</div>
@@ -29,7 +29,7 @@
             </div>
             <div class="left-cite">Nuevo usuario</div>
         </div>
-        <div class="left-bottom">© {{ date('Y') }} AS Studio</div>
+        <div class="left-bottom">© {{ date('Y') }} AStudio</div>
     </div>
 
     <!-- Formulario -->

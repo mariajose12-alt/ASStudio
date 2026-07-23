@@ -20,16 +20,15 @@ class Reserva extends Model
         'lugar',
         'descripcion',
         'tipo',
-        'precio_total',
-        'estado',
-        'fotografo_id',
         'motivo_rechazo',
-        'duracion_horas'
+        'duracion_horas',
+        'duracion_horas_propuesta',
     ];
 
     protected $casts = [
-        'fecha_inicio' => 'datetime',
-        'fecha_fin'    => 'datetime',
+        'fecha_inicio'    => 'datetime',
+        'fecha_fin'       => 'datetime',
+        'fecha_solicitud' => 'datetime',
     ];
 
     public function cliente(): BelongsTo

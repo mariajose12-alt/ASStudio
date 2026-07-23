@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConfiguracionNomina extends Model
 {
@@ -27,8 +26,7 @@ class ConfiguracionNomina extends Model
 
     public static function actual(): self
     {
-        return self::firstOrCreate(
-            ['id' => 1],
+        return self::query()->first() ?? self::create(
             [
                 'salario_base_default' => 10000.00,
                 'incentivos_activos'   => false,

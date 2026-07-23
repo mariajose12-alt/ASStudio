@@ -14,7 +14,7 @@ class SolicitudAyudanteFotografo extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Solicitud de ayudante para una sesión '
+            subject: 'Solicitud de ayudante para una sesión',
         );
     }
 

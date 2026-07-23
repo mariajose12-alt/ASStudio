@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Comprobante extends Model
 {
@@ -14,27 +14,27 @@ class Comprobante extends Model
 
     protected $fillable = [
         'archivo_key',
-        'monto_detectado',
         'fecha_detectada',
-        'banco_detectado',
-        'referencia_detectada',
-        'estado_ocr',
-        'respuesta_ocr_raw',
     ];
 
     protected $casts = [
         'monto_detectado'   => 'decimal:2',
         'fecha_detectada'   => 'date',
         'respuesta_ocr_raw' => 'array',
+        'cuenta_destino_valida' => 'boolean',
         'created_at'        => 'datetime',
         'updated_at'        => 'datetime',
     ];
 
     // ── Relaciones ──────────────────────────────────────────────
 
-    public function pago(): BelongsTo
+    /**
+     * La FK vive en la tabla `pagos` (pagos.comprobante_id), no en `comprobantes`.
+     * Por eso es hasOne y no belongsTo.
+     */
+    public function pago(): HasOne
     {
-        return $this->belongsTo(Pago::class);
+        return $this->hasOne(Pago::class);
     }
 
     // ── Helpers ─────────────────────────────────────────────────
@@ -61,6 +61,29 @@ class Comprobante extends Model
         }
 
         return abs((float) $this->monto_detectado - $montoEsperado) <= $tolerancia;
+    }
+
+    public function marcarProcesado(array $datos): void
+    {
+        $this->monto_detectado          = $datos['monto']             ?? null;
+        $this->fecha_detectada          = $datos['fecha']              ?? null;
+        $this->banco_detectado          = $datos['banco']              ?? null;
+        $this->referencia_detectada     = $datos['referencia']         ?? null;
+        $this->cuenta_destino_detectada = $datos['cuentaDestino']      ?? null;
+        $this->cuenta_destino_valida    = $datos['cuentaValida']       ?? null;
+        $this->fecha_comprobante_valida = $datos['fechaValida']        ?? null;
+        $this->estado_ocr               = 'PROCESADO';
+        $this->respuesta_ocr_raw        = ['texto_completo' => $datos['textoCompleto'] ?? null];
+        $this->save();
+    }
+
+    public function marcarFallido(?string $motivo = null): void
+    {
+        $this->estado_ocr = 'FALLIDO';
+        if ($motivo) {
+            $this->respuesta_ocr_raw = ['error' => $motivo];
+        }
+        $this->save();
     }
 
     // ── Scopes ──────────────────────────────────────────────────

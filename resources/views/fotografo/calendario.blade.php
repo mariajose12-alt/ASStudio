@@ -2,43 +2,41 @@
 @section('title', 'Calendario de Reservas')
 
 @section('content')
-
-    {{-- ── HEADER ──────────────────────────────────────────── --}}
-    <div class="cal-header">
-        <div class="cal-header__actions">
-            <div class="cal-legend">
-            <span class="cal-legend__item">
-                <span class="cal-legend__dot" style="background:#059669;"></span> Confirmada
-            </span>
-                <span class="cal-legend__item">
-                <span class="cal-legend__dot" style="background:#d97706;"></span> Pendiente
-            </span>
-                <span class="cal-legend__item">
-                <span class="cal-legend__dot" style="background:#9ca3af;"></span> Completada
-            </span>
-                <span class="cal-legend__item">
-                <span class="cal-legend__dot" style="background:#dc2626;"></span> Cancelada
-            </span>
-            </div>
-        </div>
-    </div>
-
     {{-- ── LAYOUT 2 COLUMNAS ───────────────────────────────── --}}
     <div class="cal-page">
 
-        {{-- ── COLUMNA PRINCIPAL: CALENDARIO ──────────────────── --}}
+        {{-- ── COLUMNA PRINCIPAL: CALENDARIO CUSTOM ───────────── --}}
         <div>
             <div class="cal-main-card">
                 <div class="cal-main-card__inner">
-                    <div id="calendario"></div>
+
+                    <div class="cal-toolbar">
+                        <button class="cal-nav-btn" id="btn-mes-anterior" aria-label="Mes anterior">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"/>
+                            </svg>
+                        </button>
+                        <div class="cal-toolbar__title" id="cal-titulo-mes"></div>
+                        <button class="cal-nav-btn" id="btn-mes-siguiente" aria-label="Mes siguiente">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="cal-weekdays">
+                        <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+                    </div>
+
+                    <div class="cal-grid" id="cal-grid"></div>
+
                 </div>
             </div>
         </div>
 
-        {{-- ── COLUMNA LATERAL: DETAIL + STATS ────────────────── --}}
+        {{-- ── COLUMNA LATERAL: DETAIL + STATS (sin cambios) ──── --}}
         <div class="cal-sidebar">
 
-            {{-- Panel vacío (visible por defecto) --}}
             <div class="cal-empty-panel" id="panel-vacio">
                 <div class="cal-empty-panel__icon">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -49,7 +47,6 @@
                 <p class="cal-empty-panel__text">Haz clic en cualquier evento del calendario para ver sus detalles aquí.</p>
             </div>
 
-            {{-- Panel de detalle (oculto hasta clic) --}}
             <div class="cal-detail-panel" id="panel-detalle">
                 <div class="cal-detail-panel__accent"></div>
                 <div class="cal-detail-panel__body">
@@ -119,7 +116,6 @@
                 </div>
             </div>
 
-            {{-- Panel resumen mensual --}}
             <div class="cal-summary-panel">
                 <div class="cal-summary-panel__header">
                     <div class="cal-summary-panel__title">Resumen del mes</div>
@@ -159,7 +155,27 @@
         </div>
     </div>
 
-    {{-- ── MODAL (usado en mobile cuando el sidebar está abajo) ── --}}
+    {{-- ── HEADER ──────────────────────────────────────────── --}}
+    <div class="cal-header">
+        <div class="cal-header__actions">
+            <div class="cal-legend">
+                <span class="cal-legend__item">
+                    <span class="cal-legend__dot" style="background:#059669;"></span> Confirmada
+                </span>
+                <span class="cal-legend__item">
+                    <span class="cal-legend__dot" style="background:#d97706;"></span> Pendiente
+                </span>
+                <span class="cal-legend__item">
+                    <span class="cal-legend__dot" style="background:#9ca3af;"></span> Completada
+                </span>
+                <span class="cal-legend__item">
+                    <span class="cal-legend__dot" style="background:#dc2626;"></span> Cancelada
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── MODAL (mobile) ── --}}
     <div id="cal-modal-overlay" class="cal-modal-overlay" role="dialog" aria-modal="true">
         <div class="cal-modal">
             <div class="cal-modal__accent"></div>
@@ -203,186 +219,213 @@
 @endsection
 
 @push('scripts')
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/es.global.min.js"></script>
-
     <script>
-        /* ── Colores por estado ───────────────────────────── */
-        const ESTADO_COLORS = {
-            confirmada:  { bg: '#059669', text: '#fff' },
-            pendiente:   { bg: '#f59e0b', text: '#fff' },
-            completada:  { bg: '#9ca3af', text: '#fff' },
-            cancelada:   { bg: '#ef4444', text: '#fff' },
-        };
+        (function() {
+            const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-        function colorForEvent(estado) {
-            const key = (estado || '').toLowerCase();
-            return ESTADO_COLORS[key] || { bg: '#e87722', text: '#fff' };
-        }
+            let fechaActual = new Date();
+            fechaActual.setDate(1);
 
-        function estadoBadgeHTML(estado) {
-            const map = {
-                confirmada:  'estado-confirmada',
-                pendiente:   'estado-pendiente',
-                completada:  'estado-completada',
-                cancelada:   'estado-cancelada',
+            const ESTADO_COLORS = {
+                confirmada: { bg: '#059669', text: '#fff' },
+                pendiente:  { bg: '#f59e0b', text: '#fff' },
+                completada: { bg: '#9ca3af', text: '#fff' },
+                cancelada:  { bg: '#ef4444', text: '#fff' },
             };
-            const key   = (estado || '').toLowerCase();
-            const cls   = map[key] || 'estado-default';
-            const label = estado ? estado.charAt(0).toUpperCase() + estado.slice(1) : '—';
-            return `<span class="estado-badge ${cls}">${label}</span>`;
-        }
 
-        /* ── Detección mobile (sidebar vs modal) ─────────── */
-        function isMobile() {
-            return window.innerWidth <= 1100;
-        }
-
-        /* ── Abrir detalle ───────────────────────────────── */
-        function abrirDetalle(info) {
-            const p     = info.event.extendedProps;
-            const fecha = info.event.start
-                ? info.event.start.toLocaleString('es-DO', { dateStyle:'long', timeStyle:'short' })
-                : '—';
-            const titulo = info.event.title || '—';
-
-            if (isMobile()) {
-                // Modal
-                document.getElementById('modal-titulo-v2').textContent  = titulo;
-                document.getElementById('modal-cliente-v2').textContent = p.cliente || '—';
-                document.getElementById('modal-tipo-v2').textContent    = p.tipo    || '—';
-                document.getElementById('modal-lugar-v2').textContent   = p.lugar   || '—';
-                document.getElementById('modal-inicio-v2').textContent  = fecha;
-                document.getElementById('modal-estado-v2').innerHTML    = estadoBadgeHTML(p.estado);
-                document.getElementById('cal-modal-overlay').classList.add('is-open');
-                document.body.style.overflow = 'hidden';
-            } else {
-                // Panel lateral
-                document.getElementById('detail-titulo').textContent  = titulo;
-                document.getElementById('detail-cliente').textContent = p.cliente || '—';
-                document.getElementById('detail-tipo').textContent    = p.tipo    || '—';
-                document.getElementById('detail-lugar').textContent   = p.lugar   || '—';
-                document.getElementById('detail-inicio').textContent  = fecha;
-                document.getElementById('detail-estado').innerHTML    = estadoBadgeHTML(p.estado);
-
-                document.getElementById('panel-vacio').style.display   = 'none';
-                document.getElementById('panel-detalle').classList.add('is-visible');
+            function colorForEvent(estado) {
+                const key = (estado || '').toLowerCase();
+                return ESTADO_COLORS[key] || { bg: '#e87722', text: '#fff' };
             }
-        }
 
-        function cerrarDetalle() {
-            document.getElementById('panel-detalle').classList.remove('is-visible');
-            setTimeout(() => {
-                document.getElementById('panel-vacio').style.display = '';
-            }, 260);
-        }
+            function estadoBadgeHTML(estado) {
+                const map = { confirmada:'estado-confirmada', pendiente:'estado-pendiente', completada:'estado-completada', cancelada:'estado-cancelada' };
+                const key   = (estado || '').toLowerCase();
+                const cls   = map[key] || 'estado-default';
+                const label = estado ? estado.charAt(0).toUpperCase() + estado.slice(1) : '—';
+                return `<span class="estado-badge ${cls}">${label}</span>`;
+            }
 
-        function cerrarModal() {
-            document.getElementById('cal-modal-overlay').classList.remove('is-open');
-            document.body.style.overflow = '';
-        }
+            function isMobile() { return window.innerWidth <= 1100; }
 
-        /* ── Cerrar overlay al click fuera del modal ─────── */
-        document.getElementById('cal-modal-overlay').addEventListener('click', function(e) {
-            if (e.target === this) cerrarModal();
-        });
+            function abrirDetalle(ev) {
+                const fecha  = ev.start ? new Date(ev.start).toLocaleString('es-DO', { dateStyle:'long', timeStyle:'short' }) : '—';
+                const titulo = ev.title || '—';
+                const p      = ev.extendedProps || {};
 
-        /* ── Actualizar contadores de resumen ────────────── */
-        function actualizarResumen(events) {
-            const counts = { confirmada: 0, pendiente: 0, completada: 0, cancelada: 0 };
-            events.forEach(ev => {
-                const key = (ev.extendedProps?.estado || '').toLowerCase();
-                if (counts.hasOwnProperty(key)) counts[key]++;
-            });
-            document.getElementById('count-confirmadas').textContent = counts.confirmada;
-            document.getElementById('count-pendientes').textContent  = counts.pendiente;
-            document.getElementById('count-completadas').textContent = counts.completada;
-            document.getElementById('count-canceladas').textContent  = counts.cancelada;
-        }
+                if (isMobile()) {
+                    document.getElementById('modal-titulo-v2').textContent  = titulo;
+                    document.getElementById('modal-cliente-v2').textContent = p.cliente || '—';
+                    document.getElementById('modal-tipo-v2').textContent    = p.tipo    || '—';
+                    document.getElementById('modal-lugar-v2').textContent   = p.lugar   || '—';
+                    document.getElementById('modal-inicio-v2').textContent  = fecha;
+                    document.getElementById('modal-estado-v2').innerHTML    = estadoBadgeHTML(p.estado);
+                    document.getElementById('cal-modal-overlay').classList.add('is-open');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.getElementById('detail-titulo').textContent  = titulo;
+                    document.getElementById('detail-cliente').textContent = p.cliente || '—';
+                    document.getElementById('detail-tipo').textContent    = p.tipo    || '—';
+                    document.getElementById('detail-lugar').textContent   = p.lugar   || '—';
+                    document.getElementById('detail-inicio').textContent  = fecha;
+                    document.getElementById('detail-estado').innerHTML    = estadoBadgeHTML(p.estado);
 
-        /* ── Inicializar FullCalendar ────────────────────── */
-        document.addEventListener('DOMContentLoaded', function () {
-            const cal = new FullCalendar.Calendar(document.getElementById('calendario'), {
-                locale:      'es',
-                initialView: 'dayGridMonth',
-                headerToolbar: {
-                    left:   'prev,next today',
-                    center: 'title',
-                    right:  'dayGridMonth,timeGridWeek,timeGridDay',
-                },
+                    const panelDetalle = document.getElementById('panel-detalle');
+                    document.getElementById('panel-vacio').style.display = 'none';
+                    panelDetalle.style.display = 'block';
+                    requestAnimationFrame(() => panelDetalle.classList.add('is-visible'));
+                }
+            }
 
-                events: function(info, successCallback, failureCallback) {
-                    fetch('{{ route("fotografo.calendario.json") }}?start=' + info.startStr + '&end=' + info.endStr)
-                        .then(r => r.json())
-                        .then(data => {
-                            // Aplicar colores por estado
-                            const eventos = data.map(ev => {
-                                const c = colorForEvent(ev.extendedProps?.estado || ev.estado);
-                                return {
-                                    ...ev,
-                                    backgroundColor: c.bg,
-                                    textColor:       c.text,
-                                    borderColor:     'transparent',
-                                };
-                            });
-                            actualizarResumen(eventos);
-                            successCallback(eventos);
-                        })
-                        .catch(failureCallback);
-                },
+            window.cerrarDetalle = function() {
+                const panelDetalle = document.getElementById('panel-detalle');
+                panelDetalle.classList.remove('is-visible');
+                setTimeout(() => {
+                    panelDetalle.style.display = 'none';
+                    document.getElementById('panel-vacio').style.display = '';
+                }, 260);
+            };
 
-                eventClick: abrirDetalle,
+            window.cerrarModal = function() {
+                document.getElementById('cal-modal-overlay').classList.remove('is-open');
+                document.body.style.overflow = '';
+            };
 
-                // Dot indicator en días con eventos (vista mes)
-                dayCellDidMount: function(arg) {
-                    // handled via CSS
-                },
-
-                // Altura adaptativa
-                height: 'auto',
-
-                // Vista semana/día: mostrar hora actual
-                nowIndicator: true,
-
-                // Tiempo en formato 12h estilo DR
-                eventTimeFormat: {
-                    hour:   'numeric',
-                    minute: '2-digit',
-                    meridiem: 'short',
-                },
-
-                // Días de la semana: empezar en lunes
-                firstDay: 1,
-
-                // Mostrar slots de tiempo completos en vista week/day
-                slotMinTime: '07:00:00',
-                slotMaxTime: '21:00:00',
-                slotDuration: '00:30:00',
-
-                // Más eventos: popover estilo nativo
-                dayMaxEvents: 3,
-                moreLinkContent: function(args) {
-                    return '+' + args.num + ' más';
-                },
-
-                // Animación al cambiar mes
-                datesSet: function(info) {
-                    // Pequeña animación al navegar
-                    const el = document.getElementById('calendario');
-                    el.style.opacity = '0.7';
-                    el.style.transform = 'translateY(4px)';
-                    setTimeout(() => {
-                        el.style.opacity   = '1';
-                        el.style.transform = 'translateY(0)';
-                    }, 180);
-                },
+            document.getElementById('cal-modal-overlay').addEventListener('click', function(e) {
+                if (e.target === this) cerrarModal();
             });
 
-            // Transición suave en el calendario
-            document.getElementById('calendario').style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+            function actualizarResumen(eventosDelMes) {
+                const counts = { confirmada: 0, pendiente: 0, completada: 0, cancelada: 0 };
+                eventosDelMes.forEach(ev => {
+                    const key = (ev.extendedProps?.estado || '').toLowerCase();
+                    if (counts.hasOwnProperty(key)) counts[key]++;
+                });
+                document.getElementById('count-confirmadas').textContent = counts.confirmada;
+                document.getElementById('count-pendientes').textContent  = counts.pendiente;
+                document.getElementById('count-completadas').textContent = counts.completada;
+                document.getElementById('count-canceladas').textContent  = counts.cancelada;
+            }
 
-            cal.render();
-        });
+            function fechaISO(d) {
+                return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+            }
+
+            function renderCalendario() {
+                const anio = fechaActual.getFullYear();
+                const mes  = fechaActual.getMonth();
+
+                document.getElementById('cal-titulo-mes').textContent = MESES[mes] + ' ' + anio;
+
+                const primerDia       = new Date(anio, mes, 1);
+                const diasEnMes       = new Date(anio, mes + 1, 0).getDate();
+                const diasMesAnterior = new Date(anio, mes, 0).getDate();
+
+                let offset = primerDia.getDay() - 1; // lunes = 0
+                if (offset < 0) offset = 6;
+
+                const totalCeldas = Math.ceil((offset + diasEnMes) / 7) * 7;
+
+                const rangoInicio = new Date(anio, mes, 1 - offset);
+                const rangoFin    = new Date(anio, mes, diasEnMes + (totalCeldas - offset - diasEnMes));
+
+                fetch(`{{ route('fotografo.calendario.json') }}?start=${fechaISO(rangoInicio)}&end=${fechaISO(rangoFin)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const eventosPorDia = {};
+                        const eventosDelMesActual = [];
+
+                        data.forEach(ev => {
+                            const c = colorForEvent(ev.extendedProps?.estado || ev.estado);
+                            const evento = { ...ev, backgroundColor: c.bg, textColor: c.text };
+                            const fEv = fechaISO(new Date(ev.start));
+
+                            if (!eventosPorDia[fEv]) eventosPorDia[fEv] = [];
+                            eventosPorDia[fEv].push(evento);
+
+                            const d = new Date(ev.start);
+                            if (d.getMonth() === mes && d.getFullYear() === anio) {
+                                eventosDelMesActual.push(evento);
+                            }
+                        });
+
+                        actualizarResumen(eventosDelMesActual);
+                        pintarGrid(anio, mes, offset, diasEnMes, diasMesAnterior, totalCeldas, eventosPorDia);
+                    })
+                    .catch(err => console.error('Error cargando calendario:', err));
+            }
+
+            function pintarGrid(anio, mes, offset, diasEnMes, diasMesAnterior, totalCeldas, eventosPorDia) {
+                const grid = document.getElementById('cal-grid');
+                grid.innerHTML = '';
+
+                const hoyISO = fechaISO(new Date());
+                const maxVisible = 3;
+
+                for (let i = 0; i < totalCeldas; i++) {
+                    let diaNum, esOtroMes = false, fechaCelda;
+
+                    if (i < offset) {
+                        diaNum = diasMesAnterior - offset + i + 1;
+                        fechaCelda = new Date(anio, mes - 1, diaNum);
+                        esOtroMes = true;
+                    } else if (i < offset + diasEnMes) {
+                        diaNum = i - offset + 1;
+                        fechaCelda = new Date(anio, mes, diaNum);
+                    } else {
+                        diaNum = i - offset - diasEnMes + 1;
+                        fechaCelda = new Date(anio, mes + 1, diaNum);
+                        esOtroMes = true;
+                    }
+
+                    const fISO = fechaISO(fechaCelda);
+                    const eventosDia = eventosPorDia[fISO] || [];
+
+                    const celda = document.createElement('div');
+                    celda.className = 'cal-day' + (esOtroMes ? ' cal-day--otro-mes' : '') + (fISO === hoyISO ? ' cal-day--hoy' : '');
+
+                    let eventosHTML = '';
+                    eventosDia.forEach((ev, idx) => {
+                        const oculto = idx >= maxVisible ? ' cal-day__evento--oculto' : '';
+                        eventosHTML += `<div class="cal-day__evento${oculto}" data-idx="${idx}" data-fecha="${fISO}" style="background:${ev.backgroundColor};color:${ev.textColor}">${ev.title || 'Reserva'}</div>`;
+                    });
+                    if (eventosDia.length > maxVisible) {
+                        eventosHTML += `<div class="cal-day__mas" data-fecha="${fISO}">+${eventosDia.length - maxVisible} más</div>`;
+                    }
+
+                    celda.innerHTML = `<div class="cal-day__numero">${diaNum}</div><div class="cal-day__eventos">${eventosHTML}</div>`;
+                    grid.appendChild(celda);
+                }
+
+                grid.querySelectorAll('.cal-day__evento').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const fecha = this.dataset.fecha;
+                        const idx   = parseInt(this.dataset.idx, 10);
+                        const ev    = (eventosPorDia[fecha] || [])[idx];
+                        if (ev) abrirDetalle(ev);
+                    });
+                });
+
+                grid.querySelectorAll('.cal-day__mas').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const contenedor = this.previousElementSibling ? this.parentElement : this.parentElement;
+                        this.parentElement.querySelectorAll('.cal-day__evento--oculto').forEach(ev => ev.classList.remove('cal-day__evento--oculto'));
+                        this.remove();
+                    });
+                });
+            }
+
+            document.getElementById('btn-mes-anterior').addEventListener('click', function() {
+                fechaActual.setMonth(fechaActual.getMonth() - 1);
+                renderCalendario();
+            });
+
+            document.getElementById('btn-mes-siguiente').addEventListener('click', function() {
+                fechaActual.setMonth(fechaActual.getMonth() + 1);
+                renderCalendario();
+            });
+
+            renderCalendario();
+        })();
     </script>
 @endpush

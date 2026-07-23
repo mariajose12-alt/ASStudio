@@ -3,9 +3,8 @@
 namespace App\Listeners;
 
 use App\Events\PagoConfirmado;
-use App\Mail\PagoConfirmadoCliente;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Support\Facades\Mail;
+use App\Notifications\PagoConfirmadoCliente;
 
 class AvanzarReservaPorPagoConfirmado implements ShouldQueue
 {
@@ -22,8 +21,9 @@ class AvanzarReservaPorPagoConfirmado implements ShouldQueue
             default                => null,
         };
 
-        $email = $pago->cliente->usuario->email;
-
-        Mail::to($email)->send(new PagoConfirmadoCliente($reserva));
+        $usuario = $pago->cliente->usuario;
+        if ($usuario) {
+            $usuario->notify(new PagoConfirmadoCliente($pago));
+        }
     }
 }

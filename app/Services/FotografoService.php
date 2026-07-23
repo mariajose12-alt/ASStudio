@@ -49,8 +49,6 @@ class FotografoService
 
     public function __construct()
     {
-        $this->fotografo    = Auth::user()->empleado->fotografo;
-        $this->fotografoId  = $this->fotografo->id;
         $this->hoy          = Carbon::now();
         $this->inicioMes    = $this->hoy->copy()->startOfMonth();
         $this->finMes       = $this->hoy->copy()->endOfMonth();
@@ -58,8 +56,11 @@ class FotografoService
         $this->finMesAnt    = $this->hoy->copy()->subMonth()->endOfMonth();
     }
 
-    public function getData(): array
+    public function getData(Fotografo $fotografo): array
     {
+        $this->fotografo   = $fotografo;
+        $this->fotografoId = $fotografo->id;
+
         return [
             'fotografo'        => $this->fotografo->load('empleado.usuario.persona'),
             'sesionesProximas' => $this->sesionesProximas(),
@@ -264,14 +265,5 @@ class FotografoService
             ->orderBy('fecha_inicio')
             ->limit(8)
             ->get();
-    }
-
-    public function cambiarEstadoReserva(Reserva $reserva, string $estado): void
-    {
-        $reserva->update(['estado' => $estado]);
-
-        // Aquí después se disparará el evento de notificación al cliente
-        // esta vaina no se ha hecho
-        // ReservaEstadoCambiado::dispatch($reserva);
     }
 }

@@ -3,7 +3,7 @@
 @section('formulario')
 <div class="reserva-logo">
     <a href="/" class="navbar-logo">
-        <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+        <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
     </a>
 </div>
 

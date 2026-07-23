@@ -2,7 +2,7 @@
 <nav class="navbar-landing" id="navbar">
     <a href="/" class="navbar-logo">
         <img src="{{ asset('images/' . ($logoOverride ?? 'logo.png')) }}"
-             alt="AS Studio"
+             alt="AStudio"
              height="40"
              @if(!empty($logoOverride)) style="filter: brightness(0);" @endif>
     </a>
@@ -42,18 +42,31 @@
         </div>
     @endauth
 
-    <button class="navbar-hamburger" id="hamburger" aria-label="Menú">
-        <span></span><span></span><span></span>
-    </button>
+    <div class="navbar-hamburger-wrap">
+        <button class="navbar-hamburger" id="hamburger" aria-label="Menú">
+            <span></span><span></span><span></span>
+        </button>
+        @auth
+            <span class="navbar-hamburger__badge" id="hamburgerBadge" style="display:none;" aria-hidden="true"></span>
+        @endauth
+    </div>
 </nav>
 
 {{-- Mobile drawer --}}
 <div class="navbar-mobile-menu" id="mobileMenu">
+    @auth
+        <a href="#" class="mobile-notif-link" id="mobileNotifLink">
+            <span>Notificaciones</span>
+            <span class="mobile-notif-badge" id="mobileNotifBadge" style="display:none;" aria-hidden="true"></span>
+        </a>
+    @endauth
     @foreach($navLinks as $link)
         <a href="{{ $link['href'] }}" onclick="closeMobileMenu()">{{ $link['label'] }}</a>
     @endforeach
     @auth
-        <a href="{{ $dashboardRoute }}" onclick="closeMobileMenu()">Mi cuenta</a>
+        @if(!empty($showMiCuenta))
+            <a href="{{ $dashboardRoute }}" onclick="closeMobileMenu()">Mi cuenta</a>
+        @endif
     @else
         <a href="{{ route('login') }}"    onclick="closeMobileMenu()">Iniciar sesión</a>
         <a href="{{ route('register') }}" onclick="closeMobileMenu()">Registrarse</a>

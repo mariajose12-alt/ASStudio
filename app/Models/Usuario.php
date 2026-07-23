@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,6 +34,9 @@ class Usuario extends Authenticatable
         'verificado' => 'boolean',
     ];
 
+    protected $appends = [
+        'tiene_google_vinculado'
+    ];
 
     public function getAuthPassword(): string
     {
@@ -102,4 +105,15 @@ class Usuario extends Authenticatable
     {
         return $this->verificado === true;
     }
+
+    public function activacionesCuenta(): HasMany
+    {
+        return $this->hasMany(ActivacionCuenta::class, 'usuario_id');
+    }
+
+    protected function tieneGoogleVinculado(): Attribute
+    {
+        return Attribute::get(fn () => !is_null($this->google_id));
+    }
+
 }

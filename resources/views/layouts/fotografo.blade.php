@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AS Studio — @yield('title', 'Panel Fotógrafo')</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>AStudio — @yield('title', 'Panel Fotógrafo')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x.x/dist/tabler-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
     <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
     @stack('styles')
@@ -23,12 +25,13 @@
     $logoOverride = null;
 @endphp
 @include('partials.navbar')
+@include('partials.notif-panel')
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <aside class="sidebar">
     <div class="sidebar-logo">
         <a href="/" class="navbar-logo">
-            <img src="{{ asset('images/logo.png') }}" alt="AS Studio" height="45">
+            <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
         </a>
         <div class="brand-sub">Panel Fotógrafo</div>
     </div>
@@ -95,22 +98,25 @@
             <div>
                 <h1 class="page-title">@yield('title', 'Dashboard')</h1>
                 @hasSection('subtitle')
-                <p style="color:var(--muted); font-size:14px; margin:8px 0 0 0;">@yield('subtitle')</p>
+                    <p style="color:var(--muted); font-size:14px; margin:8px 0 0 0;">@yield('subtitle')</p>
                 @endif
             </div>
         </div>
-        <div>@yield('topbar-actions')</div>
+        <div style="display:flex; align-items:center; gap:14px;">
+            @yield('topbar-actions')
+            @include('partials.notificaciones')
+        </div>
     </div>
     <div class="content">
         @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success">{{ session('success') }}</div>
         @endif
         @if($errors->any())
-        <div class="alert alert-error">
-            @foreach($errors->all() as $error)
-            <div>{{ $error }}</div>
-            @endforeach
-        </div>
+            <div class="alert alert-error">
+                @foreach($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
         @endif
         @yield('content')
     </div>
@@ -154,13 +160,14 @@
             display: flex !important;
         }
 
-        .layout {
-            padding-top: 80px; /* altura del navbar (~64px) + un poco de aire */
+        .main {
+            padding-top: 80px; /* altura del navbar flotante (~64px) + un poco de aire */
         }
 
         .navbar-mobile-menu {
             display: flex; /* necesario; la clase .open controla opacity/pointer-events */
         }
+
         /* Ocultar los links de escritorio dentro del navbar en móvil */
         .navbar-links {
             display: none !important;
@@ -168,6 +175,7 @@
     }
 </style>
 
+<script src="{{ asset('js/notificaciones.js') }}"></script>
 <script>
     function toggleSidebar() {
         document.querySelector('.sidebar').classList.toggle('open');

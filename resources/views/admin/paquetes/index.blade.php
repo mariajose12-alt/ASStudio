@@ -1,15 +1,11 @@
 @extends('layouts.admin')
 @section('title', 'Paquetes Fotográficos')
 
-@section('topbar-actions')
-    <a href="{{ route('admin.paquetes.create') }}" class="btn btn-primary btn-sm">+ Nuevo Paquete</a>
-@endsection
-
 @section('content')
     <div class="card">
         <div class="card-header">
             <h2>Lista de Paquetes Fotográficos</h2>
-            <span style="font-size:12px; color:var(--muted);">{{ $paquetes->total() }} paquetes en total</span>
+            <a href="{{ route('admin.paquetes.create') }}" class="btn btn-primary btn-sm">+ Nuevo Paquete</a>
         </div>
         <div class="table-wrap">
             <table>

@@ -4,10 +4,6 @@
 
 @section('content')
 
-    @php
-        $pago = $reserva->pagos()->where('estado', 'RECHAZADO')->latest('fecha_completado')->first();
-    @endphp
-
     {{-- Badge de estado --}}
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">
         <tr>
@@ -30,34 +26,40 @@
         y no pudimos confirmarlo. Este es el motivo:
     </p>
 
-    {{-- Motivo del rechazo --}}
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-           style="background-color:#fdecea;border:1px solid rgba(217,48,37,0.2);border-radius:10px;margin-bottom:28px;">
-        <tr>
-            <td style="padding:20px 24px;">
-                <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;color:#9a2a1c;line-height:1.6;">
-                    {{ $pago->motivo_rechazo }}
-                </p>
-            </td>
-        </tr>
-    </table>
+    @if($pago)
+        {{-- Motivo del rechazo --}}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="background-color:#fdecea;border:1px solid rgba(217,48,37,0.2);border-radius:10px;margin-bottom:28px;">
+            <tr>
+                <td style="padding:20px 24px;">
+                    <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;color:#9a2a1c;line-height:1.6;">
+                        {{ $pago->motivo_rechazo }}
+                    </p>
+                </td>
+            </tr>
+        </table>
 
-    <p style="margin:0 0 32px;font-family:Arial,sans-serif;font-size:15px;color:#4a4a4a;line-height:1.7;">
-        No te preocupes, puedes subir un nuevo comprobante directamente desde tu panel.
-        El monto pendiente sigue siendo
-        <strong style="color:#1a0d00;">RD$ {{ number_format($pago->monto, 2) }}</strong>.
-    </p>
+        <p style="margin:0 0 32px;font-family:Arial,sans-serif;font-size:15px;color:#4a4a4a;line-height:1.7;">
+            No te preocupes, puedes subir un nuevo comprobante directamente desde tu panel.
+            El monto pendiente sigue siendo
+            <strong style="color:#1a0d00;">RD$ {{ number_format($pago->monto, 2) }}</strong>.
+        </p>
 
-    {{-- Botón CTA --}}
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
-        <tr>
-            <td style="border-radius:999px;background-color:#e87722;">
-                <a href="{{ route('cliente.pagos.comprobante.form', $pago->id) }}" target="_blank"
-                   style="display:inline-block;padding:14px 36px;font-family:Arial,sans-serif;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;letter-spacing:0.3px;">
-                    Subir nuevo comprobante
-                </a>
-            </td>
-        </tr>
-    </table>
+        {{-- Botón CTA --}}
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+            <tr>
+                <td style="border-radius:999px;background-color:#e87722;">
+                    <a href="{{ route('cliente.pagos.comprobante.form', $pago->id) }}" target="_blank"
+                       style="display:inline-block;padding:14px 36px;font-family:Arial,sans-serif;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;letter-spacing:0.3px;">
+                        Subir nuevo comprobante
+                    </a>
+                </td>
+            </tr>
+        </table>
+    @else
+        <p style="margin:0 0 24px;font-family:Arial,sans-serif;font-size:15px;color:#4a4a4a;line-height:1.7;">
+            No pudimos encontrar el detalle de este pago. Por favor contacta a soporte.
+        </p>
+    @endif
 
 @endsection

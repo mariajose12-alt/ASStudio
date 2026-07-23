@@ -1,11 +1,15 @@
 <?php
 
+use App\Http\Controllers\ActivacionCuentaController;
+use App\Http\Controllers\BloqueoEstudioController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ClientePagoController;
 use App\Http\Controllers\DisponibilidadController;
 use App\Http\Controllers\FotografiaController;
 use App\Http\Controllers\FotografoNominaController;
 use App\Http\Controllers\FotografoReservaController;
+use App\Http\Controllers\NotificacionController;
+use App\Http\Controllers\PasswordOlvidadoController;
 use App\Http\Controllers\SesionController;
 use Illuminate\Support\Facades\Route;
 
@@ -74,23 +78,31 @@ Route::get('/preview-mail', function () {
     return new App\Mail\ReservaModificadaCliente($reserva);
 });
 
+Route::prefix('notificaciones')->name('notificaciones.')->group(function () {
+    Route::get('/', [NotificacionController::class, 'index'])->name('index');
+    Route::patch('/marcar-leidas', [NotificacionController::class, 'marcarLeidas'])->name('marcar-leidas');
+    Route::patch('/{id}/marcar-leida', [NotificacionController::class, 'marcarLeida'])->name('marcar-leida');
+});
+
 // AUTENTICACIÓN
 
 Route::get('/login',    [LoginController::class, 'showForm'])->name('login');
-Route::post('/login',   [LoginController::class, 'login'])->name('login.post');
+Route::post('/login',   [LoginController::class, 'login'])->middleware('throttle:5,1')->name('login.post');
 Route::post('/logout',  [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showForm'])->name('register');
 Route::get('/verificar-email/{token}', [RegisterController::class, 'verificar'])->name('verificar.email');
-Route::post('/register',[RegisterController::class, 'register'])->name('register.post');
+Route::post('/register',[RegisterController::class, 'register'])->middleware('throttle:5,1')->name('register.post');
 Route::get('/auth/google',          [GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
+Route::get('/activar-cuenta/{usuario}/{token}', [ActivacionCuentaController::class, 'mostrar'])->name('activacion.mostrar');
+Route::post('/activar-cuenta/{usuario}/{token}', [ActivacionCuentaController::class, 'procesar'])->name('activacion.procesar');
+Route::get('/olvide-password',  [PasswordOlvidadoController::class, 'mostrarFormulario'])->name('password.olvidada.form');
+Route::post('/olvide-password', [PasswordOlvidadoController::class, 'enviarLink'])->middleware('throttle:3,1')->name('password.olvidada.enviar');
 
 // AUTENTICADO — sin rol específico (perfil + reservas cliente)
 Route::middleware('auth')->group(function () {
 
     // Perfil
-    Route::get('/profile',    [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile',  [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
 });
@@ -107,7 +119,6 @@ Route::middleware(['auth', 'rol:ADMINISTRADOR'])
         Route::post('/nomina/calcular', [AdminController::class, 'calcularNomina'])->name('nomina.calcular');
         Route::get('/nomina/{nomina}/resumen', [AdminController::class, 'nominaResumen'])->name('nomina.resumen');
         Route::get('/nomina/{nomina}/pdf', [AdminController::class, 'nominaExportarPdf'])->name('nomina.pdf');
-
         Route::post('/nomina/{nomina}/confirmar', [AdminController::class, 'nominaConfirmar'])->name('nomina.confirmar');
         Route::post('/nomina/{nomina}/pagar', [AdminController::class, 'nominaPagar'])->name('nomina.pagar');
 
@@ -116,6 +127,8 @@ Route::middleware(['auth', 'rol:ADMINISTRADOR'])
         Route::delete('/nomina/disputa/{detalle}/participacion/{participacion}', [AdminController::class, 'nominaDisputaEliminarParticipacion'])->name('nomina.disputa.eliminar');
         Route::post('/nomina/disputa/{detalle}/aceptar', [AdminController::class, 'nominaDisputaAceptar'])->name('nomina.disputa.aceptar');
         Route::post('/nomina/disputa/{detalle}/rechazar', [AdminController::class, 'nominaDisputaRechazar'])->name('nomina.disputa.rechazar');
+        Route::get('/metas', [AdminController::class, 'metasEdit'])->name('metas.edit');
+        Route::post('/metas', [AdminController::class, 'metasActualizar'])->name('metas.actualizar');
 
         Route::post('/nomina/configuracion/parametros', [AdminController::class, 'nominaConfiguracionParametros'])->name('nomina.configuracion.parametros');
         Route::post('/nomina/configuracion/incentivos', [AdminController::class, 'nominaConfiguracionIncentivos'])->name('nomina.configuracion.incentivos');
@@ -127,13 +140,16 @@ Route::middleware(['auth', 'rol:ADMINISTRADOR'])
 
         Route::get('reservas',                    [AdminController::class, 'reservasIndex'])->name('reservas.index');
         Route::get('reservas/{reserva}',          [AdminController::class, 'reservasShow'])->name('reservas.show');
-        Route::patch('reservas/{reserva}/estado', [AdminController::class, 'reservasCambiarEstado'])->name('reservas.estado');
 
         Route::get('pagos',                 [AdminController::class, 'pagosIndex'])->name('pagos.index');
         Route::get('pagos/{pago}',          [AdminController::class, 'pagosRevisar'])->name('pagos.revisar');
         Route::post('pagos/{pago}/aprobar', [AdminController::class, 'pagosAprobar'])->name('pagos.aprobar');
         Route::post('pagos/{pago}/rechazar',[AdminController::class, 'pagosRechazar'])->name('pagos.rechazar');
 
+        Route::get('estudio',                              [BloqueoEstudioController::class, 'index'])   ->name('estudio');
+        Route::get('estudio/eventos',                      [BloqueoEstudioController::class, 'eventos'])  ->name('estudio.eventos');
+        Route::post('estudio',                             [BloqueoEstudioController::class, 'store'])    ->name('estudio.store');
+        Route::delete('estudio/{bloqueo}',                 [BloqueoEstudioController::class, 'destroy'])  ->name('estudio.destroy');
     });
 
 // DASHBOARD FOTÓGRAFO

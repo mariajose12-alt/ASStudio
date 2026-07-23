@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
 
 class Cliente extends Model
 {
+    use Notifiable;
+
     protected $table = 'clientes';
 
     protected $fillable = [
@@ -34,5 +37,20 @@ class Cliente extends Model
     public function getPersona(): Persona
     {
         return $this->usuario->persona;
+    }
+
+    public function getTelefonoAttribute()
+    {
+        return $this->getPersona()->telefono ?? null;
+    }
+
+    public function getNombreAttribute()
+    {
+        return $this->getPersona()->nombre ?? null;
+    }
+
+    public function getEmailAttribute()
+    {
+        return $this->usuario->email ?? null;
     }
 }

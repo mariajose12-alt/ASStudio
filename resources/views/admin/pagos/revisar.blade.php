@@ -72,7 +72,12 @@
                     </tr>
                     <tr>
                         <td>Fecha detectada</td>
-                        <td class="revisar-pago-tabla__valor">{{ $pago->comprobante?->fecha_detectada?->format('d/m/Y') ?? 'No detectada' }}</td>
+                        <td class="revisar-pago-tabla__valor" style="{{ $pago->comprobante?->fecha_comprobante_valida === false ? 'color:#c5341f' : '' }}">
+                            {{ $pago->comprobante?->fecha_detectada?->format('d/m/Y') ?? 'No detectada' }}
+                            @if($pago->comprobante?->fecha_comprobante_valida === false)
+                                <span title="La fecha del comprobante es anterior a la fecha de solicitud de la reserva" style="cursor:help;">⚠</span>
+                            @endif
+                        </td>
                     </tr>
                     <tr>
                         <td>Banco detectado</td>
@@ -222,7 +227,10 @@
             gap: 12px;
             margin-bottom: 16px;
         }
-        .revisar-pago-acciones form { flex: 1; }
+        .revisar-pago-acciones form,
+        .revisar-pago-acciones > button {
+            flex: 1;
+        }
         .revisar-pago-btn {
             width: 100%;
             border: none;

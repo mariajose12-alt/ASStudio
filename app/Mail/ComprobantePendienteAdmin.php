@@ -2,14 +2,14 @@
 
 namespace App\Mail;
 
-use App\Models\Reserva;
+use App\Models\Pago;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 
 class ComprobantePendienteAdmin extends Mailable
 {
-    public function __construct(public Reserva $reserva) {}
+    public function __construct(public Pago $pago) {}
 
     public function envelope(): Envelope
     {
@@ -27,8 +27,7 @@ class ComprobantePendienteAdmin extends Mailable
 
     private function asuntoSegunCoincidencia(): string
     {
-        $pago     = $this->reserva->pago;
-        $coincide = $pago?->comprobante?->montoCoincideCon((float) $pago->monto);
+        $coincide = $this->pago->comprobante?->montoCoincideCon((float) $this->pago->monto);
 
         return match ($coincide) {
             true  => 'Comprobante listo para revisión (monto coincide)',

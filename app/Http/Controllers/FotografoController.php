@@ -13,7 +13,9 @@ class FotografoController extends Controller
 
     public function dashboard()
     {
-        return view('fotografo.dashboard', $this->fotografoService->getData());
+        $fotografo = auth()->user()->empleado->fotografo;
+        $data = $this->fotografoService->getData($fotografo);
+        return view('fotografo.dashboard', $data);
     }
 
     public function calendario()

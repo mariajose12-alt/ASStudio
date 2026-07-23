@@ -1,15 +1,12 @@
 @extends('layouts.admin')
 @section('title', 'Catálogos')
 
-@section('topbar-actions')
-    <a href="{{ route('admin.catalogos.create') }}" class="btn btn-primary btn-sm">+ Nuevo Catálogo</a>
-@endsection
 
 @section('content')
     <div class="card">
         <div class="card-header">
             <h2>Lista de Catálogos</h2>
-            <span style="font-size:12px; color:var(--muted);">{{ $catalogos->total() }} catálogos en total</span>
+            <a href="{{ route('admin.catalogos.create') }}" class="btn btn-primary btn-sm">+ Nuevo Catálogo</a>
         </div>
         <div class="table-wrap">
             <table>

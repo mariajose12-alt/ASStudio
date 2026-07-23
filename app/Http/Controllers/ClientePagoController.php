@@ -91,7 +91,7 @@ class ClientePagoController extends Controller
 
         $pago->asociarComprobante($comprobante);
 
-        $pago->update(['estado' => 'EN_REVISION']);
+        $pago->marcarEnRevision();
 
         event(new ComprobanteSubido($comprobante));
 

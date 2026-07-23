@@ -14,6 +14,6 @@ class ConfiguracionNominaSeeder extends Seeder
     public function run(): void
     {
         ConfiguracionNomina::firstOrCreate(['id' => 1],
-            ['salario_base' => '10000']);
+            ['salario_base_default' => '10000']);
     }
 }

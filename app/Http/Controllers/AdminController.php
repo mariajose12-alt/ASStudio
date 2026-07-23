@@ -173,11 +173,10 @@ class AdminController extends Controller
 
         $topeVentasIncentivo = ParametroNomina::valorVigente('tope_ventas_incentivo');
         $porcentajeIncentivo = ParametroNomina::valorVigente('porcentaje_incentivo');
-        $tasaCambioUsd       = ParametroNomina::valorVigente('tasa_cambio_usd');
 
         return view('admin.nomina.nomina', compact(
             'meses', 'anios', 'fotografos', 'nominas', 'disputas',
-            'configuracion', 'parametrosLegales', 'topeVentasIncentivo', 'porcentajeIncentivo', 'tasaCambioUsd'
+            'configuracion', 'parametrosLegales', 'topeVentasIncentivo', 'porcentajeIncentivo'
         ));
     }
 
@@ -491,24 +490,6 @@ class AdminController extends Controller
 
         ParametroNomina::actualizarVersion('tope_ventas_incentivo', (float) $request->tope_ventas_incentivo, now());
         ParametroNomina::actualizarVersion('porcentaje_incentivo', (float) $request->porcentaje_incentivo, now());
-
-        return redirect()->route('admin.nomina', ['tab' => 'configuracion'])
-            ->with('success', 'Parámetros actualizados correctamente. El nuevo valor aplica a partir de hoy.');
-    }
-
-    public function nominaConfiguracionMoneda(Request $request)
-    {
-        $request->validate([
-            'moneda_display'  => 'required|in:RD$,USD',
-            'tasa_cambio_usd' => 'required|numeric|min:0.01',
-        ]);
-
-        ConfiguracionNomina::actual()->update([
-            'moneda_display'     => $request->moneda_display,
-            'actualizado_por_id' => auth()->user()->empleado->administrador->id,
-        ]);
-
-        ParametroNomina::actualizarVersion('tasa_cambio_usd', (float) $request->tasa_cambio_usd, now());
 
         return redirect()->route('admin.nomina', ['tab' => 'configuracion'])
             ->with('success', 'Parámetros actualizados correctamente. El nuevo valor aplica a partir de hoy.');

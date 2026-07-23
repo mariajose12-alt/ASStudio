@@ -11,7 +11,6 @@ class ConfiguracionNomina extends Model
     protected $fillable = [
         'salario_base_default',
         'incentivos_activos',
-        'moneda_display',
         'actualizado_por_id',
     ];
 
@@ -30,7 +29,6 @@ class ConfiguracionNomina extends Model
             [
                 'salario_base_default' => 10000.00,
                 'incentivos_activos'   => false,
-                'moneda_display'       => 'RD$',
             ]
         );
     }

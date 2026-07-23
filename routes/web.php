@@ -132,7 +132,7 @@ Route::middleware(['auth', 'rol:ADMINISTRADOR'])
 
         Route::post('/nomina/configuracion/parametros', [AdminController::class, 'nominaConfiguracionParametros'])->name('nomina.configuracion.parametros');
         Route::post('/nomina/configuracion/incentivos', [AdminController::class, 'nominaConfiguracionIncentivos'])->name('nomina.configuracion.incentivos');
-        Route::post('/nomina/configuracion/moneda', [AdminController::class, 'nominaConfiguracionMoneda'])->name('nomina.configuracion.moneda');
+
 
         Route::resource('empleados', EmpleadoController::class);
         Route::resource('paquetes',  PaqueteController::class);

@@ -1,4 +1,3 @@
-@php use App\Support\Dinero; @endphp
 @extends('layouts.admin')
 @section('title', 'Nómina')
 
@@ -263,28 +262,60 @@
             <div class="card">
                 <div class="card-header">
                     <h2>Parámetros Legales</h2>
-                    <span class="config-nota">Cambios aplican a partir de hoy — no afectan nóminas ya calculadas</span>
+                    <span class="config-nota">
+                        Cambios aplican a partir de hoy — no afectan nóminas ya calculadas
+                     </span>
                 </div>
+
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.nomina.configuracion.parametros') }}">
                         @csrf
-                        <div class="config-grid">
-                            @foreach($etiquetas as $clave => $etiqueta)
-                                <div class="config-field">
-                                    <label for="valor-{{ $clave }}">{{ $etiqueta }}</label>
-                                    <input
-                                        type="number"
-                                        step="0.0001"
-                                        min="0"
-                                        id="valor-{{ $clave }}"
-                                        name="valores[{{ $clave }}]"
-                                        value="{{ old('valores.' . $clave, $parametrosLegales[$clave]) }}"
-                                    >
-                                </div>
-                            @endforeach
+                        <div class="table-wrap config-table-wrap">
+                            <table class="table config-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:55%">Parámetro</th>
+                                        <th style="width:25%; text-align:center;">Valor</th>
+                                        <th style="width:20%; text-align:center;">Unidad</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach($etiquetas as $clave => $etiqueta)
+                                        @php
+                                            $unidad = str_contains(strtolower($etiqueta), '%')
+                                                ? '%'
+                                                : 'RD$';
+                                        @endphp
+                                        <tr>
+                                            <td>
+                                                {{ str_replace([' %',' (RD$)'], '', $etiqueta) }}
+                                            </td>
+
+                                            <td>
+                                                <input
+                                                    class="config-table-input"
+                                                    type="number"
+                                                    step="0.0001"
+                                                    min="0"
+                                                    name="valores[{{ $clave }}]"
+                                                    value="{{ old('valores.' . $clave, $parametrosLegales[$clave]) }}"
+                                                >
+                                            </td>
+
+                                            <td class="config-unit">
+                                                {{ $unidad }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
+
                         <div class="config-acciones">
-                            <button type="submit" class="btn btn-primary">Guardar parámetros legales</button>
+                            <button type="submit" class="btn btn-primary">
+                                Guardar parámetros legales
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -295,102 +326,104 @@
                 <div class="card-header">
                     <h2>Incentivos por Ventas</h2>
                 </div>
+
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.nomina.configuracion.incentivos') }}">
                         @csrf
+                        <input type="hidden" name="incentivos_activos" value="0">
                         <div class="config-toggle-row">
-                            <input type="hidden" name="incentivos_activos" value="0">
-                            <label class="config-toggle">
+                            <div class="config-toggle">
                                 <input
+                                    id="incentivos_activos"
                                     type="checkbox"
                                     name="incentivos_activos"
                                     value="1"
                                     {{ $configuracion->incentivos_activos ? 'checked' : '' }}
                                 >
-                                <span>Activar incentivos por ventas</span>
-                            </label>
-                        </div>
 
-                        <div class="config-grid">
-                            <div class="config-field">
-                                <label for="tope_ventas_incentivo">Tope de ventas mensual (RD$)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    id="tope_ventas_incentivo"
-                                    name="tope_ventas_incentivo"
-                                    value="{{ old('tope_ventas_incentivo', $topeVentasIncentivo) }}"
-                                >
-                            </div>
-                            <div class="config-field">
-                                <label for="porcentaje_incentivo">Porcentaje de incentivo sobre el excedente (%)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    max="100"
-                                    id="porcentaje_incentivo"
-                                    name="porcentaje_incentivo"
-                                    value="{{ old('porcentaje_incentivo', $porcentajeIncentivo) }}"
-                                >
+                                <label for="incentivos_activos" class="config-toggle-label">
+                                    Habilitar incentivos por ventas
+                                </label>
                             </div>
                         </div>
 
-                        <p class="config-nota">
-                            Si un fotógrafo genera más que el tope en comisiones ese mes, se le paga este % sobre el excedente
-                            (lleva TSS e ISR, igual que su bruto normal).
+                        <div
+                            id="tabla-incentivos"
+                            class="table-wrap config-table-wrap {{ !$configuracion->incentivos_activos ? 'config-disabled' : '' }}">
+
+                            <table class="table config-table">
+
+                                <thead>
+                                    <tr>
+                                        <th style="width:60%">Configuración</th>
+                                        <th style="width:25%; text-align:center;">Valor</th>
+                                        <th style="width:15%; text-align:center;">Unidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Tope mensual de ventas</td>
+                                        <td>
+                                            <input
+                                                class="config-table-input"
+                                                id="tope_ventas_incentivo"
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                name="tope_ventas_incentivo"
+                                                value="{{ old('tope_ventas_incentivo', $topeVentasIncentivo) }}"
+                                                {{ !$configuracion->incentivos_activos ? 'disabled' : '' }}>
+                                        </td>
+
+                                        <td class="config-unit">
+                                            RD$
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+
+                                        <td>Porcentaje de incentivo sobre el excedente</td>
+                                        <td>
+
+                                            <input
+                                                class="config-table-input"
+                                                id="porcentaje_incentivo"
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                max="100"
+                                                name="porcentaje_incentivo"
+                                                value="{{ old('porcentaje_incentivo', $porcentajeIncentivo) }}"
+                                                {{ !$configuracion->incentivos_activos ? 'disabled' : '' }}>
+                                        </td>
+
+                                        <td class="config-unit">
+                                            %
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="config-nota" style="margin-top:14px;">
+                            Cuando las comisiones mensuales de un fotógrafo superen el tope
+                            establecido, el sistema calculará automáticamente el incentivo
+                            sobre el monto excedente.
                         </p>
 
                         <div class="config-acciones">
-                            <button type="submit" class="btn btn-primary">Guardar configuración de incentivos</button>
+                            <button
+                                id="btnGuardarIncentivos"
+                                type="submit"
+                                class="btn btn-primary"
+                                {{ !$configuracion->incentivos_activos ? 'disabled' : '' }}>
+                                Guardar configuración
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
-
-            {{-- Sección 3: Moneda --}}
-            <div class="card" style="margin-top:20px;">
-                <div class="card-header">
-                    <h2>Moneda</h2>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ route('admin.nomina.configuracion.moneda') }}">
-                        @csrf
-                        <div class="config-grid">
-                            <div class="config-field">
-                                <label for="moneda_display">Moneda de visualización</label>
-                                <select id="moneda_display" name="moneda_display">
-                                    <option value="RD$" {{ $configuracion->moneda_display === 'RD$' ? 'selected' : '' }}>Pesos dominicanos (RD$)</option>
-                                    <option value="USD" {{ $configuracion->moneda_display === 'USD' ? 'selected' : '' }}>Dólares (USD)</option>
-                                </select>
-                            </div>
-                            <div class="config-field">
-                                <label for="tasa_cambio_usd">Tasa de cambio (RD$ por USD)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0.01"
-                                    id="tasa_cambio_usd"
-                                    name="tasa_cambio_usd"
-                                    value="{{ old('tasa_cambio_usd', $tasaCambioUsd) }}"
-                                >
-                            </div>
-                        </div>
-
-                        <p class="config-nota">
-                            El cálculo interno siempre se hace en pesos — esto solo cambia cómo se muestran los montos en pantalla.
-                        </p>
-
-                        <div class="config-acciones">
-                            <button type="submit" class="btn btn-primary">Guardar configuración de moneda</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
         </div>
-
     </div>
 @endsection
 
@@ -417,6 +450,23 @@
         const tabUrl = new URLSearchParams(window.location.search).get('tab');
         if (tabUrl) {
             activarTab(tabUrl);
+        }
+
+        // Habilitar o deshabilitar los campos de incentivos
+        const chkIncentivos = document.getElementById('incentivos_activos');
+        const tope = document.getElementById('tope_ventas_incentivo');
+        const porcentaje = document.getElementById('porcentaje_incentivo');
+
+        function actualizarEstadoIncentivos() {
+            const activo = chkIncentivos.checked;
+
+            tope.disabled = !activo;
+            porcentaje.disabled = !activo;
+        }
+
+        if (chkIncentivos) {
+            actualizarEstadoIncentivos();
+            chkIncentivos.addEventListener('change', actualizarEstadoIncentivos);
         }
     </script>
 @endpush

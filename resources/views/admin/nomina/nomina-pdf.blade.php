@@ -1,5 +1,4 @@
-@php use App\Support\Dinero; @endphp
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -30,14 +29,14 @@
     <tr>
         <td>Total Salarios Brutos</td>
         <td class="text-right">
-            {{ Dinero::formato($nomina->total_salarios_brutos) }}
+            {{ 'RD$ ' . number_format($nomina->total_salarios_brutos, 2) }}
         </td>
     </tr>
     @if($nomina->total_regalia_pascual > 0)
         <tr>
             <td>Regalía Pascual</td>
             <td class="text-right">
-                {{ Dinero::formato($nomina->total_regalia_pascual) }}
+                {{ 'RD$ ' . number_format($nomina->total_regalia_pascual, 2) }}
             </td>
         </tr>
     @endif
@@ -45,44 +44,44 @@
         <tr>
             <td>Incentivos por Ventas</td>
             <td class="text-right">
-                {{ Dinero::formato($nomina->total_incentivos) }}
+                {{ 'RD$ ' . number_format($nomina->total_incentivos, 2) }}
             </td>
         </tr>
     @endif
     <tr>
         <td>TSS (SFS + AFP empleado)</td>
         <td class="text-right">
-            {{ Dinero::formato($nomina->detalles->sum('descuento_tss')) }}
+            {{ 'RD$ ' . number_format($nomina->detalles->sum('descuento_tss'), 2) }}
         </td>
     </tr>
     <tr>
         <td>Dependientes adicionales (TSS)</td>
         <td class="text-right">
-            {{ Dinero::formato($nomina->detalles->sum('descuento_dependientes')) }}
+            {{ 'RD$ ' . number_format($nomina->detalles->sum('descuento_dependientes'), 2) }}
         </td>
     </tr>
     <tr>
         <td>ISR retenido</td>
         <td class="text-right">
-            {{ Dinero::formato($nomina->total_isr_retenido) }}
+            {{ 'RD$ ' . number_format($nomina->total_isr_retenido, 2) }}
         </td>
     </tr>
     <tr>
         <td>Total retenido a empleados</td>
         <td class="text-right">
-            {{ Dinero::formato($nomina->total_descuentos_legales) }}
+            {{ 'RD$ ' . number_format($nomina->total_descuentos_legales, 2) }}
         </td>
     </tr>
     <tr>
         <td>Aportes patronales (no descontado)</td>
         <td class="text-right">
-            {{ Dinero::formato($nomina->total_aportes_patronales) }}
+            {{ 'RD$ ' . number_format($nomina->total_aportes_patronales, 2) }}
         </td>
     </tr>
     <tr class="total-row">
         <td>Total Neto a Pagar</td>
         <td class="text-right">
-            {{ Dinero::formato($nomina->total_nomina_neta) }}
+            {{ 'RD$ ' . number_format($nomina->total_nomina_neta, 2) }}
         </td>
     </tr>
 </table>
@@ -99,7 +98,7 @@
 
     <div class="fotografo-subheader">
         Neto a recibir:
-        <strong>{{ Dinero::formato($detalle->sueldo_neto) }}</strong>
+        <strong>{{ 'RD$ ' . number_format($detalle->sueldo_neto, 2) }}</strong>
     </div>
 
     <table>
@@ -116,13 +115,13 @@
                 <td>{{ $participacion->sesion->fecha_finalizacion->format('d/m/Y') }}</td>
                 <td>{{ $participacion->rol }}</td>
                 <td class="text-right">
-                    {{ Dinero::formato($participacion->sesion->reserva->precio_total) }}
+                    {{ 'RD$ ' . number_format($participacion->sesion->reserva->precio_total, 2) }}
                 </td>
                 <td class="text-right">
                     {{ \App\Services\NominaService::tasaComision($participacion) }}%
                 </td>
                 <td class="text-right">
-                    {{ Dinero::formato(\App\Services\NominaService::montoComision($participacion)) }}
+                    {{ 'RD$ ' . number_format(\App\Services\NominaService::montoComision($participacion), 2) }}
                 </td>
             </tr>
         @empty
@@ -138,40 +137,40 @@
         <tr>
             <td>Salario bruto</td>
             <td class="text-right">
-                {{ Dinero::formato($detalle->salario_bruto) }}
+                {{ 'RD$ ' . number_format($detalle->salario_bruto, 2) }}
             </td>
         </tr>
         <tr>
             <td>TSS (SFS + AFP)</td>
             <td class="text-right">
-                {{ Dinero::formato($detalle->descuento_tss) }}
+                {{ 'RD$ ' . number_format($detalle->descuento_tss, 2) }}
             </td>
         </tr>
         @if($detalle->dependientes_adicionales_aplicados > 0)
             <tr>
                 <td>Dependientes adicionales </td>
                 <td class="text-right">
-                    {{ Dinero::formato($detalle->descuento_dependientes) }}
+                    {{ 'RD$ ' . number_format($detalle->descuento_dependientes, 2) }}
                 </td>
             </tr>
         @endif
         <tr>
             <td>ISR retenido</td>
             <td class="text-right">
-                {{ Dinero::formato($detalle->descuento_isr) }}
+                {{ 'RD$ ' . number_format($detalle->descuento_isr, 2) }}
             </td>
         </tr>
         <tr>
             <td>Descuentos legales (total)</td>
             <td class="text-right">
-                {{ Dinero::formato($detalle->descuentos_legales) }}
+                {{ 'RD$ ' . number_format($detalle->descuentos_legales, 2) }}
             </td>
         </tr>
         @if($detalle->regalia_pascual > 0)
             <tr>
                 <td>Regalía Pascual</td>
                 <td class="text-right">
-                    {{ Dinero::formato($detalle->regalia_pascual) }}
+                    {{ 'RD$ ' . number_format($detalle->regalia_pascual, 2) }}
                 </td>
             </tr>
         @endif
@@ -179,14 +178,14 @@
             <tr>
                 <td>Incentivo por Ventas</td>
                 <td class="text-right">
-                    {{ Dinero::formato($detalle->incentivo_ventas) }}
+                    {{ 'RD$ ' . number_format($detalle->incentivo_ventas, 2) }}
                 </td>
             </tr>
         @endif
         <tr>
             <td><strong>Neto</strong></td>
             <td class="text-right">
-                <strong>{{ Dinero::formato($detalle->sueldo_neto) }}</strong>
+                <strong>{{ 'RD$ ' . number_format($detalle->sueldo_neto, 2) }}</strong>
             </td>
         </tr>
     </table>

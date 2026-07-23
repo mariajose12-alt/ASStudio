@@ -5896,6 +5896,15 @@ textarea { resize: vertical; min-height: 100px; }
     width: fit-content;
 }
 
+.config-toggle-label {
+    margin: 0;
+    font-size: 15px;
+    text-transform: none;   /* opcional: quita las mayúsculas */
+    letter-spacing: normal; /* opcional */
+    white-space: nowrap;
+    cursor: pointer;
+}
+
 .config-nota {
     display: block;
     font-size: 12px;

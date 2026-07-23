@@ -109,55 +109,73 @@
                     @endif
                     . Tu pago será procesado según este detalle.
                 </p>
+
             @elseif($detalle->estaEnDisputa())
                 <span class="badge" style="background:#fef3c7; color:#92400e;">En disputa</span>
                 <p style="margin:8px 0 0; font-size:13px; color:var(--muted);">
                     Reportaste el siguiente ajuste y está en espera de revisión por el administrador:
                 </p>
-                <div
-                    style="margin-top:8px; padding:10px 14px; background:#fef3c7; color:#92400e; border-radius:8px; font-size:13px;">
+                <div style="margin-top:8px; padding:10px 14px; background:#fef3c7; color:#92400e; border-radius:8px; font-size:13px;">
                     {{ $detalle->observacion_fotografo }}
                 </div>
             @endif
         </div>
     </div>
 
-    <div class="card" style="margin-top:20px;">
-        <div class="card-header">
-            <h2>Desglose por sesión</h2>
-            <span
-                style="font-size:12px; color:var(--muted);">{{ $participaciones->count() }} sesión(es) en este período</span>
-        </div>
+    @if($participaciones->isNotEmpty())
+        <div class="card" style="margin-top:20px;">
+            <div class="card-header">
+                <h2>Desglose por sesión</h2>
+                <span style="font-size:12px; color:var(--muted);">
+                    {{ $participaciones->count() }} sesión(es) en este período
+                </span>
+            </div>
 
-        <div class="table-wrap">
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Fecha Sesión</th>
-                    <th>Rol</th>
-                    <th>Precio Reserva</th>
-                    <th>% Comisión</th>
-                    <th>Monto Comisión</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach($participaciones as $p)
-                    @php
-                        $tasa = NominaService::tasaComision($p);
-                        $monto = NominaService::montoComision($p);
-                    @endphp
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
                     <tr>
-                        <td>{{ $p->sesion->fecha_inicio->format('d/m/Y') }}</td>
-                        <td><span
-                                class="badge {{ $p->rol === 'PRINCIPAL' ? 'badge-foto' : 'badge-admin' }}">{{ $p->rol }}</span>
-                        </td>
-                        <td>{{ Dinero::formato($p->sesion->reserva->precio_total) }}</td>
-                        <td>{{ $tasa }}%</td>
-                        <td>{{ Dinero::formato($monto) }}</td>
+                        <th>Fecha Sesión</th>
+                        <th>Rol</th>
+                        <th>Precio Reserva</th>
+                        <th>% Comisión</th>
+                        <th>Monto Comisión</th>
                     </tr>
-                @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    @foreach($participaciones as $p)
+                        @php
+                            $tasa = NominaService::tasaComision($p);
+                            $monto = NominaService::montoComision($p);
+                        @endphp
+                        <tr>
+                            <td>{{ $p->sesion->fecha_inicio->format('d/m/Y') }}</td>
+                            <td>
+                                <span class="badge {{ $p->rol === 'PRINCIPAL' ? 'badge-foto' : 'badge-admin' }}">
+                                    {{ $p->rol }}
+                                </span>
+                            </td>
+                            <td>{{ Dinero::formato($p->sesion->reserva->precio_total) }}</td>
+                            <td>{{ $tasa }}%</td>
+                            <td>{{ Dinero::formato($monto) }}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    @else
+        <div class="card" style="margin-top:20px;">
+            <div class="card-header">
+                <h2>Desglose por sesión</h2>
+            </div>
+
+            <div class="card-body" style="text-align:center; padding:32px;">
+                <p style="margin:0; color:var(--muted);">
+                    No tuviste participaciones en sesiones durante este período de nómina.
+                </p>
+            </div>
+        </div>
+    @endif
+
 @endsection

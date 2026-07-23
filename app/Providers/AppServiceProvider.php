@@ -15,7 +15,8 @@ use App\Repositories\Contracts\PaqueteRepositoryInterface;
 use App\Repositories\Contracts\ReservaRepositoryInterface;
 use App\Repositories\Contracts\SesionRepositoryInterface;
 use App\Repositories\Contracts\UsuarioRepositoryInterface;
-
+use App\Models\Fotografo;
+use App\Observers\FotografoObserver;
 use App\Repositories\CatalogoRepository;
 use App\Repositories\ClienteRepository;
 use App\Repositories\FotografiaRepository;
@@ -45,5 +46,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UsuarioRepositoryInterface::class,      UsuarioRepository::class);
     }
 
-    public function boot(): void {}
+    public function boot(): void {
+        Fotografo::observe(FotografoObserver::class);
+    }
 }

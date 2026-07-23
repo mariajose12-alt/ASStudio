@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DTOs\EmpleadoCreateDTO;
 use App\Models\ConfiguracionNomina;
 use App\Models\Empleado;
+use App\Models\HistorialCambioFotografo;
 use App\Services\EmpleadoService;
 use Illuminate\Http\Request;
 
@@ -52,7 +53,15 @@ class EmpleadoController extends Controller
     {
         $empleado->load('usuario.persona', 'fotografo');
         $configDefault = ConfiguracionNomina::actual()->salario_base_default;
-        return view('admin.empleados.show', compact('empleado', 'configDefault'));
+
+        $historialCambios = $empleado->fotografo
+            ? HistorialCambioFotografo::where('fotografo_id', $empleado->fotografo->id)
+                ->with('cambiadoPor.empleado.usuario.persona')
+                ->latest()
+                ->get()
+            : collect();
+
+        return view('admin.empleados.show', compact('empleado', 'configDefault', 'historialCambios'));
     }
 
     public function edit(Empleado $empleado)

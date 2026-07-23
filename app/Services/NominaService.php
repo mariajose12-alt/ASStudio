@@ -76,7 +76,7 @@ class NominaService
 
         $participacionesPorFotografo = $participaciones->groupBy('fotografo_id');
 
-        $fotografosActivos = Fotografo::whereHas('empleado', function ($q) {
+        $fotografosActivos = Fotografo::whereHas('empleado.usuario', function ($q) {
             $q->where('estado', 'ACTIVO');
         })->with('empleado.usuario.persona')->get();
 

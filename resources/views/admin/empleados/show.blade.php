@@ -96,5 +96,41 @@
             </div>
         </div>
 
+        @if($empleado->fotografo && $historialCambios->isNotEmpty())
+            <div class="card" style="margin-top:20px;">
+                <div class="card-header">
+                    <h2>Historial de Cambios</h2>
+                    <span style="font-size:12px; color:var(--muted);">{{ $historialCambios->count() }} registro(s)</span>
+                </div>
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Campo</th>
+                            <th>Valor anterior</th>
+                            <th>Valor nuevo</th>
+                            <th>Cambiado por</th>
+                            <th>Fecha</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($historialCambios as $cambio)
+                            <tr>
+                                <td>{{ $cambio->etiquetaCampo() }}</td>
+                                <td>{{ $cambio->valor_anterior ?? '—' }}</td>
+                                <td>{{ $cambio->valor_nuevo ?? '—' }}</td>
+                                <td>
+                                    {{ $cambio->cambiadoPor?->empleado?->usuario?->persona?->nombre ?? '—' }}
+                                    {{ $cambio->cambiadoPor?->empleado?->usuario?->persona?->apellido ?? '' }}
+                                </td>
+                                <td>{{ $cambio->created_at->format('d/m/Y H:i') }}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
+
     </div>
 @endsection

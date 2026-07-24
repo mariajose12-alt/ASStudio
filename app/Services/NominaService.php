@@ -218,7 +218,7 @@ class NominaService
             : 0.0;
 
 
-        $bruto     = round($salarioBase + $bonoSesiones, 2);
+        $bruto     = round($salarioBase + $bonoSesiones + $incentivo, 2);
         $tss       = $this->descuentoTSS($bruto, $dependientes, $fechaVigencia);
         $isr       = $this->calcularISR($bruto, $dependientes, $fechaVigencia);
         $descuento = round($tss['afp'] + $tss['sfs'] + $tss['dependientes'] + $isr, 2);

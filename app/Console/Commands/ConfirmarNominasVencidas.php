@@ -12,7 +12,7 @@ class ConfirmarNominasVencidas extends Command
      *
      * @var string
      */
-    protected $signature = 'nomina:confirmar-vencidas';
+    protected $signature = 'nomina::confirmar-vencidas';
 
     /**
      * The console command description.
@@ -38,6 +38,7 @@ class ConfirmarNominasVencidas extends Command
 
             $detalle->update([
                 'estado_confirmacion' => 'CONFIRMADO',
+                'confirmado_at'       => now(),
             ]);
         }
 

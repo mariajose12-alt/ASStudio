@@ -76,11 +76,11 @@
 
             @if($nomina->total_incentivos > 0)
                 {{-- Incentivo por ventas: sí lleva TSS/ISR (ya incluido en el bruto de cada detalle) --}}
-                <div style="margin-top:12px; padding:16px; background:#fff3e8; border-radius:8px;">
+                <div style="margin-top:12px; padding:16px; background:#f9fafb; border-radius:8px;">
                     <strong style="font-size:13px; display:block; margin-bottom:10px;">Incentivos por Ventas </strong>
                     <table class="detail-table">
                         <tr>
-                            <td>Total incentivos pagados (incluido en el bruto, con descuentos aplicados)</td>
+                            <td>Total incentivos pagados </td>
                             <td>{{ 'RD$ ' . number_format($nomina->total_incentivos, 2) }}</td>
                         </tr>
                     </table>

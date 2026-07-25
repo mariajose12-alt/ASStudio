@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\DTOs\NominaCalculoDTO;
-use App\Mail\NominaDisponibleFotografo;
 use App\Models\DetalleNomina;
 use App\Models\Nomina;
 use App\Models\ParametroNomina;
@@ -11,8 +10,7 @@ use App\Models\ParticipacionSesion;
 use App\Models\TramoIsr;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-//use App\Notifications\NominaDisponibleFotografo;
-use Illuminate\Support\Facades\Mail;
+use App\Notifications\NominaDisponibleFotografo;
 use App\Models\ConfiguracionNomina;
 use App\Models\Fotografo;
 

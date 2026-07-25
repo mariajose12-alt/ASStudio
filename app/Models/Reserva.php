@@ -15,11 +15,15 @@ class Reserva extends Model
         'cliente_id',
         'paquete_id',
         'catalogo_id',
+        'fotografo_id',
         'fecha_inicio',
         'fecha_fin',
+        'fecha_solicitud',
         'lugar',
         'descripcion',
         'tipo',
+        'estado',
+        'precio_total',
         'motivo_rechazo',
         'duracion_horas',
         'duracion_horas_propuesta',
@@ -124,16 +128,21 @@ class Reserva extends Model
             );
         }
 
-        if ($this->sesion) {
-            return $this->sesion;
+        $sesionExistente = $this->sesion()->first(); // query fresca, no cachea null
+        if ($sesionExistente) {
+            return $sesionExistente;
         }
 
-        return $this->sesion()->create([
+        $sesion = $this->sesion()->create([
             'fecha_inicio' => $this->fecha_inicio,
             'fecha_fin'    => $this->fecha_fin,
             'lugar'        => $this->lugar,
             'estado'       => 'CONFIRMADA',
         ]);
+
+        $this->setRelation('sesion', $sesion); // actualiza la caché con el valor real
+
+        return $sesion;
     }
 
     /**
@@ -146,10 +155,13 @@ class Reserva extends Model
             throw new \LogicException('No existe una sesión asociada a esta reserva para habilitar la entrega final.');
         }
 
+        $sesion = $this->sesion();
+
         // Ajusta el estado destino según tu state machine real de Sesion
         // (ej. si el pago final desbloquea descarga de galería, no necesariamente
         // cambia el estado de la sesión sino un flag de "galeria_final_disponible").
         $this->sesion->update(['estado' => 'FINALIZADA']);
+        $sesion->update(['fecha_finalizacion' => now()]); // o la fecha de junio que necesites
     }
 
 

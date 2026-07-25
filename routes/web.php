@@ -72,13 +72,13 @@ Route::get('/estudio', function () {
 })->name('estudio');
 
 //pruebas para los emails
-Route::get('/preview-mail', function () {
+/*Route::get('/preview-mail', function () {
     $reserva = App\Models\Reserva::first();
 
     return new App\Mail\ReservaModificadaCliente($reserva);
-});
+});*/
 
-Route::prefix('notificaciones')->name('notificaciones.')->group(function () {
+Route::prefix('notificaciones')->name('notificaciones.')->middleware('auth')->group(function () {
     Route::get('/', [NotificacionController::class, 'index'])->name('index');
     Route::patch('/marcar-leidas', [NotificacionController::class, 'marcarLeidas'])->name('marcar-leidas');
     Route::patch('/{id}/marcar-leida', [NotificacionController::class, 'marcarLeida'])->name('marcar-leida');
@@ -174,6 +174,7 @@ Route::middleware(['auth', 'rol:FOTOGRAFO'])
         Route::get('sesiones/{id}/fotografias/create',  [FotografiaController::class, 'create'])         ->name('fotografias.create');
         Route::post('sesiones/{id}/fotografias',        [FotografiaController::class, 'store'])           ->name('fotografias.store');
         Route::patch('sesiones/{id}/entregar',          [FotografiaController::class, 'marcarEntregada']) ->name('fotografias.entregar');
+        Route::patch('sesiones/{id}/galeria-disponible', [FotografiaController::class, 'marcarGaleriaDisponible']) ->name('fotografias.galeria-disponible');
         Route::post('fotografias/{id}/aprobar',         [FotografiaController::class, 'aprobar'])         ->name('fotografias.aprobar');
         Route::delete('fotografias/{id}/rechazar',      [FotografiaController::class, 'rechazar'])        ->name('fotografias.rechazar');
 
@@ -239,13 +240,13 @@ Route::middleware(['auth', 'rol:CLIENTE'])
 
     });
 
-Route::resource('admin/paquetes', PaqueteController::class)
+/*Route::resource('admin/paquetes', PaqueteController::class)
     ->names('admin.paquetes')
     ->parameters(['paquetes' => 'paquete']);
 
 Route::resource('admin/catalogos', CatalogoController::class)
     ->names('admin.catalogos')
-    ->parameters(['catalogos' => 'catalogo']);
+    ->parameters(['catalogos' => 'catalogo']);*/
 
 Route::get('/terminos-condiciones', fn() => view('reservas.terminos-condiciones'))->name('terminos');
 

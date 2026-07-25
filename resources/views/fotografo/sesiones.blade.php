@@ -77,14 +77,18 @@
             </div>
         @endif
 
-        <h3 class="ayudante-subtitulo">Solicitudes disponibles</h3>
-        <div class="sesiones-grid">
-            @forelse($solicitudesDisponibles as $solicitud)
-                @include('fotografo.solicitud-ayudante.disponible', ['solicitud' => $solicitud])
-            @empty
-                @include('fotografo.sesion.empty', ['mensaje' => 'No hay solicitudes de ayudante disponibles por ahora.'])
-            @endforelse
-        </div>
+        @if($solicitudesDisponibles->count() > 0)
+            <h3 class="ayudante-subtitulo">Solicitudes disponibles</h3>
+            <div class="sesiones-grid">
+                @foreach($solicitudesDisponibles as $solicitud)
+                    @include('fotografo.solicitud-ayudante.disponible', ['solicitud' => $solicitud])
+                @endforeach
+            </div>
+        @endif
+
+        @if($solicitudesPropias->count() === 0 && $solicitudesDisponibles->count() === 0)
+            @include('fotografo.sesion.empty', ['mensaje' => 'No hay solicitudes de ayudante por ahora.'])
+        @endif
     </div>
 
     {{-- Modal: fotos seleccionadas por el cliente --}}

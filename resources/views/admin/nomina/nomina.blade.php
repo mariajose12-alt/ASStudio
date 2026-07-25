@@ -41,7 +41,12 @@
         <div class="reservas-tabs">
             <button class="tab active" data-tab="calcular">Calcular Nómina</button>
             <button class="tab" data-tab="historial">Historial</button>
-            <button class="tab" data-tab="disputas">Disputas</button>
+            <button class="tab" data-tab="disputas">
+                Disputas
+                @if($disputas->count() > 0)
+                    <span class="tab-badge">{{ $disputas->count() }}</span>
+                @endif
+            </button>
             <button class="tab" data-tab="configuracion">Configuración</button>
         </div>
 
@@ -456,12 +461,17 @@
         const chkIncentivos = document.getElementById('incentivos_activos');
         const tope = document.getElementById('tope_ventas_incentivo');
         const porcentaje = document.getElementById('porcentaje_incentivo');
+        const btnGuardar = document.getElementById('btnGuardarIncentivos');
+        const tabla = document.getElementById('tabla-incentivos');
 
         function actualizarEstadoIncentivos() {
             const activo = chkIncentivos.checked;
 
             tope.disabled = !activo;
             porcentaje.disabled = !activo;
+            btnGuardar.disabled = !activo;
+
+            tabla.classList.toggle('config-disabled', !activo);
         }
 
         if (chkIncentivos) {

@@ -20,8 +20,8 @@ class FotografoService
             ->map(fn($r) => [
                 'id'    => $r->id,
                 'title' => $r->paquete->nombre ?? 'Reserva',
-                'start' => $r->fecha_inicio,
-                'end'   => $r->fecha_fin,
+                'start' => $r->fecha_inicio->format('Y-m-d\TH:i:s'),
+                'end'   => $r->fecha_fin->format('Y-m-d\TH:i:s'),
                 'color' => match($r->estado) {
                     'PENDIENTE' => '#a07820',
                     'APROBADA'  => '#2e7d32',

@@ -3,12 +3,11 @@
 namespace App\Listeners;
 
 use App\Events\SolicitudAyudanteCreada;
-use App\Mail\SolicitudAyudanteFotografo;
+use App\Notifications\SolicitudAyudanteFotografo;
 use App\Services\SolicitudAyudanteService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class EnviarNotificacionSolicitudAyudante implements ShouldQueue
 {
@@ -26,16 +25,16 @@ class EnviarNotificacionSolicitudAyudante implements ShouldQueue
         );
 
         foreach ($disponibles as $fotografo) {
-            $email = $fotografo->empleado?->usuario?->email;
+            $usuario = $fotografo->empleado?->usuario;
 
-            if (!$email) {
+            if (!$usuario) {
                 continue;
             }
 
             try {
-                Mail::to($email)->send(new SolicitudAyudanteFotografo($solicitud));
+                $usuario->notify(new SolicitudAyudanteFotografo($solicitud));
             } catch (\Throwable $e) {
-                Log::error('Fallo enviando email de solicitud de ayudante', [
+                Log::error('Fallo enviando notificación de solicitud de ayudante', [
                     'solicitud_id' => $solicitud->id,
                     'fotografo_id' => $fotografo->id,
                     'error' => $e->getMessage(),

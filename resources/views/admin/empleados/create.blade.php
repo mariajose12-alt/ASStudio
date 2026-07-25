@@ -93,6 +93,40 @@
                                        placeholder="Ej: Adobe Lightroom, Sony Certified, WPPI">
                                 @error('certificaciones')<span class="error-msg">{{ $message }}</span>@enderror
                             </div>
+                            <div class="form-group full">
+                                <label>Salario Base</label>
+                                <div style="display:flex; gap:16px; margin-bottom:10px;">
+                                    <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
+                                        <input type="radio" name="tipo_salario" value="default"
+                                               {{ old('tipo_salario', 'default') == 'default' ? 'checked' : '' }}
+                                               onchange="toggleSalarioPersonalizado(false)">
+                                        Salario base por defecto (RD$ {{ number_format($configDefault, 2) }})
+                                    </label>
+                                    <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
+                                        <input type="radio" name="tipo_salario" value="personalizado"
+                                               {{ old('tipo_salario', 'default') == 'personalizado' ? 'checked' : '' }}
+                                               onchange="toggleSalarioPersonalizado(true)">
+                                        Salario personalizado
+                                    </label>
+                                </div>
+                                <input type="number" step="0.01" name="salario_base" id="input-salario-personalizado"
+                                       value="{{ old('salario_base') }}"
+                                       style="display:{{ old('tipo_salario') === 'personalizado' ? 'block' : 'none' }};"
+                                       placeholder="Ej: 25000.00">
+                                @error('salario_base')<span class="error-msg">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="form-group full">
+                                <label>Dependientes adicionales (TSS)</label>
+                                <input type="number" step="1" min="0" max="20" name="dependientes_adicionales"
+                                       value="{{ old('dependientes_adicionales', 0) }}">
+                                <small style="color: var(--text-muted, #666); display:block; margin-top:4px;">
+                                    Solo dependientes registrados fuera del núcleo familiar directo (ej. padres).
+                                    No incluyas cónyuge/concubino ni hijos menores — esos ya están cubiertos sin costo
+                                    adicional por el 3.04% de SFS. Cada dependiente adicional genera un descuento
+                                    extra fijado por la TSS (Resolución 624-02 CNSS).
+                                </small>
+                                @error('dependientes_adicionales')<span class="error-msg">{{ $message }}</span>@enderror
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -118,5 +152,9 @@
     document.addEventListener('DOMContentLoaded', function () {
         toggleFotografo(document.getElementById('rol').value);
     });
+
+    function toggleSalarioPersonalizado(mostrar) {
+        document.getElementById('input-salario-personalizado').style.display = mostrar ? 'block' : 'none';
+    }
 </script>
 @endpush

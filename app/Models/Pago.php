@@ -17,6 +17,9 @@ class Pago extends Model
         'fecha_completado',
         'metodo',
         'tipo',
+        'estado',
+        'comprobante_id',
+        'motivo_rechazo',
     ];
 
     protected $casts = [

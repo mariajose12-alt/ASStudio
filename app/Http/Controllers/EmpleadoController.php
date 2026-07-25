@@ -24,7 +24,8 @@ class EmpleadoController extends Controller
 
     public function create()
     {
-        return view('admin.empleados.create');
+        $configDefault = ConfiguracionNomina::actual()->salario_base_default;
+        return view('admin.empleados.create', compact('configDefault'));
     }
 
     public function store(Request $request)

@@ -100,16 +100,6 @@ class FotografiaController extends Controller
             ]);
         }
 
-        // Avance de estado + notificación al cliente — los RAW siempre cuentan, sin importar quién los suba
-        if ($estado === 'ORIGINAL' && $sesion->estado === 'EN_PROCESO') {
-            $sesion->update(['estado' => 'GALERIA_DISPONIBLE']);
-
-            $usuario = $sesion->reserva->cliente->usuario ?? null;
-            if ($usuario) {
-                $usuario->notify(new GaleriaDisponibleCliente($sesion));
-            }
-        }
-
         $huboPendientes = ! $esPrincipal && $estado === 'EDITADA';
 
         return response()->json([
@@ -160,6 +150,52 @@ class FotografiaController extends Controller
         $foto->delete();
 
         return response()->json(['message' => 'Foto rechazada y eliminada.']);
+    }
+
+    /**
+     * El fotógrafo PRINCIPAL confirma que ya subió todas las fotos originales
+     * y dispara el aviso al cliente de que la galería está lista para elegir.
+     * A diferencia de antes, esto ya no ocurre solo con subir la primera foto —
+     * así se evita que el cliente entre a elegir favoritas cuando todavía
+     * faltan fotos por subir (de él o de algún ayudante) y se quede sin poder
+     * completar el límite de su paquete.
+     */
+    public function marcarGaleriaDisponible(int $sesionId)
+    {
+        $fotografo = auth()->user()->empleado->fotografo;
+
+        $sesion = Sesion::with('reserva.cliente.usuario', 'reserva.paquete', 'fotografias')
+            ->whereHas('reserva', fn($q) => $q->where('fotografo_id', $fotografo->id))
+            ->where('estado', 'EN_PROCESO')
+            ->findOrFail($sesionId);
+
+        $totalOriginales = $sesion->fotografias->where('estado', 'ORIGINAL')->count();
+        $minimoRequerido = $sesion->reserva->paquete->cantidad_fotos_incluidas ?? null;
+
+        if ($totalOriginales === 0) {
+            return response()->json([
+                'message' => 'Sube al menos una foto antes de avisarle al cliente.',
+            ], 422);
+        }
+
+        if ($minimoRequerido && $totalOriginales < $minimoRequerido) {
+            $faltan = $minimoRequerido - $totalOriginales;
+            return response()->json([
+                'message' => "Aún faltan {$faltan} foto(s) para llegar al mínimo del paquete "
+                    . "({$totalOriginales}/{$minimoRequerido}).",
+            ], 422);
+        }
+
+        $sesion->update(['estado' => 'GALERIA_DISPONIBLE']);
+
+        $usuario = $sesion->reserva->cliente->usuario ?? null;
+        if ($usuario) {
+            $usuario->notify(new GaleriaDisponibleCliente($sesion));
+        }
+
+        return response()->json([
+            'message' => 'Galería enviada. El cliente ya puede elegir sus fotos favoritas.',
+        ]);
     }
 
     /**

@@ -68,6 +68,18 @@ class ParametrosNominaSeeder extends Seeder
                 'vigente_desde' => '2026-02-01',
                 'fuente'        => 'TSS — Resolución 01-2025, tss.gob.do/tss-informa-nuevos-topes-de-cotizacion-del-regimen-contributivo-del-sdss',
             ],
+            [
+                'clave'         => 'tope_ventas_incentivo',
+                'valor'         => 50000.00,
+                'vigente_desde' => '2026-02-01',
+                'fuente'        => 'Parámetro interno del estudio (editable desde Admin > Nómina > Configuración)',
+            ],
+            [
+                'clave'         => 'porcentaje_incentivo',
+                'valor'         => 5.00,
+                'vigente_desde' => '2026-02-01',
+                'fuente'        => 'Parámetro interno del estudio (editable desde Admin > Nómina > Configuración)',
+            ],
         ];
 
         foreach ($parametros as $parametro) {

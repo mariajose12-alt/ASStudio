@@ -12,7 +12,7 @@ class ConfirmarNominasVencidas extends Command
      *
      * @var string
      */
-    protected $signature = 'nomina::confirmar-vencidas';
+    protected $signature = 'nomina:confirmar-vencidas';
 
     /**
      * The console command description.

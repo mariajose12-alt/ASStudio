@@ -19,11 +19,11 @@
 <header class="gal-topbar">
     <div class="gal-topbar__left">
         <a href="{{ route('cliente.galeria') }}" class="gal-topbar__logo">
-            <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
+            <img src="{{ asset('images/logo.png') }}" alt="Abraham Sánchez" height="45">
         </a>
         <div class="gal-topbar__divider"></div>
     </div>
-    <div style="text-align: center;">
+    <div class="gal-topbar__center">
         <span class="gal-topbar__title">@yield('topbar_title')</span>
         <span class="gal-topbar__subtitle">@yield('topbar_subtitle')</span>
     </div>

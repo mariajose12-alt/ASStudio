@@ -2,13 +2,13 @@
 
 namespace App\Notifications;
 
-use App\Mail\PagoConfirmadoCliente as PagoConfirmadoClienteMail;
+use App\Mail\PagoFinalPendienteCliente as PagoFinalPendienteClienteMail;
+use App\Models\Pago;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use App\Models\Pago;
 
-class PagoConfirmadoCliente extends Notification implements ShouldQueue
+class PagoFinalPendienteCliente extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -21,16 +21,16 @@ class PagoConfirmadoCliente extends Notification implements ShouldQueue
 
     public function toMail($notifiable)
     {
-        return (new PagoConfirmadoClienteMail($this->pago))->to($notifiable->email);
+        return (new PagoFinalPendienteClienteMail($this->pago))->to($notifiable->email);
     }
 
     public function toDatabase($notifiable): array
     {
         return [
-            'titulo'  => 'Pago confirmado',
-            'mensaje' => 'Tu pago fue recibido y tu sesión quedó confirmada.',
+            'titulo'  => 'Segundo pago disponible',
+            'mensaje' => 'Ya puedes realizar el pago restante de tu sesión.',
             'icono'   => 'credit-card',
-            'url'     => route('cliente.reservas.show', $this->pago->id),
+            'url'     => route('cliente.pagos.index'),
         ];
     }
 }

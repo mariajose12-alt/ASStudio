@@ -101,19 +101,31 @@ class Reserva extends Model
      */
     public function aprobar(): void
     {
-        $this->update(['estado' => 'APROBADA']);
+        $this->estado = 'APROBADA';
+        $this->save();
     }
 
     public function rechazar(): void
     {
-        $this->update(['estado' => 'RECHAZADA']);
+        $this->estado = 'RECHAZADA';
+        $this->save();
     }
 
     public function cancelar(): void
     {
-        $this->update(['estado' => 'CANCELADA']);
+        $this->estado = 'CANCELADA';
+        $this->save();
     }
 
+
+    public function reenviarParaRevision(string $descripcion): void
+    {
+        $this->descripcion = $descripcion;
+        $this->motivo_rechazo = null;
+        $this->duracion_horas_propuesta = null;
+        $this->estado = 'PENDIENTE';
+        $this->save();
+    }
     /**
      * Se llama cuando el pago de anticipo/completo queda CONFIRMADO.
      * Si la sesión no existe aún, la crea en estado CONFIRMADA.
@@ -157,10 +169,6 @@ class Reserva extends Model
 
         $sesion = $this->sesion();
 
-        // Ajusta el estado destino según tu state machine real de Sesion
-        // (ej. si el pago final desbloquea descarga de galería, no necesariamente
-        // cambia el estado de la sesión sino un flag de "galeria_final_disponible").
-        $this->sesion->update(['estado' => 'FINALIZADA']);
         $sesion->update(['fecha_finalizacion' => now()]); // o la fecha de junio que necesites
     }
 

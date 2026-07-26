@@ -39,7 +39,7 @@ class GaleriaDisponibleCliente extends Notification implements ShouldQueue
             'mensaje' => $this->tipo === 'seleccion'
                 ? 'Ya puedes seleccionar tus fotos favoritas.'
                 : 'Tu galería final ya está disponible para ver.',
-            'icono'   => 'images',
+            'icono'   => 'photo-star',
             'url'     => route('cliente.galeria', $this->sesion->id),
         ];
     }

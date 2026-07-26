@@ -15,7 +15,7 @@
     </table>
 
     <h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:600;color:#1a0d00;line-height:1.3;">
-        Bienvenido a {{ config('app.name') }}
+        Bienvenido
     </h1>
 
     <p style="margin:0 0 24px;font-family:Arial,sans-serif;font-size:15px;color:#4a4a4a;line-height:1.7;">

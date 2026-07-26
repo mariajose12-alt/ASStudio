@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AStudio — Crear Cuenta</title>
+    <title>Crear Cuenta</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
@@ -17,7 +17,7 @@
             <div>
                 <div style="filter: brightness(0) invert(1);">
                     <a href="/" class="navbar-logo">
-                        <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
+                        <img src="{{ asset('images/logo.png') }}" alt="Abraham Sánchez" height="45">
                     </a>
                 </div>
                 <div class="brand-sub">Fotografía profesional</div>
@@ -29,7 +29,7 @@
             </div>
             <div class="left-cite">Nuevo usuario</div>
         </div>
-        <div class="left-bottom">© {{ date('Y') }} AStudio</div>
+        <div class="left-bottom">© {{ date('Y') }} Abraham Sánchez</div>
     </div>
 
     <!-- Formulario -->
@@ -67,7 +67,7 @@
                 <label for="telefono">Teléfono <span style="color:#bbb">(opcional)</span></label>
                 <input type="text" id="telefono" name="telefono"
                        value="{{ old('telefono') }}"
-                       placeholder="+1 809 000 0000">
+                       placeholder="809 000 0000">
                 @error('telefono')
                 <span class="field-error">{{ $message }}</span>
                 @enderror
@@ -77,7 +77,7 @@
                 <label for="email">Correo electrónico</label>
                 <input type="email" id="email" name="email"
                        value="{{ old('email') }}"
-                       placeholder="juan@asstudio.com" required>
+                       placeholder="nombre@ejemplo.com" required>
                 @error('email')
                 <span class="field-error">{{ $message }}</span>
                 @enderror
@@ -111,8 +111,8 @@
 
         <div class="terms">
             Al registrarte aceptas los
-            <a href="#">términos de uso</a> y la
-            <a href="#">política de privacidad</a>.
+            <a href="#" onclick="event.preventDefault(); openTermsModal();">términos de uso</a> y la
+            <a href="#" onclick="event.preventDefault(); openPrivacyModal();">política de privacidad</a>
         </div>
 
         <div class="bottom-links">
@@ -162,6 +162,7 @@
         label.textContent    = lvl.text;
     }
 </script>
-
+    <x-terms-modal />
+    <x-privacy-modal />
 </body>
 </html>

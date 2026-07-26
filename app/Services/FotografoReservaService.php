@@ -82,12 +82,10 @@ class FotografoReservaService
         }
 
         DB::transaction(function () use ($reserva, $duracionHoras, $fechaFin) {
-            $reserva->update([
-                'fotografo_id'   => $reserva->fotografo_id,
-                'estado'         => 'APROBADA',
-                'duracion_horas' => $duracionHoras,
-                'fecha_fin'      => $fechaFin,
-            ]);
+            $reserva->estado         = 'APROBADA';
+            $reserva->duracion_horas = $duracionHoras;
+            $reserva->fecha_fin      = $fechaFin;
+            $reserva->save();
 
             $sesion = $reserva->sesion()->create([
                 'fecha_inicio' => $reserva->fecha_inicio,
@@ -104,13 +102,14 @@ class FotografoReservaService
                 'horas_trabajadas'      => $duracionHoras,
             ]);
 
-            Pago::create([
+            $pago = new Pago([
                 'reserva_id' => $reserva->id,
                 'cliente_id' => $reserva->cliente_id,
                 'monto'      => round($reserva->paquete->precio_base * 0.5, 2),
-                'estado'     => 'PENDIENTE',
-                'tipo'       => 'ANTICIPO',
             ]);
+            $pago->estado = 'PENDIENTE';
+            $pago->tipo   = 'ANTICIPO'; // 'tipo' sí es fillable, pero si prefieres consistencia, asígnalo igual
+            $pago->save();
         });
 
         ReservaAprobada::dispatch($reserva);
@@ -122,11 +121,9 @@ class FotografoReservaService
             throw new NegocioException('Debes indicar el motivo del rechazo.');
         }
 
-        $reserva->update([
-            'fotografo_id'    => $reserva->fotografo_id,
-            'estado'          => 'RECHAZADA',
-            'motivo_rechazo'  => $motivo,
-        ]);
+        $reserva->estado         = 'RECHAZADA';
+        $reserva->motivo_rechazo = $motivo;
+        $reserva->save();
 
         ReservaRechazada::dispatch($reserva);
     }
@@ -137,20 +134,15 @@ class FotografoReservaService
             throw new NegocioException('Debes indicar el motivo de la modificación.');
         }
 
-        $data = [
-            'fotografo_id'   => $reserva->fotografo_id,
-            'estado'                    => 'MODIFICACION_PROPUESTA',
-            'motivo_rechazo'            => $dto->motivo,
-            'duracion_horas_propuesta'  => $dto->duracion_horas,
-        ];
+        $reserva->estado                   = 'MODIFICACION_PROPUESTA';
+        $reserva->motivo_rechazo           = $dto->motivo;
+        $reserva->duracion_horas_propuesta = $dto->duracion_horas;
 
         if ($dto->nueva_fecha && $dto->nueva_hora) {
-            $data['fecha_inicio'] = Carbon::parse(
-                $dto->nueva_fecha . ' ' . $dto->nueva_hora
-            );
+            $reserva->fecha_inicio = Carbon::parse($dto->nueva_fecha . ' ' . $dto->nueva_hora);
         }
 
-        $reserva->update($data);
+        $reserva->save();
         ReservaModificada::dispatch($reserva);
     }
 

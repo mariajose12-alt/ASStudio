@@ -1,6 +1,6 @@
 @extends('layouts.landing')
 
-@section('title', 'AStudio')
+@section('title', 'Abraham Sánchez')
 
 @section('content')
 
@@ -39,7 +39,7 @@
     <section class="section-bienvenida">
         <div class="container">
             <div class="bienvenida-box reveal">
-                <p class="bienvenida-eyebrow">Bienvenidos a AStudio</p>
+                <p class="bienvenida-eyebrow">Bienvenidos a Abraham Sánchez</p>
                 <h2 class="bienvenida-title">
                     Capturamos momentos que merecen quedarse para siempre
                 </h2>
@@ -61,7 +61,7 @@
                     <div class="fotografo-img-frame">
                         <img
                             src="{{ asset('images/perfil.png') }}"
-                            alt="Fotógrafo de AStudio"
+                            alt="Fotógrafo"
                             class="fotografo-img"
                         >
                     </div>
@@ -98,7 +98,7 @@
                     </div>
 
                     <div class="fotografo-firma">
-                        <span class="firma-rol">Fotógrafo & fundador de AStudio</span>
+                        <span class="firma-rol">Fotógrafo & fundador de Abraham Sánchez</span>
                     </div>
                 </div>
             </div>
@@ -262,7 +262,7 @@
 
                     <form id="contactForm">
                         <input type="hidden" name="access_key" value="18437397-89e5-4dba-822b-f791616103de">
-                        <input type="hidden" name="subject" value="Nuevo mensaje - AStudio">
+                        <input type="hidden" name="subject" value="Nuevo mensaje - Abraham Sánchez">
 
                         <label class="contacto-label">Nombre</label>
                         <input type="text" name="name" class="contacto-input"

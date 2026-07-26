@@ -11,6 +11,9 @@ use App\Http\Controllers\FotografoReservaController;
 use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\PasswordOlvidadoController;
 use App\Http\Controllers\SesionController;
+use App\Http\Controllers\SocioEstudioController;
+use App\Http\Controllers\SolicitudEstudioAdminController;
+use App\Http\Controllers\SolicitudEstudioController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\LoginController;
@@ -71,18 +74,13 @@ Route::get('/estudio', function () {
     return view('estudio');
 })->name('estudio');
 
-//pruebas para los emails
-/*Route::get('/preview-mail', function () {
-    $reserva = App\Models\Reserva::first();
 
-    return new App\Mail\ReservaModificadaCliente($reserva);
-});*/
-
-Route::prefix('notificaciones')->name('notificaciones.')->middleware('auth')->group(function () {
-    Route::get('/', [NotificacionController::class, 'index'])->name('index');
-    Route::patch('/marcar-leidas', [NotificacionController::class, 'marcarLeidas'])->name('marcar-leidas');
-    Route::patch('/{id}/marcar-leida', [NotificacionController::class, 'marcarLeida'])->name('marcar-leida');
-});
+// Públicas — sección estudio de la landing
+Route::get('/estudio/reservar', [SolicitudEstudioController::class, 'crearForm'])->name('estudio.reservar');
+Route::get('/estudio/disponibilidad', [SolicitudEstudioController::class, 'disponibilidad'])->name('estudio.disponibilidad');
+Route::post('/estudio/solicitud', [SolicitudEstudioController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('estudio.solicitud.store');
 
 // AUTENTICACIÓN
 
@@ -105,6 +103,13 @@ Route::middleware('auth')->group(function () {
     // Perfil
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+
+    // Notificaciones
+    Route::prefix('notificaciones')->name('notificaciones.')->group(function () {
+        Route::get('/', [NotificacionController::class, 'index'])->name('index');
+        Route::patch('/marcar-leidas', [NotificacionController::class, 'marcarLeidas'])->name('marcar-leidas');
+        Route::patch('/{id}/marcar-leida', [NotificacionController::class, 'marcarLeida'])->name('marcar-leida');
+    });
 });
 
 // DASHBOARD ADMINISTRADOR
@@ -113,7 +118,7 @@ Route::middleware(['auth', 'rol:ADMINISTRADOR'])
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-        Route::get('/estudio',   [AdminController::class, 'estudio'])->name('estudio');
+        //Route::get('/estudio',   [AdminController::class, 'estudio'])->name('estudio');
 
         Route::get('/nomina',    [AdminController::class, 'nomina'])->name('nomina');
         Route::post('/nomina/calcular', [AdminController::class, 'calcularNomina'])->name('nomina.calcular');
@@ -146,7 +151,9 @@ Route::middleware(['auth', 'rol:ADMINISTRADOR'])
         Route::post('pagos/{pago}/aprobar', [AdminController::class, 'pagosAprobar'])->name('pagos.aprobar');
         Route::post('pagos/{pago}/rechazar',[AdminController::class, 'pagosRechazar'])->name('pagos.rechazar');
 
-        Route::get('estudio',                              [BloqueoEstudioController::class, 'index'])   ->name('estudio');
+        Route::get('estudio',                              [SolicitudEstudioAdminController::class, 'index'])   ->name('estudio.solicitudes.index');
+        Route::get('estudio/{solicitud}',                  [SolicitudEstudioAdminController::class, 'show'])   ->name('estudio.solicitudes.show');
+
         Route::get('estudio/eventos',                      [BloqueoEstudioController::class, 'eventos'])  ->name('estudio.eventos');
         Route::post('estudio',                             [BloqueoEstudioController::class, 'store'])    ->name('estudio.store');
         Route::delete('estudio/{bloqueo}',                 [BloqueoEstudioController::class, 'destroy'])  ->name('estudio.destroy');
@@ -171,9 +178,10 @@ Route::middleware(['auth', 'rol:FOTOGRAFO'])
         Route::post('sesiones/{id}/iniciar', [SesionController::class, 'iniciar'])->name('sesiones.iniciar');
 
         // Fotografías
-        Route::get('sesiones/{id}/fotografias/create',  [FotografiaController::class, 'create'])         ->name('fotografias.create');
+        Route::get('sesiones/{id}/fotografias/create',  [FotografiaController::class, 'create'])          ->name('fotografias.create');
         Route::post('sesiones/{id}/fotografias',        [FotografiaController::class, 'store'])           ->name('fotografias.store');
         Route::patch('sesiones/{id}/entregar',          [FotografiaController::class, 'marcarEntregada']) ->name('fotografias.entregar');
+        //Route::post('sesiones/{id}/confirmar-subida',   [FotografiaController::class, 'confirmarSubida']) ->name('fotografias.confirmarSubida');
         Route::patch('sesiones/{id}/galeria-disponible', [FotografiaController::class, 'marcarGaleriaDisponible']) ->name('fotografias.galeria-disponible');
         Route::post('fotografias/{id}/aprobar',         [FotografiaController::class, 'aprobar'])         ->name('fotografias.aprobar');
         Route::delete('fotografias/{id}/rechazar',      [FotografiaController::class, 'rechazar'])        ->name('fotografias.rechazar');
@@ -240,13 +248,20 @@ Route::middleware(['auth', 'rol:CLIENTE'])
 
     });
 
-/*Route::resource('admin/paquetes', PaqueteController::class)
-    ->names('admin.paquetes')
-    ->parameters(['paquetes' => 'paquete']);
+// Gestión — socios y admin
+Route::middleware(['auth', 'rol:SOCIO_ESTUDIO,ADMINISTRADOR'])
+    ->prefix('socio/estudio')
+    ->name('socio.estudio.')
+    ->group(function () {
+        Route::get('/', [SocioEstudioController::class, 'dashboard'])->name('dashboard');
+        Route::get('/eventos', [BloqueoEstudioController::class, 'eventos'])->name('eventos');
+        Route::post('/bloqueos', [BloqueoEstudioController::class, 'store'])->name('bloqueos.store');
+        Route::delete('/bloqueos/{bloqueo}', [BloqueoEstudioController::class, 'destroy'])->name('bloqueos.destroy');
 
-Route::resource('admin/catalogos', CatalogoController::class)
-    ->names('admin.catalogos')
-    ->parameters(['catalogos' => 'catalogo']);*/
+        Route::get('/solicitudes/{solicitud}', [SolicitudEstudioAdminController::class, 'show'])->name('solicitudes.show');
+        Route::post('/solicitudes/{solicitud}/aprobar', [SolicitudEstudioAdminController::class, 'aprobar'])->name('solicitudes.aprobar');
+        Route::post('/solicitudes/{solicitud}/rechazar', [SolicitudEstudioAdminController::class, 'rechazar'])->name('solicitudes.rechazar');
+    });
 
 Route::get('/terminos-condiciones', fn() => view('reservas.terminos-condiciones'))->name('terminos');
 

@@ -3,7 +3,7 @@
 
         <div class="footer-col footer-col-brand">
             <a href="/" class="footer-logo-link">
-                <img src="{{ asset('images/logo.png') }}" alt="AStudio" class="footer-logo-img">
+                <img src="{{ asset('images/logo.png') }}" alt="Abraham Sánchez" class="footer-logo-img">
             </a>
             <p class="footer-desc">
                 Fotografía profesional con alma. Capturamos tus momentos más especiales con luz, emoción y un estilo atemporal que perdura.
@@ -57,7 +57,7 @@
     </div>
 
     <div class="footer-bottom">
-        <p>© {{ date('Y') }} AStudio. Todos los derechos reservados.</p>
+        <p>© {{ date('Y') }} Abraham Sánchez. Todos los derechos reservados.</p>
         <p>
             <a href="{{ route('terminos') }}" style="color: inherit; opacity: 0.6;">
                 Términos y Condiciones

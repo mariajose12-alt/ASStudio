@@ -21,9 +21,9 @@ class AvanzarReservaPorPagoConfirmado implements ShouldQueue
             default                => null,
         };
 
-        $usuario = $pago->cliente->usuario;
-        if ($usuario) {
-            $usuario->notify(new PagoConfirmadoCliente($pago));
-        }
+//        $usuario = $pago->cliente->usuario;
+//        if ($usuario) {
+//            $usuario->notify(new PagoConfirmadoCliente($pago));
+//        }
     }
 }

@@ -36,14 +36,14 @@ body {
     position: sticky;
     top: 0;
     z-index: 50;
-    height: 100px;
+    height: 64px;
     background: var(--white);
     border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    display: flex;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    gap: 16px;
 }
 
 .gal-topbar__left {
@@ -53,45 +53,52 @@ body {
     min-width: 0;
 }
 
-.gal-topbar__logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 15px;
-    letter-spacing: 0.5px;
-    color: var(--navy);
-    text-decoration: none;
-    white-space: nowrap;
-    flex-shrink: 0;
+.gal-topbar__logo img {
+    display: block;
+    height: 28px; /* antes probablemente heredaba el height=45 del <img>, muy grande para 64px de topbar */
+    width: auto;
 }
 
 .gal-topbar__divider {
     width: 1px;
-    height: 18px;
+    height: 20px;
     background: var(--border);
     flex-shrink: 0;
 }
 
+.gal-topbar__center {
+    min-width: 0;
+    text-align: center;
+    overflow: hidden;
+}
+
 .gal-topbar__title {
     font-family: 'Playfair Display', serif;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--navy);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: block;
 }
 
 .gal-topbar__subtitle {
     display: block;
-    margin-top: 1px;
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 400;
     color: var(--muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-top: 1px;
 }
 
-.gal-topbar__right { flex-shrink: 0; }
+.gal-topbar__right {
+    display: flex;
+    justify-content: flex-end;
+    min-width: 0;
+}
 
 /* Botón de navegación (volver / ver todas) */
 .gal-btn-nav {

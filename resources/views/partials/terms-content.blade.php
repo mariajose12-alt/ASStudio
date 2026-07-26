@@ -1,7 +1,7 @@
 {{-- Contenido reutilizable de Términos y Condiciones --}}
 <div class="tc-intro">
     <p>
-        Al solicitar una sesión fotográfica con <strong>AStudio</strong>, el cliente acepta las siguientes
+        Al solicitar una sesión fotográfica con <strong>Abraham Sánchez</strong>, el cliente acepta las siguientes
         condiciones de servicio. Te pedimos leerlas con atención, ya que regulan la relación
         entre el estudio y el cliente durante todo el proceso, desde la reserva hasta la entrega final.
     </p>
@@ -173,7 +173,7 @@
     <div class="tc-section-body">
         <div class="tc-rule">
             <div class="tc-dot"></div>
-            <p>AStudio podrá usar fotografías de sesiones para <strong>fines promocionales</strong> en redes sociales y portafolio, salvo indicación explícita del cliente al momento de la reserva.</p>
+            <p>Abraham Sánchez podrá usar fotografías de sesiones para <strong>fines promocionales</strong> en redes sociales y portafolio, salvo indicación explícita del cliente al momento de la reserva.</p>
         </div>
         <div class="tc-rule">
             <div class="tc-dot"></div>

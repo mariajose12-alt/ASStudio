@@ -70,23 +70,22 @@ class Pago extends Model
 
     public function aprobar(): void
     {
-        $this->update([
-            'estado'           => 'CONFIRMADO',
-            'fecha_completado' => now(),
-        ]);
+        $this->estado           = 'CONFIRMADO';
+        $this->fecha_completado = now();
+        $this->save();
     }
 
     public function rechazar(string $motivo): void
     {
-        $this->update([
-            'estado'          => 'RECHAZADO',
-            'motivo_rechazo'  => $motivo,
-        ]);
+        $this->estado         = 'RECHAZADO';
+        $this->motivo_rechazo = $motivo;
+        $this->save();
     }
 
     public function asociarComprobante(Comprobante $comprobante): void
     {
-        $this->update(['comprobante_id' => $comprobante->id]);
+        $this->comprobante_id = $comprobante->id;
+        $this->save();
     }
 
     public function marcarEnRevision(): void

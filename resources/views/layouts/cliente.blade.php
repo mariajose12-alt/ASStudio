@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AStudio — @yield('title', 'Mi Cuenta')</title>
+    <title>Abraham Sánchez — @yield('title', 'Mi Cuenta')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     {{-- Tabler Icons (outline) --}}
@@ -36,8 +36,8 @@
     <aside class="sidebar" id="appSidebar" aria-label="Menú principal">
 
         <div class="sidebar-logo">
-            <a href="/" class="navbar-logo" aria-label="Ir al inicio de AStudio">
-                <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
+            <a href="/" class="navbar-logo" aria-label="Ir al inicio">
+                <img src="{{ asset('images/logo.png') }}" alt="Abraham Sánchez" height="45">
             </a>
             <div class="brand-sub">Mi Cuenta</div>
         </div>
@@ -245,6 +245,30 @@
     @media (min-width: 769px) {
         .topbar {
             display: flex;
+        }
+    }
+
+    .dash-action-bar {
+        display: none; /* oculta en desktop */
+    }
+
+    @media (max-width: 640px) {
+        .dash-action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 14px 20px;
+            background: var(--blue-lt);
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
         }
     }
 </style>

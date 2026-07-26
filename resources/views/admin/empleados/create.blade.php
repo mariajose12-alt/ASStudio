@@ -72,6 +72,7 @@
                                 <option value="">Seleccionar...</option>
                                 <option value="FOTOGRAFO"    {{ old('rol') == 'FOTOGRAFO'    ? 'selected' : '' }}>Fotógrafo</option>
                                 <option value="ADMINISTRADOR"{{ old('rol') == 'ADMINISTRADOR'? 'selected' : '' }}>Administrador</option>
+                                <option value="SOCIO_ESTUDIO"{{ old('rol') == 'SOCIO_ESTUDIO'? 'selected' : '' }}>Socio</option>
                             </select>
                             @error('rol')<span class="error-msg">{{ $message }}</span>@enderror
                         </div>

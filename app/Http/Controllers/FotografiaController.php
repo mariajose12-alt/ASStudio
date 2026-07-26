@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\GenerarThumbnailFoto;
 use App\Notifications\FotosEntregadasCliente;
 use App\Notifications\GaleriaDisponibleCliente;
 use App\Notifications\SeleccionConfirmadaFotografo;
 use App\Models\Fotografia;
 use App\Models\Sesion;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Intervention\Image\Laravel\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 
 class FotografiaController extends Controller
@@ -55,7 +57,9 @@ class FotografiaController extends Controller
             'sesion',
             'pendientesEdicion',
             'pendientesAprobacion',
-            'esPrincipal'
+            'esPrincipal',
+            'totalPendientes',
+            'totalEditadas'
         ));
     }
 
@@ -89,7 +93,7 @@ class FotografiaController extends Controller
                 $archivo
             );
 
-            $guardadas[] = Fotografia::create([
+            $foto = Fotografia::create([
                 'sesion_id'                => $sesionId,
                 'subido_por_fotografo_id'  => $fotografo->id,
                 'url'                      => $path,
@@ -98,6 +102,14 @@ class FotografiaController extends Controller
                 // Los RAW nunca requieren aprobación; las editadas sí, si las sube un asistente
                 'aprobada'                 => $estado === 'ORIGINAL' ? true : $esPrincipal,
             ]);
+
+            $extension = strtolower($archivo->getClientOriginalExtension());
+            $formatosConThumb = ['jpg', 'jpeg', 'png', 'webp'];
+            if (in_array($extension, $formatosConThumb)) {
+                GenerarThumbnailFoto::dispatch($foto->id);
+            }
+
+            $guardadas[] = $foto;
         }
 
         $huboPendientes = ! $esPrincipal && $estado === 'EDITADA';
@@ -223,10 +235,36 @@ class FotografiaController extends Controller
         ]);
     }
 
+//    public function confirmarSubida(int $sesionId)
+//    {
+//        $fotografo = auth()->user()->empleado->fotografo;
+//
+//        $sesion = Sesion::with('reserva.cliente.usuario')
+//            ->whereHas('reserva', fn($q) => $q->where('fotografo_id', $fotografo->id))
+//            ->findOrFail($sesionId);
+//
+//        if ($sesion->estado !== 'EN_PROCESO') {
+//            return response()->json(['message' => 'La galería ya fue publicada.']);
+//        }
+//
+//        if (! $sesion->fotografias()->where('estado', 'ORIGINAL')->exists()) {
+//            return response()->json(['message' => 'Debes subir al menos una foto antes de confirmar.'], 422);
+//        }
+//
+//        $sesion->update(['estado' => 'GALERIA_DISPONIBLE']);
+//
+//        $usuario = $sesion->reserva->cliente->usuario ?? null;
+//        if ($usuario) {
+//            $usuario->notify(new GaleriaDisponibleCliente($sesion));
+//        }
+//
+//        return response()->json(['message' => 'Galería publicada. El cliente ha sido notificado.']);
+//    }
+
     /**
      * El cliente confirma su selección final de fotos.
      * Se ejecuta UNA sola vez — después no hay vuelta atrás.
-     */
+
     public function confirmarSeleccion(Request $request, int $sesionId)
     {
         $request->validate([
@@ -267,19 +305,31 @@ class FotografiaController extends Controller
         return redirect()->route('cliente.galeria')
             ->with('success', 'Selección confirmada. El fotógrafo editará tus fotos en los próximos días.');
     }
+     */
 
     public function download(int $id)
     {
-        $fotografia = Fotografia::findOrFail($id);
-        $url = Storage::disk('r2')->temporaryUrl($fotografia->url, now()->addMinutes(60));
+        $fotografo = auth()->user()->empleado->fotografo;
+        $foto = Fotografia::with('sesion')->findOrFail($id);
+
+        if (! $foto->sesion->fotografoTieneAcceso($fotografo)) {
+            abort(403, 'No tienes acceso a esta foto.');
+        }
+
+        $url = Storage::disk('r2')->temporaryUrl($foto->url, now()->addMinutes(60));
         return response()->json(['url' => $url]);
     }
-
     public function destroy(int $id)
     {
-        $fotografia = Fotografia::findOrFail($id);
-        Storage::disk('r2')->delete($fotografia->url);
-        $fotografia->delete();
+        $fotografo = auth()->user()->empleado->fotografo;
+        $foto = Fotografia::with('sesion')->findOrFail($id);
+
+        if (! $foto->sesion->esPrincipalDe($fotografo)) {
+            abort(403, 'No tienes permiso para eliminar esta foto.');
+        }
+
+        Storage::disk('r2')->delete($foto->url);
+        $foto->delete();
         return response()->json(['message' => 'Foto eliminada correctamente']);
     }
 }

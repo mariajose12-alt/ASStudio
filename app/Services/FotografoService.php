@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Fotografo;
 use App\Models\Reserva;
+use App\Models\Sesion;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -13,10 +14,27 @@ class FotografoService
 
     public function eventosCalendario(Fotografo $fotografo): array
     {
-        return $fotografo->reservas()
+        // Reservas donde es fotógrafo principal
+        $comoPrincipal = $fotografo->reservas()
             ->whereIn('estado', ['PENDIENTE', 'APROBADA'])
             ->with('paquete', 'cliente.usuario.persona')
-            ->get()
+            ->get();
+
+        // Reservas donde participa como asistente (vía sesión)
+        $reservaIdsComoAsistente = Sesion::whereHas('fotografos', function ($q) use ($fotografo) {
+            $q->where('fotografo_id', $fotografo->id)
+                ->where('rol', 'ASISTENTE')
+                ->where('estado_participacion', true);
+        })
+            ->pluck('reserva_id');
+
+        $comoAsistente = Reserva::whereIn('id', $reservaIdsComoAsistente)
+            ->whereIn('estado', ['PENDIENTE', 'APROBADA'])
+            ->with('paquete', 'cliente.usuario.persona')
+            ->get();
+
+        return $comoPrincipal->merge($comoAsistente)
+            ->unique('id')
             ->map(fn($r) => [
                 'id'    => $r->id,
                 'title' => $r->paquete->nombre ?? 'Reserva',
@@ -31,11 +49,13 @@ class FotografoService
                     'cliente' => optional($r->cliente->usuario->persona)->nombre
                         . ' '
                         . optional($r->cliente->usuario->persona)->apellido,
-                    'tipo'    => $r->tipo,
-                    'lugar'   => $r->lugar,
-                    'estado'  => $r->estado,
+                    'tipo'        => $r->tipo,
+                    'lugar'       => $r->lugar,
+                    'estado'      => $r->estado,
+                    'esAsistente' => $r->fotografo_id !== $fotografo->id,
                 ],
             ])
+            ->values()
             ->toArray();
     }
 

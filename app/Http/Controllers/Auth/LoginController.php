@@ -79,6 +79,7 @@ class LoginController extends Controller
             'ADMINISTRADOR' => redirect()->route('admin.dashboard'),
             'FOTOGRAFO'     => redirect()->route('fotografo.dashboard'),
             'CLIENTE'       => redirect()->route('cliente.dashboard'),
+            'SOCIO_ESTUDIO' => redirect()->route('socio.estudio.dashboard'),
             default         => redirect('/'),
         };
     }

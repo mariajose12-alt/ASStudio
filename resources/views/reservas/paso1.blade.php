@@ -3,32 +3,12 @@
 @section('formulario')
     <div class="reserva-logo">
         <a href="/" class="navbar-logo">
-            <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
+            <img src="{{ asset('images/logo.png') }}" alt="Abraham Sánchez" height="45">
         </a>
     </div>
 
     {{-- Stepper --}}
-    <div class="stepper">
-        <div class="stepper-step">
-            <div class="stepper-circle active">1</div>
-            <span class="stepper-label active">Sesión</span>
-        </div>
-        <div class="stepper-line"></div>
-        <div class="stepper-step">
-            <div class="stepper-circle">2</div>
-            <span class="stepper-label">Fecha</span>
-        </div>
-        <div class="stepper-line"></div>
-        <div class="stepper-step">
-            <div class="stepper-circle">3</div>
-            <span class="stepper-label">Datos</span>
-        </div>
-        <div class="stepper-line"></div>
-        <div class="stepper-step">
-            <div class="stepper-circle">4</div>
-            <span class="stepper-label">Resumen</span>
-        </div>
-    </div>
+    @include('reservas.partials.stepper', ['step' => 1, 'requiereTelefono' => $requiereTelefono])
 
     <h5>Paso 1 de 4</h5>
     <h4>Especificaciones de la Sesión</h4>

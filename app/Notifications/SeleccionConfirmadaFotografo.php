@@ -30,7 +30,7 @@ class SeleccionConfirmadaFotografo extends Notification implements ShouldQueue
             'titulo'  => 'Selección confirmada',
             'mensaje' => 'El cliente confirmó su selección de fotos. Puedes comenzar la edición.',
             'icono'   => 'checklist',
-            'url'     => route('fotografo.sesiones.show', $this->sesion->id),
+            'url'     => route('fotografo.sesiones.index'),
         ];
     }
 }

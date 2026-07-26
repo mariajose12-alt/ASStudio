@@ -206,7 +206,7 @@
                     <div class="panel-sub">Progreso hacia metas</div>
                 </div>
                 @if(!$metas['meta_configurada'])
-                    <a href="{{ route('admin.metas.edit') }}" class="btn-secondary">
+                    <a href="{{ route('admin.metas.edit') }}" class="btn-secondary" style="text-decoration: none;">
                         Configurar Metas
                     </a>
                 @endif

@@ -1,6 +1,6 @@
 @extends('layouts.email')
 
-@section('email_title', 'Tus fotos están listas — AStudio')
+@section('email_title', 'Tus fotos están listas — Abraham Sánchez')
 
 @section('content')
 

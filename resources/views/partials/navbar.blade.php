@@ -2,7 +2,7 @@
 <nav class="navbar-landing" id="navbar">
     <a href="/" class="navbar-logo">
         <img src="{{ asset('images/' . ($logoOverride ?? 'logo.png')) }}"
-             alt="AStudio"
+             alt="Abraham Sánchez"
              height="40"
              @if(!empty($logoOverride)) style="filter: brightness(0);" @endif>
     </a>

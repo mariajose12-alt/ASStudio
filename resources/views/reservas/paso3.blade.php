@@ -3,32 +3,12 @@
 @section('formulario')
 <div class="reserva-logo">
     <a href="/" class="navbar-logo">
-        <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
+        <img src="{{ asset('images/logo.png') }}" alt="Abraham Sánchez" height="45">
     </a>
 </div>
 
 {{-- Stepper --}}
-<div class="stepper">
-    <div class="stepper-step">
-        <div class="stepper-circle done">✓</div>
-        <span class="stepper-label">Sesión</span>
-    </div>
-    <div class="stepper-line done"></div>
-    <div class="stepper-step">
-        <div class="stepper-circle done">✓</div>
-        <span class="stepper-label">Fecha</span>
-    </div>
-    <div class="stepper-line done"></div>
-    <div class="stepper-step">
-        <div class="stepper-circle active">3</div>
-        <span class="stepper-label active">Datos</span>
-    </div>
-    <div class="stepper-line"></div>
-    <div class="stepper-step">
-        <div class="stepper-circle">4</div>
-        <span class="stepper-label">Resumen</span>
-    </div>
-</div>
+@include('reservas.partials.stepper', ['step' => 3, 'requiereTelefono' => $requiereTelefono])
 
 <h5>Paso 3 de 4</h5>
 <h4>Confirma tus datos</h4>
@@ -85,6 +65,9 @@
         @error('telefono')
         <div class="invalid-feedback">{{ $message }}</div>
         @enderror
+        <small style="display:block; font-size:12px; color:#9a9488; margin-top:6px; line-height:1.4;">
+            Lo usamos para notificarte por WhatsApp sobre tu sesión. Es opcional.
+        </small>
     </div>
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">

@@ -15,8 +15,11 @@
     <div class="card">
         <div class="card-header">
             <h2>Editar — {{ $persona->nombre }} {{ $persona->apellido }}</h2>
-            <span class="badge {{ $empleado->rol === 'FOTOGRAFO' ? 'badge-foto' : 'badge-admin' }}">
-                {{ $empleado->rol }}
+            <span class="badge {{ match($empleado->rol) {
+                'FOTOGRAFO' => 'badge-foto',
+                'SOCIO_ESTUDIO' => 'badge-active',
+                default => 'badge-admin',
+            } }}">
             </span>
         </div>
         <div class="card-body">
@@ -85,6 +88,7 @@
                             <select name="rol" id="rol" required onchange="toggleFotografo(this.value)">
                                 <option value="FOTOGRAFO"     {{ old('rol', $empleado->rol) == 'FOTOGRAFO'     ? 'selected' : '' }}>Fotógrafo</option>
                                 <option value="ADMINISTRADOR" {{ old('rol', $empleado->rol) == 'ADMINISTRADOR' ? 'selected' : '' }}>Administrador</option>
+                                <option value="SOCIO_ESTUDIO" {{ old('rol', $empleado->rol) == 'SOCIO_ESTUDIO' ? 'selected' : '' }}>Socio</option>
                             </select>
                             @error('rol')<span class="error-msg">{{ $message }}</span>@enderror
                         </div>

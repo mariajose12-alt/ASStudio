@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="x-apple-disable-message-reformatting">
     <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
     <title>@yield('email_title', config('app.name'))</title>
     <!--[if mso]>
     <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
@@ -43,7 +44,7 @@
 
                         {{-- Logo --}}
                         <img src="{{ isset($message) ? $message->embed(public_path('images/logo.png')) : asset('images/logo.png') }}"
-                             alt="AStudio"
+                             alt="Abraham Sánchez"
                              width="140"
                              style="display:block;margin:0 auto 20px;max-height:48px;width:auto;filter:brightness(0) invert(1);">
 
@@ -77,7 +78,7 @@
                                     <td style="padding-top:28px;">
                                         {{-- Título del bloque --}}
                                         <p style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:15px;font-weight:600;color:#1a0d00;letter-spacing:0.3px;">
-                                            AStudio
+                                            Abraham Sánchez
                                         </p>
                                         {{-- Grid de 2 columnas con tabla --}}
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
@@ -195,7 +196,7 @@
                             o visita nuestro
                             <a href="{{ config('app.url') }}/soporte" target="_blank"
                                style="color:#9ca3af;text-decoration:underline;">centro de soporte</a>.<br><br>
-                            &copy; {{ date('Y') }} AStudio. Todos los derechos reservados.
+                            &copy; {{ date('Y') }} Abraham Sánchez. Todos los derechos reservados.
                         </p>
 
                     </td>

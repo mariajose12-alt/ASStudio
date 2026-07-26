@@ -38,8 +38,9 @@ class ReservaController extends Controller
         }])->where('activo', true)->get();
 
         $p1 = session('reserva.paso1', []);
+        $requiereTelefono = $this->requiereTelefono();
 
-        return view('reservas.paso1', compact('catalogos', 'p1'));
+        return view('reservas.paso1', compact('catalogos', 'p1', 'requiereTelefono'));
     }
 
     public function guardarPaso1(Request $request)
@@ -67,7 +68,9 @@ class ReservaController extends Controller
             return redirect()->route('cliente.reservas.paso1')->with('error', 'Por favor completa el primer paso.');
         }
 
-        return view('reservas.paso2');
+        $requiereTelefono = $this->requiereTelefono();
+
+        return view('reservas.paso2', compact('requiereTelefono'));
     }
 
     public function guardarPaso2(Request $request)
@@ -95,7 +98,20 @@ class ReservaController extends Controller
         $usuario = Auth::user();
         $usuario->load('persona');
 
-        return view('reservas.paso3', compact('usuario'));
+        // Si ya tiene teléfono registrado, saltamos el paso automáticamente
+        if (!empty($usuario->persona?->telefono)) {
+            session(['reserva.paso3' => [
+                'nombre'   => trim($usuario->persona->nombre . ' ' . $usuario->persona->apellido),
+                'correo'   => $usuario->email,
+                'telefono' => $usuario->persona->telefono,
+            ]]);
+
+            return redirect()->route('cliente.reservas.paso4');
+        }
+
+        $requiereTelefono = true;
+
+        return view('reservas.paso3', compact('usuario', 'requiereTelefono'));
     }
 
     // Solo guardar en sesion, al enviar se actualiza la BD
@@ -104,7 +120,7 @@ class ReservaController extends Controller
         $request->validate([
             'nombre'      => 'required|string|max:100',
             'correo'      => 'required|email|max:150',
-            'telefono'    => 'required|string|max:20',
+            'telefono'    => 'nullable|string|max:20',
         ]);
 
         session(['reserva.paso3' => $request->only(['nombre', 'correo', 'telefono'])]);
@@ -126,8 +142,9 @@ class ReservaController extends Controller
         $paso3 = session('reserva.paso3');
 
         $paquete = PaqueteFotografico::with('catalogos')->find($paso1['paquete_id']);
+        $requiereTelefono = $this->requiereTelefono();
 
-        return view('reservas.paso4', compact('paso1', 'paso2', 'paso3', 'paquete'));
+        return view('reservas.paso4', compact('paso1', 'paso2', 'paso3', 'paquete', 'requiereTelefono'));
     }
 
     /**
@@ -154,7 +171,7 @@ class ReservaController extends Controller
             $persona->update([
                 'nombre'   => $partes[0],
                 'apellido' => $partes[1] ?? $persona->apellido,
-                'telefono' => $paso3['telefono'],
+                'telefono' => !empty($paso3['telefono']) ? $paso3['telefono'] : $persona->telefono,
             ]);
             $usuario->update(['email' => $paso3['correo']]);
         }
@@ -178,5 +195,13 @@ class ReservaController extends Controller
             report($e);
             return back()->with('error', $e->getMessage()); // ← muestra el error real
         }
+    }
+
+    private function requiereTelefono(): bool
+    {
+        $usuario = Auth::user();
+        $usuario->loadMissing('persona');
+
+        return empty($usuario->persona?->telefono);
     }
 }

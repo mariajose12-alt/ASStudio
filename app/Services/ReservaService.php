@@ -76,9 +76,9 @@ class ReservaService
 
         if (!empty($paso3)) {
             $cliente->update([
-                'telefono' => $paso3['telefono'] ?? $cliente->telefono,
-                'direccion' => $paso3['direccion'] ?? $cliente->direccion,
-                'nombre'    => $paso3['nombre']    ?? $cliente->nombre,
+                'telefono'  => !empty($paso3['telefono'])  ? $paso3['telefono']  : $cliente->telefono,
+                'direccion' => !empty($paso3['direccion']) ? $paso3['direccion'] : $cliente->direccion,
+                'nombre'    => !empty($paso3['nombre'])    ? $paso3['nombre']    : $cliente->nombre,
             ]);
         }
 

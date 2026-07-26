@@ -24,7 +24,7 @@ class ZipGaleriaListoCliente extends Mailable
         $label = $this->tipo === 'editadas' ? 'editadas' : 'originales';
 
         return new Envelope(
-            subject: "Tus fotos {$label} están listas para descargar — AStudio",
+            subject: "Tus fotos {$label} están listas para descargar — Abraham Sánchez",
         );
     }
 

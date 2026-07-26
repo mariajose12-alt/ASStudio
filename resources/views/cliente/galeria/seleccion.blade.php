@@ -386,8 +386,8 @@
             if (!btnVerTodas) {
                 btnVerTodas           = document.createElement('button');
                 btnVerTodas.id        = 'btnVerTodas';
-                btnVerTodas.className = 'gal-btn-nav gal-btn-nav--active';
-                btnVerTodas.textContent = '← Ver todas';
+                btnVerTodas.className = 'gal-btn-nav';
+                btnVerTodas.textContent = '⁝';
                 btnVerTodas.onclick   = salirModoFavoritos;
                 btnVolver.parentNode.insertBefore(btnVerTodas, btnVolver);
             }

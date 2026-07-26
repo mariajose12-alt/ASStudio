@@ -28,9 +28,11 @@ class ClienteReservaController extends Controller
     {
         $this->autorizarPropietario($reserva);
 
-        $reserva->load(['paquete', 'catalogo']);
+        $reserva->load(['paquete', 'catalogo', 'sesion', 'pagos']);
 
-        return view('cliente.reservas.show', compact('reserva'));
+        $lineaTiempo = $this->construirLineaTiempo($reserva);
+
+        return view('cliente.reservas.show', compact('reserva', 'lineaTiempo'));
     }
 
     public function responderSugerencia(Request $request, Reserva $reserva)
@@ -45,13 +47,8 @@ class ClienteReservaController extends Controller
         try {
             match ($request->accion) {
                 'ACEPTAR'  => $this->reservaService->aprobarPorAceptacionCliente($reserva),
-                'CANCELAR' => $reserva->update(['estado' => 'CANCELADA']),
-                'EDITAR'   => $reserva->update([
-                    'estado'                    => 'PENDIENTE',
-                    'descripcion'               => $request->descripcion,
-                    'motivo_rechazo'            => null,
-                    'duracion_horas_propuesta'  => null,
-                ]),
+                'CANCELAR' => $reserva->cancelar(),
+                'EDITAR'   => $reserva->reenviarParaRevision($request->descripcion),
             };
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -65,14 +62,147 @@ class ClienteReservaController extends Controller
             });
     }
 
-    /**
-     * Verifica que la reserva pertenezca al cliente autenticado.
-     * Aborta con 403 si no hay cliente o si la reserva es de otro cliente.
-     */
     private function autorizarPropietario(Reserva $reserva): void
     {
         $cliente = Cliente::where('usuario_id', auth()->id())->firstOrFail();
-
         abort_if($reserva->cliente_id !== $cliente->id, 403);
+    }
+
+    /**
+     * Construye el timeline de progreso del cliente combinando el estado
+     * de la Reserva, la Sesion y AMBOS pagos (anticipo + final).
+     */
+    private function construirLineaTiempo(Reserva $reserva): array
+    {
+        $sesion = $reserva->sesion;
+        $pagoAnticipo = $reserva->pagos->whereIn('tipo', ['ANTICIPO', 'COMPLETO'])->sortByDesc('id')->first();
+        $pagoFinal    = $reserva->pagos->where('tipo', 'FINAL')->sortByDesc('id')->first();
+
+        if ($reserva->estado === 'RECHAZADA') {
+            return [
+                'especial' => ['tipo' => 'rechazada', 'titulo' => 'Reserva rechazada', 'descripcion' => $reserva->motivo_rechazo ?: 'El fotógrafo no pudo aceptar esta solicitud.'],
+                'pasos' => [],
+            ];
+        }
+
+        if ($reserva->estado === 'CANCELADA') {
+            return [
+                'especial' => ['tipo' => 'cancelada', 'titulo' => 'Reserva cancelada', 'descripcion' => 'Esta reserva fue cancelada y ya no está activa.'],
+                'pasos' => [],
+            ];
+        }
+
+        $especial = null;
+        if ($reserva->estado === 'MODIFICACION_PROPUESTA') {
+            $especial = ['tipo' => 'modificacion', 'titulo' => 'El fotógrafo propone un cambio', 'descripcion' => $reserva->motivo_rechazo];
+        }
+
+        // ── 7 escalones fijos ──
+        $pasos = [
+            ['clave' => 'revision',    'titulo' => 'Revisión y aprobación', 'descripcion' => 'El fotógrafo revisa los detalles de tu solicitud.'],
+            ['clave' => 'anticipo',    'titulo' => 'Pago del anticipo',      'descripcion' => 'Confirmas tu fecha con el 50% de anticipo.'],
+            ['clave' => 'sesion',      'titulo' => 'Sesión fotográfica',     'descripcion' => 'El día de tu sesión, en el lugar acordado.'],
+            ['clave' => 'seleccion',   'titulo' => 'Selección de fotos',     'descripcion' => 'Eliges cuáles fotos originales quieres que editemos.'],
+            ['clave' => 'pago_final',  'titulo' => 'Segundo pago',           'descripcion' => 'Completas el pago restante de tu sesión.'],
+            ['clave' => 'edicion',     'titulo' => 'Edición',                'descripcion' => 'El fotógrafo edita las fotos que seleccionaste.'],
+            ['clave' => 'final',       'titulo' => 'Galería final',          'descripcion' => 'Descargas tus fotos ya editadas.'],
+        ];
+
+        $indiceActual = 0;
+
+        if ($reserva->estado === 'PENDIENTE') {
+            $pasos[0]['estado'] = 'actual';
+        } elseif ($reserva->estado === 'MODIFICACION_PROPUESTA') {
+            $pasos[0]['estado'] = 'alerta';
+        } elseif ($reserva->estado === 'APROBADA') {
+            $pasos[0]['estado'] = 'completado';
+
+            $estadoAnticipo = $pagoAnticipo?->estado;
+
+            if (!$pagoAnticipo || $estadoAnticipo === 'PENDIENTE') {
+                $indiceActual = 1;
+                $pasos[1]['estado'] = 'actual';
+                $pasos[1]['accion'] = ['label' => 'Ir a pagar', 'url' => route('cliente.pagos.index')];
+            } elseif ($estadoAnticipo === 'EN_REVISION') {
+                $indiceActual = 1;
+                $pasos[1]['estado'] = 'actual';
+                $pasos[1]['descripcion'] = 'Tu comprobante está en revisión — normalmente toma menos de 24 horas.';
+            } elseif ($estadoAnticipo === 'RECHAZADO') {
+                $indiceActual = 1;
+                $pasos[1]['estado'] = 'alerta';
+                $pasos[1]['descripcion'] = $pagoAnticipo->motivo_rechazo ?: 'Tu comprobante fue rechazado, sube uno nuevo.';
+                $pasos[1]['accion'] = ['label' => 'Subir nuevo comprobante', 'url' => route('cliente.pagos.comprobante.form', $pagoAnticipo->id)];
+            } else {
+                $pasos[1]['estado'] = 'completado';
+
+                if (!$sesion) {
+                    $indiceActual = 2;
+                    $pasos[2]['estado'] = 'actual';
+                    $pasos[2]['descripcion'] = 'Estamos organizando los detalles de tu sesión.';
+                } elseif (in_array($sesion->estado, ['CONFIRMADA', 'EN_PROCESO'])) {
+                    $indiceActual = 2;
+                    $pasos[2]['estado'] = 'actual';
+                } elseif ($sesion->estado === 'GALERIA_DISPONIBLE') {
+                    $pasos[2]['estado'] = 'completado';
+                    $indiceActual = 3;
+                    $pasos[3]['estado'] = 'actual';
+                    $pasos[3]['accion'] = ['label' => 'Seleccionar fotos', 'url' => route('cliente.galeria.show', $sesion->id)];
+                } else {
+                    // EN_EDICION, FINALIZADA o CERRADA: la selección ya se hizo,
+                    // así que el segundo pago entra en juego (creado junto con la selección).
+                    $pasos[2]['estado'] = 'completado';
+                    $pasos[3]['estado'] = 'completado';
+
+                    if (!$pagoFinal) {
+                        // Pagó completo desde el inicio: no hay segundo pago que hacer
+                        $pasos[4]['estado'] = 'completado';
+                        $pasos[4]['descripcion'] = 'Ya pagaste el total, no necesitas un segundo pago.';
+
+                        if ($sesion->estado === 'EN_EDICION') {
+                            $indiceActual = 5;
+                        } else {
+                            $indiceActual = 6;
+                        }
+                    } else {
+                        $estadoFinal = $pagoFinal->estado;
+
+                        if ($estadoFinal === 'PENDIENTE') {
+                            $indiceActual = 4;
+                            $pasos[4]['estado'] = 'actual';
+                            $pasos[4]['accion'] = ['label' => 'Ir a pagar', 'url' => route('cliente.pagos.index')];
+                        } elseif ($estadoFinal === 'EN_REVISION') {
+                            $indiceActual = 4;
+                            $pasos[4]['estado'] = 'actual';
+                            $pasos[4]['descripcion'] = 'Tu comprobante está en revisión — normalmente toma menos de 24 horas.';
+                        } elseif ($estadoFinal === 'RECHAZADO') {
+                            $indiceActual = 4;
+                            $pasos[4]['estado'] = 'alerta';
+                            $pasos[4]['descripcion'] = $pagoFinal->motivo_rechazo ?: 'Tu comprobante fue rechazado, sube uno nuevo.';
+                            $pasos[4]['accion'] = ['label' => 'Subir nuevo comprobante', 'url' => route('cliente.pagos.comprobante.form', $pagoFinal->id)];
+                        } else {
+                            $pasos[4]['estado'] = 'completado';
+                            $indiceActual = $sesion->estado === 'EN_EDICION' ? 5 : 6;
+                        }
+                    }
+
+                    if (in_array($sesion->estado, ['FINALIZADA', 'CERRADA'])) {
+                        $pasos[6]['accion'] = ['label' => 'Ver galería final', 'url' => route('cliente.galeria.final', $sesion->id)];
+                    }
+
+                    foreach ($pasos as $i => &$paso) {
+                        if ($i < 5) continue;
+                        $paso['estado'] = $paso['estado'] ?? ($i < $indiceActual ? 'completado' : ($i === $indiceActual ? 'actual' : 'pendiente'));
+                    }
+                    unset($paso);
+                }
+            }
+        }
+
+        foreach ($pasos as &$paso) {
+            $paso['estado'] = $paso['estado'] ?? 'pendiente';
+        }
+        unset($paso);
+
+        return compact('especial', 'pasos');
     }
 }

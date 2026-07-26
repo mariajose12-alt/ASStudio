@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AStudio — @yield('title', 'Panel Fotógrafo')</title>
+    <title>Abraham Sánchez — @yield('title', 'Panel Fotógrafo')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x.x/dist/tabler-icons.min.css">
@@ -22,6 +22,11 @@
         ['href' => route('fotografo.sesiones.index'),  'label' => 'Sesiones'],
         ['href' => route('fotografo.nomina.index'),    'label' => 'Nomina'],
     ];
+
+    if (Auth::user()->tieneMultiplesRoles()) {
+        $navLinks[] = ['href' => route('admin.dashboard'), 'label' => 'Cambiar a vista Admin'];
+    }
+
     $logoOverride = null;
 @endphp
 @include('partials.navbar')
@@ -31,7 +36,7 @@
 <aside class="sidebar">
     <div class="sidebar-logo">
         <a href="/" class="navbar-logo">
-            <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
+            <img src="{{ asset('images/logo.png') }}" alt="Abraham Sánchez" height="45">
         </a>
         <div class="brand-sub">Panel Fotógrafo</div>
     </div>
@@ -40,6 +45,15 @@
             {{ Auth::user()->persona->nombre ?? '' }} {{ Auth::user()->persona->apellido ?? '' }}
         </div>
         <div class="user-email">{{ Auth::user()->email ?? '' }}</div>
+
+        @if(Auth::user()->tieneMultiplesRoles())
+            <a href="{{ route('admin.dashboard') }}" class="btn-switch-vista">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                Cambiar a vista Admin
+            </a>
+        @endif
     </div>
 
     <nav class="sidebar-nav">
@@ -68,7 +82,7 @@
         </a>
         <a href="{{ route('fotografo.nomina.index') }}" class="nav-link {{ request()->routeIs('fotografo.nomina*') ? 'active' : '' }}">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m0-12a9 9 0 110 18 9 9 0 010-18z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
             </svg>
             Mi Nómina
         </a>

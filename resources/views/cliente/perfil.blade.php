@@ -46,61 +46,24 @@
                 Cuenta activa
             </div>
         </div>
-
-        {{-- Mini-chart de actividad — visible solo en desktop dentro de la card --}}
-        <div class="perfil-card__chart">
-            <span class="perfil-card__chart-label">Actividad · 6 meses</span>
-            <div class="chart-wrap chart-wrap--mini">
-                <canvas id="sesionesChartAside"
-                        role="img"
-                        aria-label="Gráfico de sesiones de los últimos 6 meses">
-                </canvas>
-            </div>
-        </div>
     </div>
 
-    {{-- ══════════════════════════════════════════
-         RESUMEN RÁPIDO — stats compactos
-         Útil para que el usuario vea de un vistazo
-         su actividad sin necesidad del gráfico
-    ══════════════════════════════════════════ --}}
-    <div class="perfil-stats">
-        <div class="perfil-stat">
-            <div class="perfil-stat__val">{{ $sesionesporMes['totales'] ? array_sum($sesionesporMes['totales']) : 0 }}</div>
-            <div class="perfil-stat__label">Sesiones (6m)</div>
+    <div class="perfil-facts">
+        <div class="perfil-fact">
+            <div class="perfil-fact__val">{{ $stats['totalSesiones'] }}</div>
+            <div class="perfil-fact__label">Sesiones realizadas</div>
         </div>
-        <div class="perfil-stat">
-            <div class="perfil-stat__val" style="color: var(--green-dark);">
-                {{ end($sesionesporMes['totales']) ?? 0 }}
+        <div class="perfil-fact-divider"></div>
+        <div class="perfil-fact">
+            <div class="perfil-fact__val" style="{{ $stats['proximaSesion'] ? '' : 'color:var(--text-3); font-size:15px;' }}">
+                {{ $stats['proximaSesion'] ? \Carbon\Carbon::parse($stats['proximaSesion'])->translatedFormat('d M') : 'Ninguna' }}
             </div>
-            <div class="perfil-stat__label">Este mes</div>
+            <div class="perfil-fact__label">Próxima sesión</div>
         </div>
-        <div class="perfil-stat">
-            <div class="perfil-stat__val" style="color: #7d5a00;">
-                {{ $usuario->created_at->diffInMonths(now()) }}
-            </div>
-            <div class="perfil-stat__label">Meses contigo</div>
-        </div>
-    </div>
-
-    {{-- ══════════════════════════════════════════
-         GRÁFICO DE SESIONES (vista completa)
-         Móvil: card propia
-         Desktop: se oculta — el mini-chart en
-         .perfil-card cumple esta función (ver CSS)
-    ══════════════════════════════════════════ --}}
-    <div class="card perfil-chart-card-full">
-        <div class="card-header">
-            <h2>Sesiones realizadas</h2>
-            <span style="font-size:11px; color:var(--text-3);">Últimos 6 meses</span>
-        </div>
-        <div class="card-body">
-            <div class="chart-wrap">
-                <canvas id="sesionesChart"
-                        role="img"
-                        aria-label="Gráfico de sesiones de los últimos 6 meses">
-                </canvas>
-            </div>
+        <div class="perfil-fact-divider"></div>
+        <div class="perfil-fact">
+            <div class="perfil-fact__val">{{ (int) $usuario->created_at->diffInMonths(now()) }}</div>
+            <div class="perfil-fact__label">Meses contigo</div>
         </div>
     </div>
 
@@ -140,7 +103,7 @@
                     <input type="tel" id="telefono" name="telefono"
                            value="{{ old('telefono', $usuario->persona->telefono) }}"
                            autocomplete="tel"
-                           placeholder="+1 809 000 0000">
+                           placeholder="809 000 0000">
                     @error('telefono')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
 
@@ -218,6 +181,42 @@
         </div>
     </div>
 
+    {{-- Al final, después de la card de "Cambiar contraseña" --}}
+    <div class="card" style="border-color:#fecaca;">
+        <div class="card-header"><h2 style="color:#b91c1c;">Zona de peligro</h2></div>
+        <div class="card-body">
+            <p style="font-size:13px; color:var(--text-3); margin-bottom:16px; line-height:1.6;">
+                Eliminar tu cuenta es permanente. Tus reservas pasadas quedan en el historial del estudio, pero perderás acceso a tu perfil, galerías y pagos pendientes.
+            </p>
+            <button type="button" class="btn btn-outline" style="border-color:#dc2626; color:#dc2626;"
+                    onclick="document.getElementById('modalEliminarCuenta').classList.add('open')">
+                Eliminar mi cuenta
+            </button>
+        </div>
+    </div>
+
+    {{-- Modal de confirmación --}}
+    <div class="modal-gal" id="modalEliminarCuenta">
+        <div class="modal-gal__sheet">
+            <div class="modal-gal__pill"></div>
+            <div class="modal-gal__titulo">¿Eliminar tu cuenta?</div>
+            <p style="font-size:13px; color:var(--text-3); margin-bottom:20px;">Confirma tu contraseña para continuar. Esta acción no se puede deshacer.</p>
+
+            <form method="POST" action="{{ route('profile.destroy') }}">
+                @csrf @method('DELETE')
+                <div class="form-group">
+                    <label for="password-confirmar-borrado">Contraseña</label>
+                    <input type="password" id="password-confirmar-borrado" name="password" required autocomplete="current-password">
+                    @error('password', 'userDeletion')<span class="field-error">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-actions" style="margin-top:16px;">
+                    <button type="submit" class="btn" style="background:#dc2626; color:#fff; width:100%;">Sí, eliminar mi cuenta</button>
+                    <button type="button" class="btn btn-outline" style="width:100%;" onclick="document.getElementById('modalEliminarCuenta').classList.remove('open')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 @endsection
 
 {{-- ══════════════════════════════════════════
@@ -258,81 +257,45 @@
                 margin-left: auto;
                 align-self: stretch;
             }
+        }
 
-            /* Ocultar la card de gráfico completa: el mini-chart la sustituye */
-            .perfil-chart-card-full { display: none; }
+        .perfil-facts {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 8px;
+            margin-bottom: 20px;
+        }
+        .perfil-fact {
+            flex: 1;
+            text-align: center;
+        }
+        .perfil-fact__val {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--navy, #1a2332);
+            line-height: 1.1;
+        }
+        .perfil-fact__label {
+            font-size: 11px;
+            color: var(--text-3, #8a8478);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .perfil-fact-divider {
+            width: 1px;
+            height: 32px;
+            background: var(--border);
         }
     </style>
 @endpush
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
-        const meses   = @json($sesionesporMes['meses']);
-        const totales = @json($sesionesporMes['totales']);
-
-        const style    = getComputedStyle(document.documentElement);
-        const accent   = style.getPropertyValue('--green-dark').trim() || '#2d6a4f';
-        const mutedTxt = style.getPropertyValue('--text-3').trim()     || '#9a9488';
-        const borderCl = style.getPropertyValue('--border').trim()     || 'rgba(201,168,76,0.15)';
-
-        const chartConfig = (compact) => ({
-            type: 'line',
-            data: {
-                labels: meses,
-                datasets: [{
-                    label: 'Sesiones',
-                    data: totales,
-                    borderColor: accent,
-                    backgroundColor: 'rgba(45,106,79,0.08)',
-                    borderWidth: 2,
-                    pointBackgroundColor: accent,
-                    pointRadius: compact ? 2 : 4,
-                    pointHoverRadius: compact ? 4 : 6,
-                    tension: 0.4,
-                    fill: true,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#1a1612',
-                        titleColor: '#c9a84c',
-                        bodyColor: '#c8bfaf',
-                        padding: 10,
-                        cornerRadius: 8,
-                        callbacks: {
-                            label: ctx => ` ${ctx.parsed.y} sesión${ctx.parsed.y !== 1 ? 'es' : ''}`
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        display: !compact,
-                        grid: { color: borderCl },
-                        ticks: { font: { size: 11 }, color: mutedTxt }
-                    },
-                    y: {
-                        display: !compact,
-                        beginAtZero: true,
-                        ticks: { stepSize: 1, font: { size: 11 }, color: mutedTxt },
-                        grid: { color: borderCl }
-                    }
-                }
-            }
-        });
-
-        // Gráfico principal (visible en móvil)
-        const elFull = document.getElementById('sesionesChart');
-        if (elFull) new Chart(elFull.getContext('2d'), chartConfig(false));
-
-        // Mini gráfico dentro de la card de perfil (visible en desktop)
-        const elMini = document.getElementById('sesionesChartAside');
-        if (elMini) new Chart(elMini.getContext('2d'), chartConfig(true));
-    </script>
     <script>
         // Si venimos de un error o éxito relacionado a la contraseña,
         // llevamos al usuario directo a esa card en vez de dejarlo arriba del todo.

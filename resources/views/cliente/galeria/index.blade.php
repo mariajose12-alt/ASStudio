@@ -6,6 +6,7 @@
         @forelse($sesiones as $sesion)
             @php
                 $totalFotos = $sesion->fotografias->count();
+                $fotoPortada = $sesion->fotografias->first();
                 $badge = match($sesion->estado) {
                     'GALERIA_DISPONIBLE' => ['texto' => 'Selecciona tus fotos',  'clase' => 'badge--pendiente'],
                     'EN_EDICION'         => ['texto' => 'En edición',            'clase' => 'badge--edicion'],
@@ -15,9 +16,15 @@
             @endphp
             <div class="galeria-card">
                 <div class="galeria-thumb">
-                    <img src="https://picsum.photos/seed/{{ $sesion->id }}/400/200"
-                         alt="Thumbnail sesión"
-                         style="width:100%; height:100%; object-fit:cover;">
+                    @if($fotoPortada)
+                        <img src="{{ $fotoPortada->url_thumb_firmada ?? $fotoPortada->url_firmada }}"
+                             alt="Thumbnail sesión"
+                             style="width:100%; height:100%; object-fit:cover;">
+                    @else
+                        <div style="width:100%; height:100%; background:var(--navy,#f0f0f0); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12px;">
+                            Sin fotos aún
+                        </div>
+                    @endif
                     @if($badge)
                         <span class="galeria-badge {{ $badge['clase'] }}">{{ $badge['texto'] }}</span>
                     @endif

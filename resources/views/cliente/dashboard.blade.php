@@ -119,6 +119,13 @@
                     </a>
                 </div>
             @endforelse
+            {{-- Barra de acción fija — solo visible en móvil, ver mobile.css --}}
+            <a href="{{ route('cliente.reservas.paso1') }}" class="dash-action-bar">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Reservar sesión
+            </a>
         </div>
 
         {{-- Gráfico de sesiones --}}
@@ -126,7 +133,7 @@
             <div class="card-header">
                 <div>
                     <h2>Actividad reciente</h2>
-                    <p class="dash-chart-subtitle">Sesiones completadas · últimos 6 meses</p>
+                    <p class="dash-chart-subtitle">Sesiones · últimos 3 meses y próximos 3 meses</p>
                 </div>
                 <div class="dash-chart-total">
                     <span class="dash-chart-total__num">{{ $reservasCompletadas }}</span>
@@ -164,40 +171,32 @@
         </div>
 
         <div class="gal-grid">
-
-            <div class="gal-item gal-item--tall">
-                <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80&auto=format&fit=crop" alt="Retrato" loading="lazy">
-                <div class="gal-item__overlay">
-                    <span class="gal-item__label">Retrato · Mar 2025</span>
+            @forelse($sesionesRecientes as $sesion)
+                @php
+                    $foto = $sesion->fotografias->first();
+                @endphp
+                <a href="{{ route('cliente.galeria.show', $sesion->id) }}"
+                   class="gal-item {{ $loop->first ? 'gal-item--tall' : '' }}">
+                    <img src="{{ $foto->url_thumb_firmada ?? $foto->url_firmada }}"
+                         alt="{{ $sesion->reserva->paquete->nombre ?? 'Sesión' }}"
+                         loading="lazy">
+                    <div class="gal-item__overlay">
+                <span class="gal-item__label">
+                    {{ $sesion->reserva->paquete->nombre ?? 'Sesión' }}
+                    · {{ \Carbon\Carbon::parse($sesion->fecha_inicio)->translatedFormat('M Y') }}
+                </span>
+                    </div>
+                </a>
+            @empty
+                <div class="dash-empty-state" style="grid-column: 1 / -1;">
+                    <div class="dash-empty-state__icon">
+                        <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <p class="dash-empty-state__text">Aún no tienes fotos disponibles</p>
                 </div>
-            </div>
-
-            <div class="gal-item">
-                <img src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=400&q=80&auto=format&fit=crop" alt="Sesión de pareja" loading="lazy">
-                <div class="gal-item__overlay">
-                    <span class="gal-item__label">Pareja · Feb 2025</span>
-                </div>
-            </div>
-
-            <div class="gal-item">
-                <img src="https://images.unsplash.com/photo-1538678867871-8a43e7487746?q=80&w=688&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Maternidad" loading="lazy">
-                <div class="gal-item__overlay">
-                    <span class="gal-item__label">Maternidad · Feb 2025</span>
-                </div>
-            </div>
-
-            <div class="gal-item">
-                <img src="https://images.unsplash.com/photo-1588979355313-6711a095465f?q=80&w=672&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Familia" loading="lazy">
-                <div class="gal-item__overlay">
-                    <span class="gal-item__label">Familia · Ene 2025</span>
-                </div>
-            </div>
-
-            <a href="{{ route('cliente.galeria') }}" class="gal-item gal-item--more">
-                <span class="gal-more-num">+2</span>
-                <span class="gal-more-txt">sesiones</span>
-            </a>
-
+            @endforelse
         </div>
 
         <div class="gal-footer"></div>

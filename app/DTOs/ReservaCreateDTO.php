@@ -35,7 +35,7 @@ class ReservaCreateDTO
             fecha_inicio: $paso2['fecha'] . ' ' . $paso2['hora'],
             fecha_fin:    null,
             precio_total: $precio_total,
-            lugar:        $paso1['lugar'] ?? null,
+            lugar:        $paso1['tipo'] === 'estudio' ? 'Estudio' : ($paso1['lugar'] ?? null),
         );
     }
 }

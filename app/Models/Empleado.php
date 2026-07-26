@@ -34,11 +34,11 @@ class Empleado extends Model
     //  Helpers
     public function esFotografo(): bool
     {
-        return $this->rol === 'FOTOGRAFO';
+        return $this->fotografo()->exists();
     }
 
     public function esAdministrador(): bool
     {
-        return $this->rol === 'ADMINISTRADOR';
+        return $this->administrador()->exists();
     }
 }

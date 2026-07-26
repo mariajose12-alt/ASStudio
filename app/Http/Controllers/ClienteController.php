@@ -22,10 +22,10 @@ class ClienteController extends Controller
 
     public function perfil()
     {
-        $usuario        = Auth::user()->load('persona');
-        $sesionesporMes = $this->clienteService->sesionesPorMes($usuario->cliente);
+        $usuario = Auth::user()->load('persona');
+        $stats   = $this->clienteService->estadisticasPerfil($usuario->cliente);
 
-        return view('cliente.perfil', compact('usuario', 'sesionesporMes'));
+        return view('cliente.perfil', compact('usuario', 'stats'));
     }
 
     public function galeria()

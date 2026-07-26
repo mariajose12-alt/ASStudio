@@ -70,20 +70,31 @@ class Usuario extends Authenticatable
 
     public function esFotografo(): bool
     {
-        return $this->empleado?->rol === 'FOTOGRAFO';
+        return $this->empleado?->esFotografo() ?? false;
     }
 
     public function esAdministrador(): bool
     {
-        return $this->empleado?->rol === 'ADMINISTRADOR';
+        return $this->empleado?->esAdministrador() ?? false;
     }
 
     public function getRol(): string
     {
-        if ($this->esAdministrador()) return 'ADMINISTRADOR';
-        if ($this->esFotografo())     return 'FOTOGRAFO';
-        if ($this->esCliente())       return 'CLIENTE';
+        if ($this->esAdministrador())  return 'ADMINISTRADOR';
+        if ($this->esFotografo())      return 'FOTOGRAFO';
+        if ($this->esSocioEstudio())   return 'SOCIO_ESTUDIO';
+        if ($this->esCliente())        return 'CLIENTE';
         return 'DESCONOCIDO';
+    }
+
+    public function getRoles(): array
+    {
+        $roles = [];
+        if ($this->esAdministrador())  $roles[] = 'ADMINISTRADOR';
+        if ($this->esFotografo())      $roles[] = 'FOTOGRAFO';
+        if ($this->esSocioEstudio())   $roles[] = 'SOCIO_ESTUDIO';
+        if ($this->esCliente())        $roles[] = 'CLIENTE';
+        return $roles;
     }
 
     public function estaActivo(): bool
@@ -98,7 +109,7 @@ class Usuario extends Authenticatable
 
     public function scopeAdministradores($query)
     {
-        return $query->whereHas('empleado', fn ($q) => $q->where('rol', 'ADMINISTRADOR'));
+        return $query->whereHas('empleado.administrador');
     }
 
     public function estaVerificado(): bool
@@ -116,4 +127,13 @@ class Usuario extends Authenticatable
         return Attribute::get(fn () => !is_null($this->google_id));
     }
 
+    public function esSocioEstudio(): bool
+    {
+        return $this->empleado?->rol === 'SOCIO_ESTUDIO';
+    }
+
+    public function tieneMultiplesRoles(): bool
+    {
+        return count(array_intersect($this->getRoles(), ['ADMINISTRADOR', 'FOTOGRAFO'])) > 1;
+    }
 }

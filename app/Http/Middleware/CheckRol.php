@@ -18,13 +18,13 @@ class CheckRol
 {
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        /** @var \App\Models\Usuario|null $usuario */
         $usuario = Auth::user();
 
-        if (! $usuario || ! in_array($usuario->getRol(), $roles)) {
+        if (! $usuario || empty(array_intersect($usuario->getRoles(), $roles))) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
         return $next($request);
     }
 }
+

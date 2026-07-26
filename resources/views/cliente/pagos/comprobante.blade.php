@@ -188,7 +188,6 @@
 
     <style>
         .cp-page {
-            max-width: 480px;
             margin: 0 auto;
             padding: 24px 16px 80px;
             display: flex;
@@ -198,9 +197,27 @@
 
         /* ── Paso A ── */
         .cp-paso-a {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr;
             gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .cp-paso-a {
+                grid-template-columns: 1fr 1fr;
+                grid-template-areas:
+            "left     pregunta"
+            "left     opciones"
+            "continuar continuar";
+                align-items: start;
+            }
+
+            .cp-left  { grid-area: left; height: 100%; }
+            .cp-right { grid-area: pregunta; }
+
+            .cp-opciones {
+                justify-content: center;
+            }
         }
 
         .cp-layout {
@@ -283,6 +300,10 @@
             text-align: left;
             transition: border-color 0.18s, background 0.18s, transform 0.15s;
             width: 100%;
+        }
+
+        .cp-btn-continuar {
+            grid-column: 1 / -1;
         }
 
         .cp-opcion:hover {

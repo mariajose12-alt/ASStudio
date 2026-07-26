@@ -4,23 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AStudio — @yield('title', 'Panel Admin')</title>
+    <title>Abraham Sánchez — @yield('title', 'Panel Admin')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x.x/dist/tabler-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
     @stack('styles')
 </head>
 <body>
 
+@php
+    $navLinks = [
+        ['href' => route('admin.dashboard'),                  'label' => 'Dashboard'],
+        ['href' => route('admin.empleados.index'),            'label' => 'Empleados'],
+        ['href' => route('admin.pagos.index'),                'label' => 'Comprobantes'],
+        ['href' => route('admin.reservas.index'),             'label' => 'Reservas'],
+        ['href' => route('admin.paquetes.index'),             'label' => 'Paquetes'],
+        ['href' => route('admin.catalogos.index'),            'label' => 'Catálogos'],
+        ['href' => route('admin.estudio.solicitudes.index'),  'label' => 'Estudio'],
+        ['href' => route('admin.nomina'),                     'label' => 'Nomina'],
+    ];
+
+    if (Auth::user()->tieneMultiplesRoles()) {
+        $navLinks[] = ['href' => route('fotografo.dashboard'), 'label' => 'Cambiar a vista Fotógrafo'];
+    }
+
+    $logoOverride = null;
+@endphp
+@include('partials.navbar')
 @include('partials.notif-panel')
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <aside class="sidebar">
     <div class="sidebar-logo">
         <a href="/" class="navbar-logo">
-            <img src="{{ asset('images/logo.png') }}" alt="AStudio" height="45">
+            <img src="{{ asset('images/logo.png') }}" alt="Abraham Sánchez" height="45">
         </a>
         <div class="brand-sub">Panel Administrativo</div>
     </div>
@@ -29,6 +49,17 @@
             {{ Auth::user()->persona->nombre ?? '' }} {{ Auth::user()->persona->apellido ?? '' }}
         </div>
         <div class="user-email">{{ Auth::user()->email ?? '' }}</div>
+    </div>
+
+    <div style="margin: 16px;">
+        @if(Auth::user()->tieneMultiplesRoles())
+            <a href="{{ route('fotografo.dashboard') }}" class="btn-switch-vista">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                Cambiar a vista Fotógrafo
+            </a>
+        @endif
     </div>
 
     <nav class="sidebar-nav">
@@ -58,7 +89,7 @@
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
             Catálogos
         </a>
-        <a href="{{ route('admin.estudio') }}" class="nav-link {{ request()->routeIs('admin.estudio') ? 'active' : '' }}">
+        <a href="{{ route('admin.estudio.solicitudes.index') }}" class="nav-link {{ request()->routeIs('admin.estudio*') ? 'active' : '' }}">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
             </svg>
@@ -146,6 +177,44 @@
     @media (max-width: 768px) {
         .sidebar-hamburger { display: flex; }
     }
+    @media (min-width: 769px) {
+        /* En desktop, ocultar el navbar del landing */
+        .navbar-landing,
+        .navbar-mobile-menu {
+            display: none !important;
+        }
+    }
+
+    /* ── Topbar: solo visible en desktop ── */
+    .topbar {
+        display: none;
+    }
+
+    @media (min-width: 769px) {
+        .topbar {
+            display: flex;
+        }
+    }
+
+    /* Menú móvil del navbar — necesita display:flex para que la animación funcione */
+    @media (max-width: 768px) {
+        .navbar-hamburger {
+            display: flex !important;
+        }
+
+        .main {
+            padding-top: 80px; /* altura del navbar flotante (~64px) + un poco de aire */
+        }
+
+        .navbar-mobile-menu {
+            display: flex; /* necesario; la clase .open controla opacity/pointer-events */
+        }
+
+        /* Ocultar los links de escritorio dentro del navbar en móvil */
+        .navbar-links {
+            display: none !important;
+        }
+    }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
@@ -166,6 +235,7 @@
         link.addEventListener('click', closeSidebar);
     });
 </script>
+@include('partials.navbar-scripts')
 @stack('scripts')
 </body>
 </html>

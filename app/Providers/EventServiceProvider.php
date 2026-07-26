@@ -11,6 +11,8 @@ use App\Events\ReservaCreada;
 use App\Events\ReservaModificada;
 use App\Events\ReservaRechazada;
 use App\Events\SeleccionConfirmada;
+use App\Events\SolicitudEstudioCreada;
+use App\Listeners\NotificarSociosNuevaSolicitud;
 use App\Events\ZipGaleriaListo;
 use App\Listeners\CrearPagoFinalAlConfirmarSeleccion;
 use App\Listeners\DispararValidacionOcr;
@@ -66,5 +68,8 @@ class EventServiceProvider extends ServiceProvider
         SolicitudAyudanteCreada::class => [
             EnviarNotificacionSolicitudAyudante::class,
         ],
+        SolicitudEstudioCreada::class => [
+            NotificarSociosNuevaSolicitud::class,
+        ]
     ];
 }

@@ -3,23 +3,40 @@ namespace App\Http\Controllers;
 
 use App\Models\BloqueoEstudio;
 use Illuminate\Http\Request;
+use App\Models\SolicitudEstudio;
+use Carbon\Carbon;
+
 
 class BloqueoEstudioController extends Controller
 {
     public function index()
     {
-        return view('admin.estudio');
+        return view('admin.estudio.solicitudes.index');
     }
 
     public function eventos()
     {
-        return BloqueoEstudio::all()->map(fn($b) => [
-            'id'    => $b->id,
-            'title' => $b->motivo ?? 'Ocupado',
-            'start' => $b->inicio->toIso8601String(),
-            'end'   => $b->fin->toIso8601String(),
-            'color' => '#e87722',
+        $bloqueos = BloqueoEstudio::all()->map(fn($b) => [
+            'id'     => 'bloqueo-' . $b->id,
+            'tipo'   => 'bloqueo',
+            'title'  => $b->motivo ?? 'Ocupado',
+            'start'  => $b->inicio->format('Y-m-d\TH:i:s'),
+            'end'    => $b->fin->format('Y-m-d\TH:i:s'),
+            'color'  => '#e87722',
         ]);
+
+        $solicitudes = SolicitudEstudio::whereIn('estado', ['pendiente', 'aprobada'])
+            ->get()
+            ->map(fn($s) => [
+                'id'    => 'solicitud-' . $s->id,
+                'tipo'  => 'solicitud',
+                'title' => ($s->estado === 'aprobada' ? 'Reservado: ' : 'Pendiente: ') . "{$s->nombre} {$s->apellido}",
+                'start' => Carbon::parse($s->fecha->toDateString() . ' ' . $s->hora_inicio->format('H:i:s'))->format('Y-m-d\TH:i:s'),
+                'end'   => Carbon::parse($s->fecha->toDateString() . ' ' . $s->hora_fin->format('H:i:s'))->format('Y-m-d\TH:i:s'),
+                'color' => $s->estado === 'aprobada' ? '#5b7091' : '#c9a34e',
+            ]);
+
+        return $bloqueos->concat($solicitudes)->values();
     }
 
     public function store(Request $request)

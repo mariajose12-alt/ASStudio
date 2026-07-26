@@ -367,26 +367,14 @@
                 <p class="es-cta-sub">Paga el total de la renta para confirmar tu fecha y hora. El estudio te espera.</p>
             </div>
             <div class="es-cta-actions reveal">
-                @auth
-                    <a href="https://api.whatsapp.com/message/KKXI6NZQCFZYB1?autoload=1&app_absent=0" class="es-btn-primary">
-                        Reservar estudio
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                            <polyline points="12 5 19 12 12 19"/>
-                        </svg>
-                    </a>
-                @else
-                    <a href="{{ route('login', ['redirect' => '/cliente/reservas/paso1']) }}" class="es-btn-primary">
-                        Reservar estudio
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                            <polyline points="12 5 19 12 12 19"/>
-                        </svg>
-                    </a>
-                @endauth
-
+                <a href="{{ route('estudio.reservar') }}" class="es-btn-primary">
+                    Reservar estudio
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </a>
             </div>
         </div>
     </section>

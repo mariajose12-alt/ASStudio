@@ -26,7 +26,8 @@ class ClienteService
             'reservasPendientes'  => $this->getReservasPendientes($cliente),
             'reservasCompletadas' => $this->getSesionesCerradas($cliente),
             'proximasReservas'    => $this->getProximasReservas($cliente),
-            'sesionesPorMes'      => $this->sesionesPorMes($cliente),
+            'sesionesPorMes'      => $this->actividadReciente($cliente),
+            'sesionesRecientes'   => $this->getSesionesRecientesConFotos($cliente), // ← nuevo
         ];
     }
 
@@ -95,5 +96,80 @@ class ClienteService
         }
 
         return ['meses' => $meses, 'totales' => $totales];
+    }
+
+    public function getSesionesRecientesConFotos(Cliente $cliente, int $limit = 4): Collection
+    {
+        return Sesion::whereHas('reserva', function ($query) use ($cliente) {
+            $query->where('cliente_id', $cliente->id);
+        })
+            ->whereHas('fotografias')
+            ->with([
+                'reserva.paquete',
+                'fotografias' => fn($query) => $query->limit(1), // solo la que se usa de portada
+            ])
+            ->orderByDesc('fecha_inicio')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function actividadReciente(Cliente $cliente): array
+    {
+        $inicio = Carbon::now()->subMonths(2)->startOfMonth();
+        $fin    = Carbon::now()->addMonths(3)->endOfMonth();
+        $hoy    = Carbon::now();
+
+        // Pasado: sesiones ya CERRADAS hasta hoy
+        $pasadas = Sesion::whereHas('reserva', function ($query) use ($cliente) {
+            $query->where('cliente_id', $cliente->id);
+        })
+            ->where('estado', 'CERRADA')
+            ->whereBetween('fecha_inicio', [$inicio, $hoy])
+            ->selectRaw('EXTRACT(YEAR FROM fecha_inicio) as anio, EXTRACT(MONTH FROM fecha_inicio) as mes, COUNT(*) as total')
+            ->groupByRaw('EXTRACT(YEAR FROM fecha_inicio), EXTRACT(MONTH FROM fecha_inicio)')
+            ->get();
+
+        // Futuro: reservas programadas (incluye lo que resta del mes actual) que no estén canceladas ni rechazadas
+        $futuras = Reserva::where('cliente_id', $cliente->id)
+            ->whereNotIn('estado', ['CANCELADA', 'RECHAZADA'])
+            ->whereBetween('fecha_inicio', [$hoy, $fin])
+            ->selectRaw('EXTRACT(YEAR FROM fecha_inicio) as anio, EXTRACT(MONTH FROM fecha_inicio) as mes, COUNT(*) as total')
+            ->groupByRaw('EXTRACT(YEAR FROM fecha_inicio), EXTRACT(MONTH FROM fecha_inicio)')
+            ->get();
+
+        $raw = $pasadas->concat($futuras);
+
+        $meses   = [];
+        $totales = [];
+
+        for ($i = -2; $i <= 3; $i++) {
+            $fecha   = Carbon::now()->addMonths($i);
+            $meses[] = $fecha->translatedFormat('M');
+
+            $anio = (int) $fecha->format('Y');
+            $mes  = (int) $fecha->format('n');
+
+            // sum() en vez de first(): si el mes actual tiene datos en ambas
+            // colecciones (pasadas + futuras), se suman en vez de perder uno
+            $total     = $raw->filter(fn($r) => (int)$r->anio === $anio && (int)$r->mes === $mes)
+                ->sum('total');
+            $totales[] = (int) $total;
+        }
+
+        return ['meses' => $meses, 'totales' => $totales];
+    }
+
+    public function estadisticasPerfil(Cliente $cliente): array
+    {
+        return [
+            'totalSesiones' => \App\Models\Sesion::whereHas('reserva', fn($q) => $q->where('cliente_id', $cliente->id))
+                ->where('estado', 'CERRADA')
+                ->count(),
+            'proximaSesion' => \App\Models\Reserva::where('cliente_id', $cliente->id)
+                ->where('fecha_inicio', '>=', now())
+                ->whereNotIn('estado', ['CANCELADA', 'RECHAZADA'])
+                ->orderBy('fecha_inicio')
+                ->value('fecha_inicio'),
+        ];
     }
 }

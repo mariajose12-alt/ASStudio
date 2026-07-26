@@ -63,8 +63,6 @@ class DisponibilidadController extends Controller
             'horasPorFecha' => $horasPorFecha,
         ]);
     }
-
-    // ← nuevo método
     private function estudioOcupado(string $fecha, string $hora): bool
     {
         $inicio = Carbon::parse("$fecha $hora");

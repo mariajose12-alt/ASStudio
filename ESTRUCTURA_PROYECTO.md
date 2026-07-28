@@ -455,7 +455,7 @@ MAIL_USERNAME=tuestudio@gmail.com
 MAIL_PASSWORD=xxxx xxxx xxxx xxxx   # App Password de Google, NO la contraseña real
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=tuestudio@gmail.com
-MAIL_FROM_NAME="AS Studio"
+MAIL_FROM_NAME="Abraham Sánchez"
 
 # Almacenamiento S3
 AWS_ACCESS_KEY_ID=

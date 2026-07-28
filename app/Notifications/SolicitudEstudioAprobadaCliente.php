@@ -13,6 +13,9 @@ class SolicitudEstudioAprobadaCliente extends Notification implements ShouldQueu
 {
     use Queueable;
 
+    public $tries = 3;
+    public $backoff = 10;
+
     public function __construct(public SolicitudEstudio $solicitud) {}
 
     public function via($notifiable): array

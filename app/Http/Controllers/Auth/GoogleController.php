@@ -27,6 +27,7 @@ class GoogleController extends Controller
             return redirect()->route('login')->with('error', 'Tu cuenta está desactivada. Contacta al administrador.');
         }
 
+        // Cuenta nueva: segura crearla y loguear, Google ya confirmó el correo.
         if (!$usuario) {
             $persona = Persona::create([
                 'nombre'   => $googleUser->user['given_name'] ?? $googleUser->getName(),
@@ -42,13 +43,33 @@ class GoogleController extends Controller
             ]);
             $usuario->marcarVerificado();
 
-            // Crear cliente por defecto
             Cliente::create(['usuario_id' => $usuario->id]);
+
+            Auth::login($usuario);
+            return redirect('/');
         }
 
+        // Ya vinculada a este mismo Google: login normal.
+        if ($usuario->google_id === $googleUser->getId()) {
+            Auth::login($usuario);
+            return redirect('/');
+        }
 
-        Auth::login($usuario);
+        // Existe con este correo pero SIN vincular a Google todavía.
+        // Solo autovincular si ya está verificada (alguien probó control real
+        // de esa bandeja de entrada). Si no, no logueamos automático.
+        if ($usuario->estaVerificado()) {
+            $usuario->update([
+                'google_id' => $googleUser->getId(),
+                'avatar'    => $usuario->avatar ?? $googleUser->getAvatar(),
+            ]);
+            Auth::login($usuario);
+            return redirect('/');
+        }
 
-        return redirect('/');
+        return redirect()->route('login')->with(
+            'error',
+            'Ya existe una cuenta con este correo pendiente de verificación. Inicia sesión con tu contraseña para verificarla antes de usar Google.'
+        );
     }
 }

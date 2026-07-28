@@ -38,7 +38,7 @@ class ProcesarComprobanteOcrJob implements ShouldQueue
                 ->lang('spa', 'eng') // fallback a inglés si spa falla
                 ->timeout(30);       // máximo 30 segundos
 
-            if ($rutaTessdata = env('TESSERACT_TESSDATA_PATH')) {
+            if ($rutaTessdata = config('services.tesseract.tessdata_dir')) {
                 $ocr->tessdataDir($rutaTessdata);
             }
 

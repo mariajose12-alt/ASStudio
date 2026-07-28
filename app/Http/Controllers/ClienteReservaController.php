@@ -26,7 +26,7 @@ class ClienteReservaController extends Controller
 
     public function show(Reserva $reserva)
     {
-        $this->autorizarPropietario($reserva);
+        $this->authorize('verComoCliente', $reserva);
 
         $reserva->load(['paquete', 'catalogo', 'sesion', 'pagos']);
 
@@ -37,7 +37,7 @@ class ClienteReservaController extends Controller
 
     public function responderSugerencia(Request $request, Reserva $reserva)
     {
-        $this->autorizarPropietario($reserva);
+        $this->authorize('verComoCliente', $reserva);
 
         $request->validate([
             'accion'      => 'required|in:ACEPTAR,EDITAR,CANCELAR',
@@ -73,12 +73,6 @@ class ClienteReservaController extends Controller
                 'CANCELAR' => 'Reserva cancelada.',
                 'EDITAR'   => 'Reserva reenviada para revisión.',
             });
-    }
-
-    private function autorizarPropietario(Reserva $reserva): void
-    {
-        $cliente = Cliente::where('usuario_id', auth()->id())->firstOrFail();
-        abort_if($reserva->cliente_id !== $cliente->id, 403);
     }
 
     private function validarDisponibilidadFotografo(Reserva $reserva, string $nuevaFecha, string $nuevaHora): void

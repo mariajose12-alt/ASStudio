@@ -13,6 +13,9 @@ class SolicitudEstudioRechazadaCliente extends Notification implements ShouldQue
 {
     use Queueable;
 
+    public $tries = 3;
+    public $backoff = 10;
+
     public function __construct(public SolicitudEstudio $solicitud) {}
 
     public function via($notifiable): array

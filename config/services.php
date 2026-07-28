@@ -49,4 +49,8 @@ return [
         'from' => env('TWILIO_FROM'),
     ],
 
+    'tesseract' => [
+        'tessdata_dir' => env('TESSERACT_TESSDATA_PATH'),
+    ],
+
 ];

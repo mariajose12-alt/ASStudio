@@ -35,7 +35,7 @@ class CatalogosPaquetesSeeder extends Seeder
             'nombre' => 'Sesión Básica en Estudio',
             'descripcion' => 'Sesión de 45 minutos. Ideal para retratos personales o CV.',
             'precio_base' => 50.00,
-            'cantidad_fotos_incluidas' => 10,
+            'cantidad_fotos_incluidas' => 3,
             'activo' => true,
         ]);
 
@@ -43,7 +43,7 @@ class CatalogosPaquetesSeeder extends Seeder
             'nombre' => 'Sesión Premium Exterior',
             'descripcion' => 'Sesión de 2 horas en locación exterior. Incluye cambios de vestuario.',
             'precio_base' => 150.00,
-            'cantidad_fotos_incluidas' => 30,
+            'cantidad_fotos_incluidas' => 3,
             'activo' => true,
         ]);
 
@@ -51,7 +51,7 @@ class CatalogosPaquetesSeeder extends Seeder
             'nombre' => 'Cobertura de Boda',
             'descripcion' => 'Cobertura completa del evento (hasta 8 horas).',
             'precio_base' => 800.00,
-            'cantidad_fotos_incluidas' => 150,
+            'cantidad_fotos_incluidas' => 3,
             'activo' => true,
         ]);
 

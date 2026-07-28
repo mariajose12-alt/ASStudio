@@ -13,6 +13,7 @@ use App\Repositories\Contracts\ReservaRepositoryInterface;
 use App\Models\Reserva;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class ReservaService
 {
@@ -65,11 +66,15 @@ class ReservaService
             throw new NegocioException('No hay fotógrafos disponibles en esa fecha y hora.');
         }
 
-        // Se asigna un fotógrafo principal automáticamente y al azar entre los
+        // Se asigna un fotógrafo principal automáticamente entre los
         // disponibles. El fotógrafo, una vez aprobada la reserva, decide si
         // necesita asistentes (ver ParticipacionSesion).
-
-        $fotografo = $disponibles->random();
+        //
+        // All lo de aquí en adelante corre dentro de una transacción con
+        // bloqueo por fotógrafo (pg_advisory_xact_lock) para que, si dos
+        // clientes reservan al mismo tiempo, no puedan quedarse ambos con
+        // el mismo fotógrafo en el mismo horario. El lock se libera solo
+        // al terminar la transacción (commit o rollback).
 
         $paquete = PaqueteFotografico::findOrFail($paso1['paquete_id']);
         $cliente = Cliente::firstOrCreate(['usuario_id' => $usuario_id]);
@@ -82,19 +87,44 @@ class ReservaService
             ]);
         }
 
-        $dto = ReservaCreateDTO::fromSesion(
-            paso1:        $paso1,
-            paso2:        $paso2,
-            cliente_id:   $cliente->id,
-            fotografo_id: $fotografo->id,
-            precio_total: $paquete->precio_base,
-        );
+        return DB::transaction(function () use ($disponibles, $fechaHora, $fechaHoraFin, $cliente, $paso1, $paso2, $paquete) {
 
-        $reserva = $this->reservaRepository->crear($dto);
+            foreach ($disponibles->shuffle() as $fotografo) {
+                // Bloqueo de aplicación por fotógrafo: si otra transacción ya
+                // tomó el lock para este mismo fotógrafo, esperamos aquí
+                // hasta que la suya termine (commit o rollback).
+                DB::statement('SELECT pg_advisory_xact_lock(?)', [$fotografo->id]);
 
-        ReservaCreada::dispatch($reserva);
+                // Re-confirmamos disponibilidad YA DENTRO del lock, por si
+                // otra reserva se coló justo antes de que lo tomáramos.
+                $sigueDisponible = !Reserva::where('fotografo_id', $fotografo->id)
+                    ->whereIn('estado', ['PENDIENTE', 'APROBADA'])
+                    ->where('fecha_inicio', '<', $fechaHoraFin)
+                    ->where('fecha_fin',    '>', $fechaHora)
+                    ->exists();
 
-        return $reserva;
+                if (! $sigueDisponible) {
+                    // Ya no está libre, probamos con el siguiente candidato.
+                    continue;
+                }
+
+                $dto = ReservaCreateDTO::fromSesion(
+                    paso1:        $paso1,
+                    paso2:        $paso2,
+                    cliente_id:   $cliente->id,
+                    fotografo_id: $fotografo->id,
+                    precio_total: $paquete->precio_base,
+                );
+
+                $reserva = $this->reservaRepository->crear($dto);
+
+                ReservaCreada::dispatch($reserva);
+
+                return $reserva;
+            }
+
+            throw new NegocioException('No hay fotógrafos disponibles en esa fecha y hora.');
+        });
     }
 
 

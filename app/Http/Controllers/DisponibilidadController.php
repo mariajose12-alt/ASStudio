@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BloqueoEstudio;
 use App\Models\Fotografo;
 use App\Models\HorarioFotografo;
+use App\Models\Reserva;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -115,5 +116,70 @@ class DisponibilidadController extends Controller
                     ->where('fecha_fin',    '>', $fechaHora);
             })
             ->get();
+    }
+
+    /**
+     * Igual que fechasOcupadas(), pero para UN fotógrafo específico — se usa
+     * cuando ya hay una reserva asignada a ese fotógrafo y se le va a
+     * proponer (o el cliente va a elegir) una nueva fecha/hora para ELLA.
+     * Excluye del cálculo la propia reserva que se está reprogramando.
+     */
+    public function fechasOcupadasFotografo(Request $request, Fotografo $fotografo): JsonResponse
+    {
+        $excluirReservaId = $request->query('excluir_reserva');
+
+        $habilitadas   = [];
+        $horasPorFecha = [];
+
+        $horarios = HorarioFotografo::where('fotografo_id', $fotografo->id)->get();
+
+        $diasConHorario = $horarios->pluck('dia_semana')->unique()->values()->toArray();
+
+        $hoy   = Carbon::today();
+        $hasta = $hoy->copy()->addDays(90);
+
+        $current = $hoy->copy();
+        while ($current->lte($hasta)) {
+            if (in_array((int) $current->dayOfWeek, $diasConHorario)) {
+                $habilitadas[] = $current->format('Y-m-d');
+            }
+            $current->addDay();
+        }
+
+        foreach ($habilitadas as $fecha) {
+            $diaSemana = (int) Carbon::parse($fecha)->dayOfWeek;
+            $slots     = $this->generarSlotsPorDia($fecha, $diaSemana, $horarios);
+
+            $libres = [];
+            foreach ($slots as $hora) {
+                if ($this->fotografoLibre($fotografo->id, $fecha, $hora, $excluirReservaId)) {
+                    $libres[] = $hora;
+                }
+            }
+
+            if (!empty($libres)) {
+                $horasPorFecha[$fecha] = $libres;
+            } else {
+                $habilitadas = array_values(array_filter($habilitadas, fn($f) => $f !== $fecha));
+            }
+        }
+
+        return response()->json([
+            'habilitadas'   => array_values($habilitadas),
+            'horasPorFecha' => $horasPorFecha,
+        ]);
+    }
+
+    private function fotografoLibre(int $fotografoId, string $fecha, string $hora, ?string $excluirReservaId): bool
+    {
+        $fechaHora    = Carbon::parse("$fecha $hora");
+        $fechaHoraFin = $fechaHora->copy()->addHours(2);
+
+        return !Reserva::where('fotografo_id', $fotografoId)
+            ->when($excluirReservaId, fn ($q) => $q->where('id', '!=', $excluirReservaId))
+            ->whereIn('estado', ['PENDIENTE', 'APROBADA'])
+            ->where('fecha_inicio', '<', $fechaHoraFin)
+            ->where('fecha_fin',    '>', $fechaHora)
+            ->exists();
     }
 }

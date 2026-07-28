@@ -178,6 +178,18 @@
                                 <input type="hidden" name="duracion_horas_estandar" value="2">
                             </div>
 
+                            <div class="form-group">
+                                <label class="panel-label">Nueva fecha y hora propuesta (opcional)</label>
+                                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+                                <input type="text" id="fecha-picker-{{ $reserva->id }}" name="nueva_fecha"
+                                       class="panel-textarea" style="cursor:pointer;"
+                                       placeholder="Selecciona una fecha" readonly autocomplete="off">
+                                <select id="hora-select-{{ $reserva->id }}" name="nueva_hora"
+                                        class="panel-textarea" style="margin-top:6px;">
+                                    <option value="">Primero selecciona una fecha</option>
+                                </select>
+                            </div>
+
                             <div class="panel-actions">
                                 <button type="submit" class="btn btn-primary">Enviar Propuesta</button>
                                 <button type="button" class="btn btn-outline" onclick="togglePropuesta({{ $reserva->id }})">Cancelar</button>
@@ -264,7 +276,63 @@
             const isHidden = panel.style.display === 'none' || panel.style.display === '';
             panel.style.display = isHidden ? 'block' : 'none';
             toggleActionButtons(id, isHidden);
-            if (isHidden) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (isHidden) {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                inicializarPickerPropuesta(id);
+            }
+        }
+
+        const fotografoIdActual = {{ auth()->user()->empleado->fotografo->id }};
+        const pickersListos = {};
+        const horasPorFechaPorReserva = {};
+        let flatpickrCargado = false;
+
+        function inicializarPickerPropuesta(reservaId) {
+            if (pickersListos[reservaId]) return;
+            pickersListos[reservaId] = true;
+
+            const cargarPicker = () => {
+                fetch(`/disponibilidad/fotografo/${fotografoIdActual}?excluir_reserva=${reservaId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        horasPorFechaPorReserva[reservaId] = data.horasPorFecha;
+
+                        flatpickr('#fecha-picker-' + reservaId, {
+                            dateFormat: 'Y-m-d',
+                            minDate:    new Date(new Date().setHours(0, 0, 0, 0) + 86400000),
+                            enable:     data.habilitadas,
+                            disableMobile: true,
+                            onChange(_, dateStr) {
+                                const select = document.getElementById('hora-select-' + reservaId);
+                                const horas  = horasPorFechaPorReserva[reservaId][dateStr] ?? [];
+                                select.innerHTML = '';
+                                if (horas.length === 0) {
+                                    const opt = document.createElement('option');
+                                    opt.value = '';
+                                    opt.text  = 'No hay horas disponibles ese día';
+                                    select.appendChild(opt);
+                                    return;
+                                }
+                                horas.forEach(hora => {
+                                    const opt = document.createElement('option');
+                                    opt.value = hora;
+                                    opt.text  = hora;
+                                    select.appendChild(opt);
+                                });
+                            },
+                        });
+                    });
+            };
+
+            if (flatpickrCargado) {
+                cargarPicker();
+            } else {
+                flatpickrCargado = true;
+                const script1 = document.createElement('script');
+                script1.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
+                script1.onload = cargarPicker;
+                document.head.appendChild(script1);
+            }
         }
 
         function toggleRechazo(id) {

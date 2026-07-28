@@ -5,25 +5,25 @@
 
     {{-- Pestañas --}}
     <div class="reservas-tabs">
-        <button class="tab active" onclick="switchTab('confirmadas', this)">
+        <button class="tab active" data-tab="confirmadas" onclick="switchTab('confirmadas')">
             Confirmadas
             @if($confirmadas->count() > 0)
                 <span class="tab-badge">{{ $confirmadas->count() }}</span>
             @endif
         </button>
-        <button class="tab" onclick="switchTab('en-proceso', this)">
+        <button class="tab" data-tab="en-proceso" onclick="switchTab('en-proceso')">
             En Proceso
             @if($enProceso->count() > 0)
                 <span class="tab-badge">{{ $enProceso->count() }}</span>
             @endif
         </button>
-        <button class="tab" onclick="switchTab('en-edicion', this)">
+        <button class="tab" data-tab="en-edicion" onclick="switchTab('en-edicion')">
             En Edición
             @if($enEdicion->count() > 0)
                 <span class="tab-badge">{{ $enEdicion->count() }}</span>
             @endif
         </button>
-        <button class="tab" onclick="switchTab('ayudantes', this)">
+        <button class="tab" data-tab="ayudantes" onclick="switchTab('ayudantes')">
             Ayudantes
             @php $totalAyudantes = $solicitudesPropias->count() + $solicitudesDisponibles->count(); @endphp
             @if($totalAyudantes > 0)
@@ -195,6 +195,21 @@
                 box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
             }
 
+            .sesion-card.lista-entregar {
+                border-color: #86efac;
+                background: #f0fdf4;
+            }
+
+            .lista-entregar-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                font-size: 11px;
+                font-weight: 600;
+                color: #15803d;
+                margin-top: 4px;
+            }
+
             .sesion-card-header {
                 display: flex;
                 align-items: flex-start;
@@ -338,6 +353,30 @@
 
             .btn-iniciar:hover {
                 opacity: 0.85;
+            }
+
+            .btn-entregar {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                background: #16a34a;
+                color: #fff;
+                font-size: 13px;
+                font-weight: 600;
+                padding: 9px 18px;
+                border-radius: 8px;
+                border: none;
+                cursor: pointer;
+                transition: opacity 0.15s;
+            }
+
+            .btn-entregar:hover {
+                opacity: 0.88;
+            }
+
+            .btn-entregar:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
             }
 
             .btn-seleccion {
@@ -607,12 +646,24 @@
                 if (e.target === this) cerrarSeleccion();
             });
 
-            function switchTab(name, el) {
+            function switchTab(name) {
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.getElementById('tab-' + name).classList.add('active');
-                el.classList.add('active');
+
+                const contenido = document.getElementById('tab-' + name);
+                const boton = document.querySelector('.tab[data-tab="' + name + '"]');
+                if (contenido) contenido.classList.add('active');
+                if (boton) boton.classList.add('active');
             }
+
+            // Si venimos de otra pantalla con ?tab=en-edicion (ej. al confirmar
+            // una subida de fotos), abrimos directo esa pestaña.
+            document.addEventListener('DOMContentLoaded', function () {
+                const tabSolicitado = new URLSearchParams(window.location.search).get('tab');
+                if (tabSolicitado && document.getElementById('tab-' + tabSolicitado)) {
+                    switchTab(tabSolicitado);
+                }
+            });
 
             function abrirSolicitudAyudante(sesionId, tipo) {
                 document.getElementById('ayudanteSub').textContent = tipo;

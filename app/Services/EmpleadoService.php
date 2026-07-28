@@ -27,8 +27,9 @@ class EmpleadoService
             'persona_id' => $persona->id,
             'email'      => $dto->email,
             'contrasena' => Hash::make(Str::random(32)),
-            'estado'     => $dto->estado,
         ]);
+        $usuario->estado = $dto->estado;
+        $usuario->save();
 
         // 3. Empleado
         $empleado = Empleado::create([
@@ -70,7 +71,6 @@ class EmpleadoService
 
         $usuarioData = [
             'email'  => $dto->email,
-            'estado' => $dto->estado,
         ];
 
         if ($dto->password) {
@@ -78,6 +78,8 @@ class EmpleadoService
         }
 
         $empleado->usuario->update($usuarioData);
+        $empleado->usuario->estado = $dto->estado;
+        $empleado->usuario->save();
         $empleado->update(['rol' => $dto->rol]);
 
         if ($dto->rol === 'FOTOGRAFO') {

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Carbon\Carbon;
 
 class Reserva extends Model
 {
@@ -118,11 +119,16 @@ class Reserva extends Model
     }
 
 
-    public function reenviarParaRevision(string $descripcion): void
+    public function reenviarParaRevision(string $descripcion, ?string $nuevaFecha = null, ?string $nuevaHora = null): void
     {
         $this->descripcion = $descripcion;
         $this->motivo_rechazo = null;
         $this->duracion_horas_propuesta = null;
+
+        if ($nuevaFecha && $nuevaHora) {
+            $this->fecha_inicio = Carbon::parse("$nuevaFecha $nuevaHora");
+        }
+
         $this->estado = 'PENDIENTE';
         $this->save();
     }

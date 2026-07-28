@@ -21,9 +21,6 @@ class Usuario extends Authenticatable
         'contrasena',
         'google_id',
         'avatar',
-        'estado',
-        'verificado',
-        'token_verificacion',
     ];
 
     protected $hidden = [
@@ -41,6 +38,36 @@ class Usuario extends Authenticatable
     public function getAuthPassword(): string
     {
         return $this->contrasena;
+    }
+
+    /**
+     * Establece el estado del usuario (ACTIVO/INACTIVO). Fuera de
+     * $fillable a propósito: nunca debe poder setearse vía asignación
+     * masiva desde un request.
+     */
+    public function establecerEstado(string $estado): void
+    {
+        $this->estado = $estado;
+        $this->save();
+    }
+
+    /**
+     * Marca al usuario como verificado y limpia el token pendiente.
+     */
+    public function marcarVerificado(): void
+    {
+        $this->verificado = true;
+        $this->token_verificacion = null;
+        $this->save();
+    }
+
+    /**
+     * Asigna (o renueva) el token de verificación pendiente.
+     */
+    public function asignarTokenVerificacion(string $token): void
+    {
+        $this->token_verificacion = $token;
+        $this->save();
     }
 
     public function persona(): BelongsTo

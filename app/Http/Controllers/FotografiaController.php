@@ -27,9 +27,7 @@ class FotografiaController extends Controller
             ->whereIn('estado', ['EN_PROCESO', 'EN_EDICION', 'GALERIA_DISPONIBLE'])
             ->findOrFail($id);
 
-        if (! $sesion->fotografoTieneAcceso($fotografo)) {
-            abort(403, 'No tienes acceso a esta sesión.');
-        }
+        $this->authorize('gestionar', $sesion);
 
         $esPrincipal = $sesion->esPrincipalDe($fotografo);
 
@@ -75,9 +73,7 @@ class FotografiaController extends Controller
 
         $sesion = Sesion::with('reserva.cliente.usuario')->findOrFail($sesionId);
 
-        if (! $sesion->fotografoTieneAcceso($fotografo)) {
-            abort(403, 'No tienes acceso a esta sesión.');
-        }
+        $this->authorize('gestionar', $sesion);
 
         $esPrincipal = $sesion->esPrincipalDe($fotografo);
 
@@ -136,9 +132,7 @@ class FotografiaController extends Controller
 
         $foto = Fotografia::with('sesion.reserva')->findOrFail($id);
 
-        if (! $foto->sesion->esPrincipalDe($fotografo)) {
-            abort(403, 'Solo el fotógrafo principal puede aprobar fotos.');
-        }
+        $this->authorize('esPrincipal', $foto);
 
         $foto->update(['aprobada' => true]);
 
@@ -154,9 +148,7 @@ class FotografiaController extends Controller
 
         $foto = Fotografia::with('sesion')->findOrFail($id);
 
-        if (! $foto->sesion->esPrincipalDe($fotografo)) {
-            abort(403, 'Solo el fotógrafo principal puede rechazar fotos.');
-        }
+        $this->authorize('esPrincipal', $foto);
 
         Storage::disk('r2')->delete($foto->url);
         $foto->delete();
@@ -230,103 +222,23 @@ class FotografiaController extends Controller
             $usuario->notify(new FotosEntregadasCliente($sesion));
         }
 
-        return response()->json([
-            'message' => 'Sesión marcada como entregada. El cliente ha sido notificado.',
-        ]);
+        return back()->with('success', 'Sesión marcada como entregada. El cliente ha sido notificado.');
     }
-
-//    public function confirmarSubida(int $sesionId)
-//    {
-//        $fotografo = auth()->user()->empleado->fotografo;
-//
-//        $sesion = Sesion::with('reserva.cliente.usuario')
-//            ->whereHas('reserva', fn($q) => $q->where('fotografo_id', $fotografo->id))
-//            ->findOrFail($sesionId);
-//
-//        if ($sesion->estado !== 'EN_PROCESO') {
-//            return response()->json(['message' => 'La galería ya fue publicada.']);
-//        }
-//
-//        if (! $sesion->fotografias()->where('estado', 'ORIGINAL')->exists()) {
-//            return response()->json(['message' => 'Debes subir al menos una foto antes de confirmar.'], 422);
-//        }
-//
-//        $sesion->update(['estado' => 'GALERIA_DISPONIBLE']);
-//
-//        $usuario = $sesion->reserva->cliente->usuario ?? null;
-//        if ($usuario) {
-//            $usuario->notify(new GaleriaDisponibleCliente($sesion));
-//        }
-//
-//        return response()->json(['message' => 'Galería publicada. El cliente ha sido notificado.']);
-//    }
-
-    /**
-     * El cliente confirma su selección final de fotos.
-     * Se ejecuta UNA sola vez — después no hay vuelta atrás.
-
-    public function confirmarSeleccion(Request $request, int $sesionId)
-    {
-        $request->validate([
-            'fotos_seleccionadas' => 'required|json',
-        ]);
-
-        $ids = json_decode($request->fotos_seleccionadas, true);
-
-        if (! is_array($ids) || empty($ids)) {
-            return back()->withErrors(['fotos_seleccionadas' => 'Debes seleccionar al menos una foto.']);
-        }
-
-        $sesion = Sesion::with('reserva.fotografo.empleado.usuario')
-            ->whereHas('reserva.cliente', function ($q) {
-                $q->where('usuario_id', auth()->id());
-            })->findOrFail($sesionId);
-
-        if ($sesion->estado === 'EN_EDICION') {
-            return back()->withErrors(['fotos_seleccionadas' => 'Ya confirmaste tu selección para esta sesión.']);
-        }
-
-        Fotografia::where('sesion_id', $sesionId)
-            ->whereIn('id', $ids)
-            ->where('estado', 'ORIGINAL')
-            ->update([
-                'seleccionada' => true,
-                'estado'       => 'PENDIENTE_EDICION',
-            ]);
-
-        $sesion->update(['estado' => 'EN_EDICION']);
-
-        // Notificar al fotógrafo
-        $usuarioFotografo = $sesion->reserva->fotografo->empleado->usuario ?? null;
-        if ($usuarioFotografo) {
-            $usuarioFotografo->notify(new SeleccionConfirmadaFotografo($sesion));
-        }
-
-        return redirect()->route('cliente.galeria')
-            ->with('success', 'Selección confirmada. El fotógrafo editará tus fotos en los próximos días.');
-    }
-     */
 
     public function download(int $id)
     {
-        $fotografo = auth()->user()->empleado->fotografo;
         $foto = Fotografia::with('sesion')->findOrFail($id);
 
-        if (! $foto->sesion->fotografoTieneAcceso($fotografo)) {
-            abort(403, 'No tienes acceso a esta foto.');
-        }
+        $this->authorize('gestionar', $foto);
 
         $url = Storage::disk('r2')->temporaryUrl($foto->url, now()->addMinutes(60));
         return response()->json(['url' => $url]);
     }
     public function destroy(int $id)
     {
-        $fotografo = auth()->user()->empleado->fotografo;
         $foto = Fotografia::with('sesion')->findOrFail($id);
 
-        if (! $foto->sesion->esPrincipalDe($fotografo)) {
-            abort(403, 'No tienes permiso para eliminar esta foto.');
-        }
+        $this->authorize('esPrincipal', $foto);
 
         Storage::disk('r2')->delete($foto->url);
         $foto->delete();

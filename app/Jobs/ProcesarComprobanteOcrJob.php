@@ -34,11 +34,15 @@ class ProcesarComprobanteOcrJob implements ShouldQueue
             $rutaTemporal = tempnam(sys_get_temp_dir(), 'comprobante_') . '.jpg';
             file_put_contents($rutaTemporal, $contenido);
 
-            $textoDetectado = (new TesseractOCR($rutaTemporal))
-                ->tessdataDir('C:\Program Files\Tesseract-OCR\tessdata')
+            $ocr = (new TesseractOCR($rutaTemporal))
                 ->lang('spa', 'eng') // fallback a inglés si spa falla
-                ->timeout(30)        // máximo 30 segundos
-                ->run();
+                ->timeout(30);       // máximo 30 segundos
+
+            if ($rutaTessdata = env('TESSERACT_TESSDATA_PATH')) {
+                $ocr->tessdataDir($rutaTessdata);
+            }
+
+            $textoDetectado = $ocr->run();
 
             if (blank($textoDetectado)) {
                 $this->comprobante->marcarFallido('Tesseract no detectó texto');

@@ -115,8 +115,9 @@
             <ol class="modal-gal__pasos">
                 <li>Notificamos al <strong>fotógrafo</strong> de tu elección.</li>
                 <li>Editará las fotos en los próximos <strong>3–5 días hábiles.</strong></li>
-                <li>Te avisaremos por <strong>email</strong> cuando estén listas para revisar.</li>
-                <li>Pasarán a tu <strong>galería final</strong> para descargar.</li>
+                <li>El <strong>segundo pago</strong> ya está disponible y deberá realizarse para desbloquear el acceso a las fotos editadas.</li>
+                <li>Te avisaremos por <strong>email</strong> cuando las fotos estén listas para revisar.</li>
+                <li>Una vez confirmado el pago, pasarán a tu <strong>galería final</strong> para descargarlas.</li>
             </ol>
             <form method="POST" action="{{ route('cliente.galeria.confirmar', $sesion->id) }}">
                 @csrf

@@ -42,16 +42,29 @@ class ClienteReservaController extends Controller
         $request->validate([
             'accion'      => 'required|in:ACEPTAR,EDITAR,CANCELAR',
             'descripcion' => 'required_if:accion,EDITAR|nullable|string|max:1000',
+            'nueva_fecha' => 'nullable|date',
+            'nueva_hora'  => 'nullable|date_format:H:i',
         ]);
 
         try {
+            if ($request->accion === 'EDITAR' && $request->nueva_fecha && $request->nueva_hora) {
+                $this->validarDisponibilidadFotografo($reserva, $request->nueva_fecha, $request->nueva_hora);
+            }
+
             match ($request->accion) {
                 'ACEPTAR'  => $this->reservaService->aprobarPorAceptacionCliente($reserva),
                 'CANCELAR' => $reserva->cancelar(),
-                'EDITAR'   => $reserva->reenviarParaRevision($request->descripcion),
+                'EDITAR'   => $reserva->reenviarParaRevision(
+                    $request->descripcion,
+                    $request->nueva_fecha,
+                    $request->nueva_hora,
+                ),
             };
-        } catch (\Exception $e) {
+        } catch (\App\Exceptions\NegocioException $e) {
             return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Ocurrió un error al procesar tu respuesta. Intenta de nuevo.');
         }
 
         return redirect()->route('cliente.reservas.index')
@@ -66,6 +79,23 @@ class ClienteReservaController extends Controller
     {
         $cliente = Cliente::where('usuario_id', auth()->id())->firstOrFail();
         abort_if($reserva->cliente_id !== $cliente->id, 403);
+    }
+
+    private function validarDisponibilidadFotografo(Reserva $reserva, string $nuevaFecha, string $nuevaHora): void
+    {
+        $fechaHora    = \Carbon\Carbon::parse("$nuevaFecha $nuevaHora");
+        $fechaHoraFin = $fechaHora->copy()->addHours($reserva->duracion_horas_propuesta ?? 2.0);
+
+        $conflicto = Reserva::where('fotografo_id', $reserva->fotografo_id)
+            ->where('id', '!=', $reserva->id)
+            ->whereIn('estado', ['PENDIENTE', 'APROBADA'])
+            ->where('fecha_inicio', '<', $fechaHoraFin)
+            ->where('fecha_fin',    '>', $fechaHora)
+            ->exists();
+
+        if ($conflicto) {
+            throw new \App\Exceptions\NegocioException('Esa fecha ya no está disponible para el fotógrafo, elige otra.');
+        }
     }
 
     /**

@@ -34,7 +34,7 @@ class ClientePagoController extends Controller
      */
     public function formulario(Pago $pago): View
     {
-        $this->autorizarPropietario($pago);
+        $this->authorize('verComoCliente', $pago);
         $cuentas = CuentaBanco::activas()->get()->groupBy('banco');
 
         return view('cliente.pagos.comprobante', compact('pago', 'cuentas'));
@@ -46,9 +46,9 @@ class ClientePagoController extends Controller
      */
     public function guardar(Request $request, Pago $pago): RedirectResponse
     {
-        $this->autorizarPropietario($pago);
+        $this->authorize('verComoCliente', $pago);
 
-        if (! $pago->estaPendiente()) {
+        if (! $pago->puedeSubirComprobante()) {
             return back()->with('error', 'Este pago ya no está disponible para subir un comprobante.');
         }
 
@@ -75,11 +75,19 @@ class ClientePagoController extends Controller
         ]);
 
         $archivo = $request->file('comprobante');
+
+        // Extensión derivada del tipo MIME real ya validado arriba
+        // (jpg/jpeg/png), no del nombre de archivo que manda el cliente.
+        $extension = match ($archivo->getMimeType()) {
+            'image/png' => 'png',
+            default     => 'jpg',
+        };
+
         $key = sprintf(
             'comprobantes/%d/%s.%s',
             $pago->id,
             uniqid('comp_'),
-            $archivo->getClientOriginalExtension()
+            $extension
         );
 
         Storage::disk('r2')->put($key, file_get_contents($archivo->getRealPath()));
@@ -98,17 +106,5 @@ class ClientePagoController extends Controller
         return redirect()
             ->route('cliente.reservas.show', $pago->reserva_id)
             ->with('success', 'Tu comprobante fue recibido y está en revisión. Te avisaremos por correo cuando se confirme.');
-    }
-
-    /**
-     * Verifica que el pago pertenezca al cliente autenticado.
-     */
-    private function autorizarPropietario(Pago $pago): void
-    {
-        abort_unless(
-            $pago->cliente_id === auth()->user()->cliente?->id,
-            403,
-            'No tienes permiso para ver este pago.'
-        );
     }
 }

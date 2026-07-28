@@ -48,10 +48,9 @@ class RegisterController extends Controller
             'persona_id' => $persona->id,
             'email'      => $request->email,
             'contrasena' => Hash::make($request->password),
-            'estado'     => 'ACTIVO',
-            'verificado' => false,
-            'token_verificacion' => $token,
         ]);
+        $usuario->establecerEstado('ACTIVO');
+        $usuario->asignarTokenVerificacion($token);
 
         // 3. Crear el cliente vinculado al usuario
         Cliente::create([
@@ -94,10 +93,7 @@ class RegisterController extends Controller
             return redirect()->route('login')->with('error', 'El enlace de verificación no es válido o ya fue usado.');
         }
 
-        $usuario->update([
-            'verificado'         => true,
-            'token_verificacion' => null,
-        ]);
+        $usuario->marcarVerificado();
 
         Auth::login($usuario);
 
@@ -113,7 +109,7 @@ class RegisterController extends Controller
         }
 
         $token = Str::random(64);
-        $usuario->update(['token_verificacion' => $token]);
+        $usuario->asignarTokenVerificacion($token);
 
         Mail::to($usuario->email)->send(new VerificacionEmail($usuario));
 

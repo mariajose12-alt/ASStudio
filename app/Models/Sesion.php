@@ -83,4 +83,20 @@ class Sesion extends Model
             ->where('estado_participacion', true)
             ->exists();
     }
+
+    /**
+     * True cuando ya se subieron todas las fotos editadas que el cliente
+     * seleccionó (y por lo tanto la sesión está lista para marcarse como
+     * entregada). Misma lógica que usa FotografiaController::create().
+     */
+    public function todasFotosEditadas(): bool
+    {
+        $aprobadas = $this->fotografias->where('aprobada', true);
+
+        $totalPendientes = $aprobadas->where('estado', 'PENDIENTE_EDICION')->count();
+        $totalEditadas   = $aprobadas->where('estado', 'EDITADA')->count();
+
+        return $totalPendientes > 0 && $totalEditadas >= $totalPendientes;
+    }
+
 }

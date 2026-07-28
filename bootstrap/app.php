@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'rol' => \App\Http\Middleware\CheckRol::class,
             'verificado' => \App\Http\Middleware\CheckVerificado::class,
         ]);
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->renderable(function (ThrottleRequestsException $e, $request) {

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\PostulacionAyudante;
 use App\Models\Sesion;
 use App\Models\SolicitudAyudante;
+use App\Exceptions\NegocioException;
+use Illuminate\Support\Facades\Log;
 use App\Services\SolicitudAyudanteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,8 +33,14 @@ class SolicitudAyudanteController extends Controller
             );
 
             return back()->with('success', 'Solicitud de ayudante enviada. Se notificó a los fotógrafos disponibles.');
-        } catch (\Exception $e) {
+        } catch (NegocioException $e) {
             return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('Error inesperado en solicitud de ayudante', [
+                'usuario_id' => Auth::id(),
+                'message'    => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Ocurrió un error inesperado. Intenta de nuevo.');
         }
     }
 
@@ -44,8 +52,14 @@ class SolicitudAyudanteController extends Controller
             $this->service->postular($solicitud, $fotografo);
 
             return back()->with('success', 'Te postulaste correctamente. El fotógrafo principal confirmará su selección.');
-        } catch (\Exception $e) {
+        } catch (NegocioException $e) {
             return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('Error inesperado en solicitud de ayudante', [
+                'usuario_id' => Auth::id(),
+                'message'    => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Ocurrió un error inesperado. Intenta de nuevo.');
         }
     }
 
@@ -57,8 +71,14 @@ class SolicitudAyudanteController extends Controller
             $this->service->confirmar($solicitud, $postulacion, $fotografo);
 
             return back()->with('success', 'Ayudante confirmado.');
-        } catch (\Exception $e) {
+        } catch (NegocioException $e) {
             return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('Error inesperado en solicitud de ayudante', [
+                'usuario_id' => Auth::id(),
+                'message'    => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Ocurrió un error inesperado. Intenta de nuevo.');
         }
     }
 
@@ -70,8 +90,14 @@ class SolicitudAyudanteController extends Controller
             $this->service->rechazar($solicitud, $postulacion, $fotografo);
 
             return back()->with('success', 'Postulación rechazada.');
-        } catch (\Exception $e) {
+        } catch (NegocioException $e) {
             return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('Error inesperado en solicitud de ayudante', [
+                'usuario_id' => Auth::id(),
+                'message'    => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Ocurrió un error inesperado. Intenta de nuevo.');
         }
     }
 
@@ -83,8 +109,14 @@ class SolicitudAyudanteController extends Controller
             $this->service->cancelar($solicitud, $fotografo);
 
             return back()->with('success', 'Solicitud cancelada. Los ayudantes ya confirmados se mantienen.');
-        } catch (\Exception $e) {
+        } catch (NegocioException $e) {
             return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('Error inesperado en solicitud de ayudante', [
+                'usuario_id' => Auth::id(),
+                'message'    => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Ocurrió un error inesperado. Intenta de nuevo.');
         }
     }
 }

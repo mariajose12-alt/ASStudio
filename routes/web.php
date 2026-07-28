@@ -15,7 +15,7 @@ use App\Http\Controllers\SocioEstudioController;
 use App\Http\Controllers\SolicitudEstudioAdminController;
 use App\Http\Controllers\SolicitudEstudioController;
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 
@@ -110,6 +110,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('/marcar-leidas', [NotificacionController::class, 'marcarLeidas'])->name('marcar-leidas');
         Route::patch('/{id}/marcar-leida', [NotificacionController::class, 'marcarLeida'])->name('marcar-leida');
     });
+
+    Route::get('/disponibilidad/fotografo/{fotografo}', [DisponibilidadController::class, 'fechasOcupadasFotografo'])->name('disponibilidad.fotografo');
 });
 
 // DASHBOARD ADMINISTRADOR

@@ -39,16 +39,14 @@ class GoogleController extends Controller
                 'contrasena' => null,
                 'google_id'  => $googleUser->getId(),
                 'avatar'     => $googleUser->getAvatar(),
-                'verificado' => true,
-                'token_verificacion' => null,
             ]);
+            $usuario->marcarVerificado();
 
             // Crear cliente por defecto
             Cliente::create(['usuario_id' => $usuario->id]);
         }
 
-        // Auth::login necesita un modelo que extienda Authenticatable
-        // asegúrate que tu modelo Usuario extienda Authenticatable
+
         Auth::login($usuario);
 
         return redirect('/');

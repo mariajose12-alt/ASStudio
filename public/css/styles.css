@@ -3522,6 +3522,13 @@ textarea { resize: vertical; min-height: 100px; }
     animation: shake-field 0.3s ease;
 }
 
+.dato-no-editable {
+    padding: 10px 0;
+    color: var(--ink);
+    font-size: 15px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
 /* ═══════════════════════════════════════════════════════════
    PASO 4 — RESUMEN DE RESERVA
 ═══════════════════════════════════════════════════════════ */

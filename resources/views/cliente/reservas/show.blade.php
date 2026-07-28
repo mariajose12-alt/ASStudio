@@ -187,6 +187,15 @@
                                       rows="3"
                                       class="rf-modal-textarea"
                                       placeholder="Describe los cambios que propones..."></textarea>
+
+                            <label class="rf-modal-label" style="margin-top:10px;">¿También quieres proponer otra fecha? (opcional)</label>
+                            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+                            <input type="text" id="fecha-picker-cli" name="nueva_fecha"
+                                   class="rf-modal-textarea" style="cursor:pointer;"
+                                   placeholder="Selecciona una fecha (opcional)" readonly autocomplete="off">
+                            <select id="hora-select-cli" name="nueva_hora" class="rf-modal-textarea" style="margin-top:6px;">
+                                <option value="">Primero selecciona una fecha</option>
+                            </select>
                         </div>
                         <button type="button" class="rf-modal-btn rf-modal-btn--outline" id="btnEditar"
                                 onclick="toggleEditar()">
@@ -316,6 +325,55 @@
             campos.style.display      = mostrar ? 'block' : 'none';
             btnConfirmar.style.display = mostrar ? 'flex' : 'none';
             btnEditar.style.display    = mostrar ? 'none' : 'flex';
+
+            if (mostrar) inicializarPickerCliente();
+        }
+
+        let pickerCliInicializado = false;
+        let horasPorFechaCli = {};
+
+        function inicializarPickerCliente() {
+            if (pickerCliInicializado) return;
+            pickerCliInicializado = true;
+
+            const fotografoId = {{ $reserva->fotografo_id ?? 'null' }};
+            const reservaId   = {{ $reserva->id }};
+            if (!fotografoId) return; // sin fotógrafo asignado todavía, no aplica
+
+            const script1 = document.createElement('script');
+            script1.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
+            script1.onload = () => {
+                fetch(`/disponibilidad/fotografo/${fotografoId}?excluir_reserva=${reservaId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        horasPorFechaCli = data.horasPorFecha;
+
+                        flatpickr('#fecha-picker-cli', {
+                            dateFormat: 'Y-m-d',
+                            minDate:    new Date(new Date().setHours(0, 0, 0, 0) + 86400000),
+                            enable:     data.habilitadas,
+                            disableMobile: true,
+                            onChange(_, dateStr) {
+                                actualizarHorasCli(dateStr);
+                            },
+                        });
+                    });
+            };
+            document.head.appendChild(script1);
+        }
+
+        function actualizarHorasCli(fecha) {
+            const select = document.getElementById('hora-select-cli');
+            const horas  = horasPorFechaCli[fecha] ?? [];
+
+            select.innerHTML = '<option value="">Sin cambio de hora</option>';
+
+            horas.forEach(hora => {
+                const opt = document.createElement('option');
+                opt.value = hora;
+                opt.text  = hora;
+                select.appendChild(opt);
+            });
         }
     </script>
 @endpush

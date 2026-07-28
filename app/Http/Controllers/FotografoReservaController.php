@@ -25,7 +25,7 @@ class FotografoReservaController extends Controller
 
     public function show(Reserva $reserva)
     {
-        $this->autorizarFotografo($reserva);
+        $this->authorize('verComoFotografo', $reserva);
 
         $reserva->load(['cliente.usuario.persona', 'paquete']);
 
@@ -34,7 +34,7 @@ class FotografoReservaController extends Controller
 
     public function procesarAccion(Request $request, Reserva $reserva)
     {
-        $this->autorizarFotografo($reserva);
+        $this->authorize('verComoFotografo', $reserva);
 
         $request->validate([
             'accion'      => 'required|in:APROBADA,RECHAZADA,MODIFICACION_PROPUESTA,CERRAR_SESION',
@@ -60,23 +60,7 @@ class FotografoReservaController extends Controller
                 ->with('success', $mensaje);
 
         } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', 'Ocurrió un error al procesar la reserva. Intenta de nuevo.');
         }
-    }
-
-    // Permite gestionar una reserva si es suya, o si está en la bolsa
-    // compartida (sin dueño todavía y en estado PENDIENTE).
-    private function autorizarFotografo(Reserva $reserva): void
-    {
-        $fotografo = Auth::user()->empleado->fotografo;
-
-        $esSuya       = $reserva->fotografo_id === $fotografo->id;
-        $esDisponible = is_null($reserva->fotografo_id) && $reserva->estado === 'PENDIENTE';
-
-        abort_if(
-            ! $esSuya && ! $esDisponible,
-            403,
-            'No tienes permiso para gestionar esta reserva.'
-        );
     }
 }

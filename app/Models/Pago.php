@@ -93,4 +93,9 @@ class Pago extends Model
         $this->estado = 'EN_REVISION';
         $this->save();
     }
+
+    public function puedeSubirComprobante(): bool
+    {
+        return in_array($this->estado, ['PENDIENTE', 'RECHAZADO'], true);
+    }
 }

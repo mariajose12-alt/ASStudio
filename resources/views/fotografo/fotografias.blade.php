@@ -1,8 +1,16 @@
 @extends('layouts.fotografo')
 @section('title', 'Subir Fotografías')
 
+@php
+    $tabDestino = match ($sesion->estado) {
+        'EN_PROCESO' => 'en-proceso',
+        'EN_EDICION' => 'en-edicion',
+        default      => 'confirmadas',
+    };
+@endphp
+
 @section('topbar-actions')
-    <a href="{{ route('fotografo.sesiones.index') }}" class="btn-volver">← Volver</a>
+    <a href="{{ route('fotografo.sesiones.index', ['tab' => $tabDestino]) }}" class="btn-volver">← Volver</a>
 @endsection
 
 @section('content')
@@ -102,23 +110,6 @@
                     </div>
                 @endforeach
             </div>
-
-            {{-- Botón marcar como entregada — solo si hay fotos y todas están editadas solo el fotografo principal
-            @if($esPrincipal && $sesion->estado === 'EN_EDICION' && $pendientesEdicion->where('ya_editada', false)->count() === 0)
-                <div style="margin-top: 20px; text-align: right;">
-                    <button type="button" class="btn-entregar" id="btnEntregar" onclick="marcarEntregada()">
-                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Marcar sesión como entregada
-                    </button>
-                </div>
-            @elseif($esPrincipal && $sesion->estado === 'EN_EDICION')
-                <div style="margin-top: 16px;">
-                    <p class="entregar-hint">Sube todas las fotos editadas para poder marcar la sesión como entregada.</p>
-                </div>
-            @endif
-            --}}
         </div>
     @endif
 
@@ -252,30 +243,14 @@
                 <button class="success-btn success-btn--outline" onclick="cerrarModalYSubirMas()">
                     Subir Más Fotos
                 </button>
-                <a href="{{ route('fotografo.sesiones.index') }}" class="success-btn success-btn--primary">
+                <a href="{{ route('fotografo.sesiones.index', ['tab' => $tabDestino]) }}" class="success-btn success-btn--primary">
                     Volver a Sesiones
                 </a>
             </div>
         </div>
     </div>
 
-    {{-- ── MODAL CONFIRMACIÓN ENTREGADA ── --}}
-    <div class="success-backdrop" id="entregadaModal">
-        <div class="success-modal">
-            <div style="margin-bottom: 20px;">
-                <svg width="48" height="48" fill="none" stroke="#22c55e" viewBox="0 0 24 24" style="margin: 0 auto; display: block;">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <h2 class="success-title">Sesión Entregada</h2>
-            <p class="success-desc">El cliente ha sido notificado por email y podrá descargar sus fotos desde su panel.</p>
-            <div class="success-actions" style="justify-content: center;">
-                <a href="{{ route('fotografo.sesiones.index') }}" class="success-btn success-btn--primary">
-                    Volver a Sesiones
-                </a>
-            </div>
-        </div>
-    </div>
+    {{-- ── FIN MODALES ── --}}
 
     @push('styles')
         <style>
@@ -525,29 +500,6 @@
                 transition: opacity 0.15s;
             }
             .btn-termine:hover { opacity: 0.88; }
-
-            .btn-entregar {
-                display: inline-flex;
-                align-items: center;
-                gap: 7px;
-                background: #16a34a;
-                color: #fff;
-                border: none;
-                padding: 11px 22px;
-                border-radius: 8px;
-                font-size: 13px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: opacity 0.15s;
-            }
-            .btn-entregar:hover { opacity: 0.88; }
-            .btn-entregar:disabled { opacity: 0.5; cursor: not-allowed; }
-
-            .entregar-hint {
-                font-size: 12px;
-                color: var(--muted);
-                margin: 0;
-            }
 
             /* ── Fotos ya subidas ── */
             .uploaded-section { margin-top: 8px; }
@@ -881,7 +833,6 @@
         <script>
             const sesionId  = {{ $sesion->id }};
             const csrfToken = '{{ csrf_token() }}';
-            const entregaUrl = '{{ route('fotografo.fotografias.entregar', $sesion->id) }}';
             const galeriaDisponibleUrl = '{{ route('fotografo.fotografias.galeria-disponible', $sesion->id) }}';
             const totalPendientesEdicion = {{ $totalPendientes ?? 0 }};
 
@@ -1029,36 +980,9 @@
             async function abrirModalExito() {
                 @if($sesion->estado === 'EN_EDICION')
                     termineSection.style.display = 'none';
-
-                // Mostrar el botón de entregar dinámicamente
-                const hint = document.querySelector('.entregar-hint');
-                if (hint) hint.style.display = 'none';
-
-                let btnEntregar = document.getElementById('btnEntregar');
-                if (!btnEntregar) {
-                    // El botón no existía en el DOM (aún había pendientes al cargar)
-                    // lo creamos y lo insertamos al final de pendientes-card
-                    const wrap = document.createElement('div');
-                    wrap.id = 'btnEntregarWrap';
-                    wrap.style.cssText = 'margin-top: 20px; text-align: right;';
-                    wrap.innerHTML = `
-                <button type="button" class="btn-entregar" id="btnEntregar" onclick="marcarEntregada()">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    Marcar sesión como entregada
-                </button>
-            `;
-                    const card = document.querySelector('.pendientes-card');
-                    if (card) card.appendChild(wrap);
-                } else {
-                    // El botón ya existía pero estaba oculto
-                    btnEntregar.closest('div').style.display = 'block';
-                    btnEntregar.disabled = false;
-                }
                 document.getElementById('successModal').classList.add('open');
                 @else
-                    @if($esPrincipal)
+                @if($esPrincipal)
                 const btnConfirmar = document.querySelector('.btn-termine');
                 if (btnConfirmar) {
                     btnConfirmar.disabled = true;
@@ -1132,35 +1056,6 @@
                     </div>
                 `;
                 uploadedGrid.appendChild(div);
-            }
-
-            async function marcarEntregada() {
-                const btn = document.getElementById('btnEntregar');
-                if (!btn) return;
-                btn.disabled = true;
-                btn.textContent = 'Procesando...';
-
-                try {
-                    const res = await fetch(entregaUrl, {
-                        method:  'PATCH',
-                        headers: {
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    if (res.ok) {
-                        document.getElementById('entregadaModal').classList.add('open');
-                    } else {
-                        btn.disabled = false;
-                        btn.textContent = 'Marcar sesión como entregada';
-                        alert('Ocurrió un error al marcar la sesión. Intenta de nuevo.');
-                    }
-                } catch (e) {
-                    btn.disabled = false;
-                    btn.textContent = 'Marcar sesión como entregada';
-                    alert('Error de conexión. Intenta de nuevo.');
-                }
             }
 
             async function aprobarFoto(id) {
@@ -1253,64 +1148,11 @@
                             icono.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
                         }
                     });
-
-                    const hint = document.querySelector('.entregar-hint');
-                    if (hint) hint.style.display = 'none';
-
-                    actualizarAccionesModalExito();
-                    mostrarBotonEntregar();
                 }
             }
 
             function cerrarModalSolo() {
                 document.getElementById('successModal').classList.remove('open');
-            }
-
-            function actualizarAccionesModalExito() {
-                @if($esPrincipal)
-                if (editadasSubidasCount < totalPendientesEdicion || totalPendientesEdicion === 0) return;
-                const actions = document.getElementById('successActions');
-                if (!actions || document.getElementById('btnEntregarModal')) return;
-
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.id = 'btnEntregarModal';
-                btn.className = 'success-btn success-btn--primary';
-                btn.textContent = 'Marcar sesión como entregada';
-                btn.onclick = () => {
-                    document.getElementById('successModal').classList.remove('open');
-                    marcarEntregada();
-                };
-                actions.prepend(btn);
-                @endif
-            }
-
-            function mostrarBotonEntregar() {
-                @if($esPrincipal)
-                let btnEntregar = document.getElementById('btnEntregar');
-                if (!btnEntregar) {
-                    const wrap = document.createElement('div');
-                    wrap.id = 'btnEntregarWrap';
-                    wrap.style.cssText = 'margin-top: 20px; text-align: right;';
-                    wrap.innerHTML = `
-                <button type="button" class="btn-entregar" id="btnEntregar" onclick="marcarEntregada()">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    Marcar sesión como entregada
-                </button>
-            `;
-                    const card = document.querySelector('.pendientes-card');
-                    if (card) {
-                        card.appendChild(wrap);
-                        wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                } else {
-                    btnEntregar.closest('div').style.display = 'block';
-                    btnEntregar.disabled = false;
-                    btnEntregar.closest('div').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                @endif
             }
         </script>
     @endpush

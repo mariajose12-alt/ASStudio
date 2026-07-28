@@ -29,7 +29,7 @@
 {{-- Si no: enlace normal al detalle --}}
 @if($esSugerencia)
     <div class="reserva-card reserva-card--alerta"
-         onclick="abrirModalSugerencia({{ $reserva->id }}, @js($reserva->motivo_rechazo ?? ''))"
+         onclick="abrirModalSugerencia({{ $reserva->id }}, @js($reserva->motivo_rechazo ?? ''), {{ $reserva->fotografo_id ?? 'null' }})"
          style="cursor:pointer;">
         @else
             <a href="{{ route('cliente.reservas.show', $reserva->id) }}" class="reserva-card">

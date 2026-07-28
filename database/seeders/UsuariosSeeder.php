@@ -27,7 +27,7 @@ class UsuariosSeeder extends Seeder
 
         $usuarioAdmin = Usuario::create([
             'persona_id' => $personaAdmin->id,
-            'email' => 'admin@asstudio.com',
+            'email' => 'astudiophotographyy@gmail.com',
             'contrasena' => Hash::make('password'),
             'estado' => 'ACTIVO',
         ]);
@@ -55,7 +55,7 @@ class UsuariosSeeder extends Seeder
 
         $usuarioFotografo = Usuario::create([
             'persona_id' => $personaFotografo->id,
-            'email'      => 'fotografo@asstudio.com',
+            'email'      => 'felipesanchezfs26@gmail.com',
             'contrasena' => Hash::make('password'),
             'estado'     => 'ACTIVO',
         ]);
@@ -73,12 +73,12 @@ class UsuariosSeeder extends Seeder
         $personaCliente = Persona::create([
             'nombre' => 'María',
             'apellido' => 'Cliente',
-            'telefono' => '5551112222',
+            'telefono' => '8293338910',
         ]);
 
         $usuarioCliente = Usuario::create([
             'persona_id' => $personaCliente->id,
-            'email' => 'cliente@asstudio.com',
+            'email' => 'maria12josecruz07@gmail.com',
             'contrasena' => Hash::make('password'),
             'estado' => 'ACTIVO',
         ]);

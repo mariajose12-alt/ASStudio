@@ -162,6 +162,17 @@
                         <input type="hidden" name="duracion_horas_estandar" value="2">
                     </div>
 
+                    <div class="rf-motivo-wrap" id="campoFecha" style="display: none; flex-direction: column; gap: .75rem;">
+                        <label class="rf-motivo-lbl">Nueva fecha y hora propuesta *</label>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+                        <input type="text" id="fecha-picker-fot" name="nueva_fecha"
+                               class="rf-motivo-ta" style="cursor:pointer;"
+                               placeholder="Selecciona una fecha" readonly autocomplete="off">
+                        <select id="hora-select-fot" name="nueva_hora" class="rf-motivo-ta">
+                            <option value="">Primero selecciona una fecha</option>
+                        </select>
+                    </div>
+
                     <div id="contenedorEnviar" style="display: none; padding: 0 20px 20px;">
                         <button type="submit" class="rf-btn-submit">
                             <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -212,12 +223,70 @@
                 const needsDuracion = accion === 'APROBADA' || accion === 'MODIFICACION_PROPUESTA';
                 document.getElementById('campoDuracion').style.display = needsDuracion ? 'flex' : 'none';
 
+                const needsFecha = accion === 'MODIFICACION_PROPUESTA';
+                document.getElementById('campoFecha').style.display = needsFecha ? 'flex' : 'none';
+                if (needsFecha) inicializarPickerFotografo();
+
                 document.getElementById('contenedorEnviar').style.display = 'block';
             });
         });
 
         function toggleDuracionCustomShow(show) {
             document.getElementById('duracionCustomShow').style.display = show ? 'block' : 'none';
+        }
+
+        let pickerFotInicializado = false;
+        let horasPorFechaFot = {};
+
+        function inicializarPickerFotografo() {
+            if (pickerFotInicializado) return;
+            pickerFotInicializado = true;
+
+            const fotografoId = {{ auth()->user()->empleado->fotografo->id }};
+            const reservaId   = {{ $reserva->id }};
+
+            const script1 = document.createElement('script');
+            script1.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
+            script1.onload = () => {
+                fetch(`/disponibilidad/fotografo/${fotografoId}?excluir_reserva=${reservaId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        horasPorFechaFot = data.horasPorFecha;
+
+                        flatpickr('#fecha-picker-fot', {
+                            dateFormat: 'Y-m-d',
+                            minDate:    new Date(new Date().setHours(0, 0, 0, 0) + 86400000),
+                            enable:     data.habilitadas,
+                            disableMobile: true,
+                            onChange(_, dateStr) {
+                                actualizarHorasFot(dateStr);
+                            },
+                        });
+                    });
+            };
+            document.head.appendChild(script1);
+        }
+
+        function actualizarHorasFot(fecha) {
+            const select = document.getElementById('hora-select-fot');
+            const horas  = horasPorFechaFot[fecha] ?? [];
+
+            select.innerHTML = '';
+
+            if (horas.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.text  = 'No hay horas disponibles ese día';
+                select.appendChild(opt);
+                return;
+            }
+
+            horas.forEach(hora => {
+                const opt = document.createElement('option');
+                opt.value = hora;
+                opt.text  = hora;
+                select.appendChild(opt);
+            });
         }
     </script>
 @endpush

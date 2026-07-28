@@ -118,12 +118,17 @@ class ReservaController extends Controller
     public function guardarPaso3(Request $request)
     {
         $request->validate([
-            'nombre'      => 'required|string|max:100',
-            'correo'      => 'required|email|max:150',
             'telefono'    => 'nullable|string|max:20',
         ]);
 
-        session(['reserva.paso3' => $request->only(['nombre', 'correo', 'telefono'])]);
+        $usuario = Auth::user();
+        $usuario->loadMissing('persona');
+
+        session(['reserva.paso3' => [
+            'nombre'   => trim($usuario->persona->nombre . ' ' . $usuario->persona->apellido),
+            'correo'   => $usuario->email,
+            'telefono' => $request->telefono,
+        ]]);
 
         return redirect()->route('cliente.reservas.paso4');
     }
@@ -163,17 +168,8 @@ class ReservaController extends Controller
         }
 
         // Actualizar datos del usuario SOLO al confirmar
-        if (!empty($paso3)) {
-            $usuario = Auth::user();
-            $persona = $usuario->persona;
-
-            $partes   = explode(' ', trim($paso3['nombre']), 2);
-            $persona->update([
-                'nombre'   => $partes[0],
-                'apellido' => $partes[1] ?? $persona->apellido,
-                'telefono' => !empty($paso3['telefono']) ? $paso3['telefono'] : $persona->telefono,
-            ]);
-            $usuario->update(['email' => $paso3['correo']]);
+        if (!empty($paso3['telefono'])) {
+            Auth::user()->persona->update(['telefono' => $paso3['telefono']]);
         }
 
         try {
@@ -193,7 +189,7 @@ class ReservaController extends Controller
 
         } catch (\Throwable $e) {
             report($e);
-            return back()->with('error', $e->getMessage()); // ← muestra el error real
+            return back()->with('error', 'Ocurrió un error al procesar tu reserva. Intenta de nuevo.');
         }
     }
 

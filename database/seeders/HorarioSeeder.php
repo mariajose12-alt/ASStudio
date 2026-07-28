@@ -20,7 +20,7 @@ class HorarioSeeder extends Seeder
      */
     public function run(): void
     {
-        $fotografo = Fotografo::firstOrFail();
+        $fotografo = Fotografo::latest()->first();
 
         $horarios = [
             ['dia_semana' => 1, 'hora_inicio' => '11:00', 'hora_fin' => '22:00'], // Lunes

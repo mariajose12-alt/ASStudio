@@ -1,4 +1,4 @@
-<div class="sesion-card">
+<div class="sesion-card {{ $sesion->estado === 'EN_EDICION' && $sesion->todasFotosEditadas() ? 'lista-entregar' : '' }}">
     <div class="sesion-card-header">
         <div>
             <h3 class="sesion-tipo">
@@ -7,6 +7,14 @@
                 {{ $sesion->reserva->cliente->usuario->persona->nombre ?? '' }}
                 {{ $sesion->reserva->cliente->usuario->persona->apellido ?? '' }}
             </h3>
+            @if($sesion->estado === 'EN_EDICION' && $sesion->todasFotosEditadas())
+                <span class="lista-entregar-badge">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Lista para entregar
+                </span>
+            @endif
         </div>
         <span class="badge-estado {{ strtolower($sesion->estado) }}">
             {{ str_replace('_', ' ', $sesion->estado) }}
@@ -78,6 +86,21 @@
                         <span class="btn-seleccion-badge">{{ $seleccionadas->count() }}</span>
                     </button>
                 @endif
+            @endif
+
+            {{-- Marcar como entregada — directo desde el card, sin entrar a la sesión --}}
+            @if($sesion->estado === 'EN_EDICION' && $sesion->esPrincipalDe($fotografo) && $sesion->todasFotosEditadas())
+                <form method="POST" action="{{ route('fotografo.fotografias.entregar', $sesion->id) }}"
+                      onsubmit="return confirm('¿Confirmas que ya terminaste de editar todas las fotos y quieres entregar la sesión al cliente?');">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="btn-entregar">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Marcar como entregada
+                    </button>
+                </form>
             @endif
 
             {{-- Subir fotos solo si está EN_PROCESO o EN_EDICION --}}

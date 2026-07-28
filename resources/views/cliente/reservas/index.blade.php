@@ -88,6 +88,17 @@
                             <label style="font-size:12px; font-weight:600;">Nueva descripción</label>
                             <textarea name="descripcion" rows="3" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:13px;" placeholder="Describe los cambios que quieres..."></textarea>
                         </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:12px; font-weight:600;">¿También quieres proponer otra fecha? (opcional)</label>
+                            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+                            <input type="text" id="modal-fecha-picker" name="nueva_fecha"
+                                   style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:13px; cursor:pointer;"
+                                   placeholder="Selecciona una fecha (opcional)" readonly autocomplete="off">
+                            <select id="modal-hora-select" name="nueva_hora"
+                                    style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:13px; margin-top:6px;">
+                                <option value="">Sin cambio de hora</option>
+                            </select>
+                        </div>
                     </div>
                     <button type="button" onclick="toggleEditar()" class="btn btn-outline" style="width:100%;" id="btn-editar">
                         ✎ Editar y reenviar
@@ -126,8 +137,17 @@
             });
         });
 
-        function abrirModalSugerencia(reservaId, motivo) {
+        let modalReservaActual   = null;
+        let modalFotografoActual = null;
+        let modalPickerListo     = false;
+        let modalHorasPorFecha   = {};
+
+        function abrirModalSugerencia(reservaId, motivo, fotografoId) {
             const base = '/cliente/reservas/' + reservaId + '/responder-sugerencia';
+
+            modalReservaActual   = reservaId;
+            modalFotografoActual = fotografoId;
+            modalPickerListo     = false;
 
             document.getElementById('modal-motivo').textContent = motivo || 'Sin descripción.';
             document.getElementById('form-aceptar').action  = base;
@@ -150,6 +170,39 @@
             document.getElementById('campos-editar').style.display = 'block';
             document.getElementById('btn-confirmar-editar').style.display = 'block';
             document.getElementById('btn-editar').style.display = 'none';
+
+            if (!modalPickerListo && modalFotografoActual) {
+                modalPickerListo = true;
+
+                const script1 = document.createElement('script');
+                script1.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
+                script1.onload = () => {
+                    fetch(`/disponibilidad/fotografo/${modalFotografoActual}?excluir_reserva=${modalReservaActual}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            modalHorasPorFecha = data.horasPorFecha;
+
+                            flatpickr('#modal-fecha-picker', {
+                                dateFormat: 'Y-m-d',
+                                minDate:    new Date(new Date().setHours(0, 0, 0, 0) + 86400000),
+                                enable:     data.habilitadas,
+                                disableMobile: true,
+                                onChange(_, dateStr) {
+                                    const select = document.getElementById('modal-hora-select');
+                                    const horas  = modalHorasPorFecha[dateStr] ?? [];
+                                    select.innerHTML = '<option value="">Sin cambio de hora</option>';
+                                    horas.forEach(hora => {
+                                        const opt = document.createElement('option');
+                                        opt.value = hora;
+                                        opt.text  = hora;
+                                        select.appendChild(opt);
+                                    });
+                                },
+                            });
+                        });
+                };
+                document.head.appendChild(script1);
+            }
         }
 
         // Cerrar al click fuera del modal

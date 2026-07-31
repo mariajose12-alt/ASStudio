@@ -102,24 +102,32 @@ body {
 
 /* Botón de navegación (volver / ver todas) */
 .gal-btn-nav {
-    display: inline-block;
-    padding: 7px 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
     background: var(--white);
+    border: 1.5px solid var(--border);
     border-radius: 8px;
     font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 600;
     color: var(--navy);
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
+.gal-btn-nav svg { flex-shrink: 0; }
 .gal-btn-nav:hover,
 .gal-btn-nav--active {
     background: var(--orange-pale);
     border-color: rgba(200, 96, 21, 0.3);
     color: var(--orange-dark);
+}
+@media (max-width: 480px) {
+    .gal-btn-nav span { display: none; }
+    .gal-btn-nav { padding: 8px; }
 }
 
 /* ── BARRA DE PESTAÑAS ── */
@@ -133,9 +141,41 @@ body {
 .gal-tabnav__inner {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.gal-tabnav__tabs {
+    display: flex;
     align-items: flex-end;
 }
 
+.gal-tabnav__actions {
+    display: flex;
+    align-items: center;
+    padding-bottom: 8px;
+    flex-shrink: 0;
+}
+
+/* Botón de acción compacto en la fila de tabs (ej. descargar todas) */
+.gal-tab-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.15s;
+    padding-top: 8px;
+}
+.gal-tab-action:hover    { color: var(--orange-dark); }
+.gal-tab-action:disabled { opacity: 0.45; cursor: not-allowed; }
 .gal-tab {
     display: inline-flex;
     align-items: center;
@@ -327,34 +367,7 @@ body {
 /* ─────────────────────────────────────────────
    GALERÍA FINAL (editadas / originales)
    ───────────────────────────────────────────── */
-
-/* ── Cabecera con botón ZIP ── */
-.gf-header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding-top: 20px;
-    margin-bottom: 18px;
-}
-
-.gf-btn-zip {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 9px 18px;
-    background: var(--navy);
-    color: #fff;
-    border: none;
-    border-radius: 9px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: opacity 0.15s;
-}
-.gf-btn-zip:hover    { opacity: 0.85; }
-.gf-btn-zip:disabled { opacity: 0.45; cursor: not-allowed; }
+.gf-panel { padding-top: 20px; }
 
 /* ── Masonry de fotos ── */
 .gf-masonry {

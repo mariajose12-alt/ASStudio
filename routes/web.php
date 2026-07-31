@@ -56,9 +56,10 @@ Route::get('/api/paquetes/{catalogo}', function ($catalogoId) {
         ->where('activo', true)
         ->values()
         ->map(fn($p) => [
-            'id'          => $p->id,
-            'nombre'      => $p->nombre,
-            'precio_base' => $p->precio_base,
+            'id'                        => $p->id,
+            'nombre'                    => $p->nombre,
+            'precio_base'               => $p->precio_base,
+            'cantidad_fotos_incluidas'  => $p->cantidad_fotos_incluidas,
         ]);
 });
 

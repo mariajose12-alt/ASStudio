@@ -965,6 +965,7 @@
                 const totalMB = selectedFiles.reduce((acc, f) => acc + f.size, 0) / 1024 / 1024;
                 document.getElementById('statArchivos').textContent = selectedFiles.length;
                 document.getElementById('statTamano').textContent   = totalMB.toFixed(1) + ' MB';
+                document.getElementById('statEstado').textContent   = estado === 'EDITADA' ? 'Editada' : 'Original';
 
                 actualizarPendientesEdicionUI();
 

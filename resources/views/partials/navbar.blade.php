@@ -67,6 +67,10 @@
         @if(!empty($showMiCuenta))
             <a href="{{ $dashboardRoute }}" onclick="closeMobileMenu()">Mi cuenta</a>
         @endif
+        <form method="POST" action="{{ route('logout') }}" class="mobile-logout-form">
+            @csrf
+            <button type="submit" class="mobile-logout-btn">Cerrar sesión</button>
+        </form>
     @else
         <a href="{{ route('login') }}"    onclick="closeMobileMenu()">Iniciar sesión</a>
         <a href="{{ route('register') }}" onclick="closeMobileMenu()">Registrarse</a>

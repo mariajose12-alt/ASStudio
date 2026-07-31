@@ -50,6 +50,10 @@ class EmpleadoService
             $this->asignarHorarioPorDefecto($fotografo);
         }
 
+        if ($dto->rol === 'ADMINISTRADOR') {
+            \App\Models\Administrador::create(['empleado_id' => $empleado->id]);
+        }
+
         // 5. Generar token y enviar correo de activación
         $tokenCrudo = \App\Models\ActivacionCuenta::generarPara($usuario);
         \Illuminate\Support\Facades\Mail::to($usuario->email)->send(
@@ -97,6 +101,10 @@ class EmpleadoService
             // horarios todavía), le asigna el horario por defecto sin pisar
             // uno que ya existiera.
             $this->asignarHorarioPorDefecto($fotografo);
+        }
+
+        if ($dto->rol === 'ADMINISTRADOR') {
+            \App\Models\Administrador::firstOrCreate(['empleado_id' => $empleado->id]);
         }
     }
 

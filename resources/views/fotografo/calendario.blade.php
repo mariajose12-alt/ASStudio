@@ -135,20 +135,6 @@
                         </div>
                         <span class="cal-stat-row__count" id="count-pendientes">—</span>
                     </div>
-                    <div class="cal-stat-row">
-                        <div class="cal-stat-row__left">
-                            <span class="cal-stat-row__dot" style="background:#9ca3af;"></span>
-                            <span class="cal-stat-row__label">Completadas</span>
-                        </div>
-                        <span class="cal-stat-row__count" id="count-completadas">—</span>
-                    </div>
-                    <div class="cal-stat-row">
-                        <div class="cal-stat-row__left">
-                            <span class="cal-stat-row__dot" style="background:#dc2626;"></span>
-                            <span class="cal-stat-row__label">Canceladas</span>
-                        </div>
-                        <span class="cal-stat-row__count" id="count-canceladas">—</span>
-                    </div>
                 </div>
             </div>
 
@@ -226,6 +212,11 @@
             let fechaActual = new Date();
             fechaActual.setDate(1);
 
+            const ESTADO_MAP = {
+                pendiente: { bucket: 'pendiente',  color: { bg: '#f59e0b', text: '#fff' }, badgeClass: 'estado-pendiente',  label: 'Pendiente'  },
+                aprobada:  { bucket: 'confirmada', color: { bg: '#059669', text: '#fff' }, badgeClass: 'estado-confirmada', label: 'Confirmada' },
+            };
+
             const ESTADO_COLORS = {
                 confirmada: { bg: '#059669', text: '#fff' },
                 pendiente:  { bg: '#f59e0b', text: '#fff' },
@@ -296,15 +287,14 @@
             });
 
             function actualizarResumen(eventosDelMes) {
-                const counts = { confirmada: 0, pendiente: 0, completada: 0, cancelada: 0 };
+                const counts = { confirmada: 0, pendiente: 0 };
                 eventosDelMes.forEach(ev => {
-                    const key = (ev.extendedProps?.estado || '').toLowerCase();
-                    if (counts.hasOwnProperty(key)) counts[key]++;
+                    const key    = (ev.extendedProps?.estado || '').toLowerCase();
+                    const bucket = ESTADO_MAP[key]?.bucket;
+                    if (bucket) counts[bucket]++;
                 });
                 document.getElementById('count-confirmadas').textContent = counts.confirmada;
                 document.getElementById('count-pendientes').textContent  = counts.pendiente;
-                document.getElementById('count-completadas').textContent = counts.completada;
-                document.getElementById('count-canceladas').textContent  = counts.cancelada;
             }
 
             function fechaISO(d) {

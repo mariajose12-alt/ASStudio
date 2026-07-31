@@ -274,6 +274,23 @@ body {
 .navbar-mobile-menu a:last-child { border-bottom: none; }
 .navbar-mobile-menu a:hover { color: var(--sage-lt); }
 
+/* Botón de logout dentro del drawer móvil, mismo look que los links */
+.mobile-logout-form { margin: 0; }
+.mobile-logout-btn {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 1rem 0;
+    font-family: var(--font-sans);
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #ff8a70;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.mobile-logout-btn:hover { color: #ff6347; }
 /* ════════════════════════════
    HERO
 ════════════════════════════ */

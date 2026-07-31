@@ -14,12 +14,14 @@
 
         const applyTransform = () => {
             img.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
+            img.dataset.zoomScale = String(scale);
         };
 
         const reset = () => {
             scale = 1; translateX = 0; translateY = 0;
             img.style.transform = 'scale(1) translate(0, 0)';
             img.style.cursor = 'zoom-in';
+            img.dataset.zoomScale = '1';
         };
 
         img.addEventListener('wheel', (e) => {

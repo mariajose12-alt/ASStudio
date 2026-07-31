@@ -128,7 +128,7 @@
                     paquetes.forEach(p => {
                         const opt = document.createElement('option');
                         opt.value = p.id;
-                        opt.text  = `${p.nombre} - $${p.precio_base}`;
+                        opt.text  = `${p.nombre} - Fotos ${p.cantidad_fotos_incluidas} - RD$ ${Number(p.precio_base).toLocaleString('es-DO')}`;
                         // Selecciona si coincide con old() o con sesión
                         if (String(p.id) === String(seleccionar)) opt.selected = true;
                         paqueteSelect.appendChild(opt);

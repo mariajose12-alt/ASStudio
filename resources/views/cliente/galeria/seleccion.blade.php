@@ -5,7 +5,10 @@
 @section('topbar_subtitle', $sesion->reserva->catalogo->nombre)
 
 @section('topbar_action')
-    <a href="{{ route('cliente.galeria') }}" class="gal-btn-nav" id="btnVolver">⁝</a>
+    <a href="{{ route('cliente.galeria') }}" class="gal-btn-nav" id="btnVolver">
+        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        <span>Volver</span>
+    </a>
 @endsection
 
 @push('styles')
@@ -388,11 +391,11 @@
                 btnVerTodas           = document.createElement('button');
                 btnVerTodas.id        = 'btnVerTodas';
                 btnVerTodas.className = 'gal-btn-nav';
-                btnVerTodas.textContent = '⁝';
+                btnVerTodas.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg><span>Ver todas</span>';
                 btnVerTodas.onclick   = salirModoFavoritos;
                 btnVolver.parentNode.insertBefore(btnVerTodas, btnVolver);
             }
-            btnVerTodas.style.display = 'inline-block';
+            btnVerTodas.style.display = 'inline-flex';
             actualizarBanner();
         }
 
@@ -404,7 +407,7 @@
             if (seccionLabel) seccionLabel.textContent = 'Todas las fotos · ' + totalFotos;
 
             document.getElementById('btnVerTodas').style.display = 'none';
-            document.getElementById('btnVolver').style.display   = 'inline-block';
+            document.getElementById('btnVolver').style.display   = 'inline-flex';
             actualizarBanner();
         }
 
@@ -501,6 +504,37 @@
             if (e.key === 'ArrowLeft')  lbNavegar(-1);
             if (e.key === 'Escape')     lbCerrar({ target: document.getElementById('lightbox') });
         });
+
+        /* ── Swipe (mobile) ── */
+        (function () {
+            const wrap = document.querySelector('.lb-img-wrap');
+            if (!wrap) return;
+
+            let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+
+            wrap.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1) return;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+            }, { passive: true });
+
+            wrap.addEventListener('touchend', e => {
+                // Si la foto está ampliada (pinch-zoom), el gesto es para paneo, no navegación
+                const img = document.getElementById('lbImg');
+                const zoomScale = parseFloat(img.dataset.zoomScale || '1');
+                if (zoomScale > 1.05) return;
+
+                const touch = e.changedTouches[0];
+                const dx = touch.clientX - touchStartX;
+                const dy = touch.clientY - touchStartY;
+                const dt = Date.now() - touchStartTime;
+
+                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 600) {
+                    lbNavegar(dx < 0 ? 1 : -1);
+                }
+            }, { passive: true });
+        })();
 
         lbInicializar();
         mostrarModalBienvenidaSiPrimera();

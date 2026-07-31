@@ -9,7 +9,10 @@
 @section('topbar_subtitle', $sesion->reserva->paquete->nombre)
 
 @section('topbar_action')
-    <a href="{{ route('cliente.galeria') }}" class="gal-btn-nav">⁝</a>
+    <a href="{{ route('cliente.galeria') }}" class="gal-btn-nav">
+        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        <span>Volver</span>
+    </a>
 @endsection
 
 @php
@@ -36,17 +39,15 @@
     @endif
 @endsection
 
-@section('content')
+@section('tabs_action')
+    <button class="gal-tab-action" id="btnZip" onclick="abrirModalZip()" title="Descargar todas" aria-label="Descargar todas">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+    </button>
+@endsection
 
-    {{-- Cabecera con descarga masiva --}}
-    <div class="gf-header">
-        <button class="gf-btn-zip" id="btnZip" onclick="abrirModalZip()">
-            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-            </svg>
-            <span>Descargar todas</span>
-        </button>
-    </div>
+@section('content')
 
     {{-- Panel: fotos editadas --}}
     @if($hayEditadas)
@@ -424,5 +425,31 @@
             if (e.key === 'ArrowLeft')  lbNavegar(-1);
             if (e.key === 'Escape') { lb.classList.remove('open'); document.body.style.overflow = ''; }
         });
+
+        /* ── Swipe (mobile) ── */
+        (function () {
+            const wrap = document.querySelector('.lb-img-wrap');
+            if (!wrap) return;
+
+            let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+
+            wrap.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1) return;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+            }, { passive: true });
+
+            wrap.addEventListener('touchend', e => {
+                const touch = e.changedTouches[0];
+                const dx = touch.clientX - touchStartX;
+                const dy = touch.clientY - touchStartY;
+                const dt = Date.now() - touchStartTime;
+
+                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 600) {
+                    lbNavegar(dx < 0 ? 1 : -1);
+                }
+            }, { passive: true });
+        })();
     </script>
 @endpush

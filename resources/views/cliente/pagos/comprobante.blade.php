@@ -171,6 +171,8 @@
                                 <img id="previsualizacion" class="cp-preview" style="display:none;" alt="Vista previa del comprobante">
                             </label>
 
+                            <span id="dropzoneError" class="cp-dropzone__error" style="display:none;"></span>
+
                             <button type="submit" class="cp-btn-enviar" id="btnEnviar" disabled>
                                 Enviar comprobante
                             </button>
@@ -447,6 +449,16 @@
         .cp-alerta strong { display: block; font-weight: 700; margin-bottom: 2px; }
         .cp-alerta p { margin: 0; }
 
+        .cp-dropzone__error {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #c0392b;
+        }
+
         /* Pasos */
         .cp-pasos { display: flex; flex-direction: column; }
 
@@ -631,15 +643,41 @@
         }
 
         // Dropzone
-        const input    = document.getElementById('comprobante');
-        const dropzone = document.getElementById('dropzone');
+        const input     = document.getElementById('comprobante');
+        const dropzone  = document.getElementById('dropzone');
         const contenido = document.getElementById('dropzoneContenido');
-        const preview  = document.getElementById('previsualizacion');
+        const preview   = document.getElementById('previsualizacion');
         const btnEnviar = document.getElementById('btnEnviar');
+        const errorEl   = document.getElementById('dropzoneError');
+
+        const MAX_BYTES = 8 * 1024 * 1024; // 8MB, igual que la validación del servidor
+
+        function mostrarErrorArchivo(mensaje) {
+            errorEl.textContent   = mensaje;
+            errorEl.style.display = 'flex';
+            dropzone.classList.add('cp-dropzone--error');
+            btnEnviar.disabled    = true;
+            preview.style.display = 'none';
+            contenido.style.display = 'flex';
+            input.value = '';
+        }
+
+        function limpiarErrorArchivo() {
+            errorEl.style.display = 'none';
+            dropzone.classList.remove('cp-dropzone--error');
+        }
 
         input.addEventListener('change', () => {
             const archivo = input.files[0];
             if (!archivo) return;
+
+            if (archivo.size > MAX_BYTES) {
+                const pesoMB = (archivo.size / (1024 * 1024)).toFixed(1);
+                mostrarErrorArchivo(`Esa imagen pesa ${pesoMB}MB y el máximo permitido es 8MB. Prueba con una captura de pantalla o comprime la foto.`);
+                return;
+            }
+
+            limpiarErrorArchivo();
             btnEnviar.disabled = false;
             const lector = new FileReader();
             lector.onload = e => {

@@ -488,6 +488,42 @@ tr:hover td { background: var(--blue-pale); }
 .form-group { display: flex; flex-direction: column; gap: 6px; margin-top: 15px;}
 .form-group.full { grid-column: 1 / -1; }
 
+/* Selección de paquetes (catálogos) */
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+}
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+.checkbox-item:hover {
+    border-color: var(--accent);
+    background: var(--snow);
+}
+.checkbox-item input[type="checkbox"] {
+    order: 2;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+.checkbox-item > div {
+    order: 1;
+}
+@media (max-width: 600px) {
+    .checkbox-grid { grid-template-columns: 1fr; }
+}
+
 label {
     font-size: 12px;
     color: var(--muted);
@@ -1560,6 +1596,49 @@ textarea { resize: vertical; min-height: 100px; }
     background: var(--white);
     box-shadow: 0 0 0 3px rgba(232,119,34,0.12);
 }
+
+/* Mostrar/ocultar contraseña */
+.password-wrap {
+    position: relative;
+}
+.password-wrap input[type="password"],
+.password-wrap input[type="text"] {
+    padding-right: 42px;
+}
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--muted);
+    cursor: pointer;
+}
+.toggle-password:hover {
+    color: var(--ink);
+}
+.toggle-password:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(232,119,34,0.12);
+    border-radius: 6px;
+}
+.toggle-password .icon-eye-off {
+    display: none;
+}
+.toggle-password.is-visible .icon-eye {
+    display: none;
+}
+.toggle-password.is-visible .icon-eye-off {
+    display: block;
+}
+
 
 /* Remember */
 .remember-row {

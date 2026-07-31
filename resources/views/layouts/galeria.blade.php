@@ -36,7 +36,14 @@
 @hasSection('tabs')
     <nav class="gal-tabnav">
         <div class="gal-tabnav__inner">
-            @yield('tabs')
+            <div class="gal-tabnav__tabs">
+                @yield('tabs')
+            </div>
+            @hasSection('tabs_action')
+                <div class="gal-tabnav__actions">
+                    @yield('tabs_action')
+                </div>
+            @endif
         </div>
     </nav>
 @endif

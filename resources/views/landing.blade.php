@@ -39,7 +39,7 @@
     <section class="section-bienvenida">
         <div class="container">
             <div class="bienvenida-box reveal">
-                <p class="bienvenida-eyebrow">Bienvenidos a Abraham Sánchez</p>
+                <p class="bienvenida-eyebrow">Bienvenidos</p>
                 <h2 class="bienvenida-title">
                     Capturamos momentos que merecen quedarse para siempre
                 </h2>

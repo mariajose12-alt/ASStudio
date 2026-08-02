@@ -15,6 +15,7 @@ use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Illuminate\Support\Str;
 use App\Mail\VerificacionEmail;
+use App\Mail\BienvenidaEmail;
 use Illuminate\Support\Facades\Mail;
 
 class RegisterController extends Controller
@@ -94,6 +95,8 @@ class RegisterController extends Controller
         }
 
         $usuario->marcarVerificado();
+
+        Mail::to($usuario->email)->send(new BienvenidaEmail($usuario));
 
         Auth::login($usuario);
 

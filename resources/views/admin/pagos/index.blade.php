@@ -165,10 +165,23 @@
                               class="reserva-panel-form">
                             @csrf
                             <div class="form-group">
-                                <label class="panel-label">Indica el motivo *</label>
-                                <textarea name="motivo" rows="4" class="panel-textarea"
+                                <label class="panel-label" for="motivo-{{ $pago->id }}">Indica el motivo *</label>
+                                <textarea name="motivo" id="motivo-{{ $pago->id }}" rows="4" class="panel-textarea"
                                           placeholder="Explica por qué se rechaza este comprobante..."
                                           required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <div class="panel-chips">
+                                    @foreach ([
+                                        'El monto transferido no coincide con el esperado.',
+                                        'La imagen del comprobante está borrosa o ilegible.',
+                                        'El comprobante no corresponde a esta reserva.',
+                                        'La fecha de la transferencia no es válida.',
+                                        'Este comprobante ya fue utilizado anteriormente.',
+                                    ] as $preset)
+                                        <button type="button" class="panel-chip" onclick="usarMotivoPreset(this, 'motivo-{{ $pago->id }}')">{{ $preset }}</button>
+                                    @endforeach
+                                </div>
                             </div>
                             <div class="panel-actions">
                                 <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
@@ -214,6 +227,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             iniciarLightboxConZoom('.glightbox');
         });
+
+        function usarMotivoPreset(btn, textareaId) {
+            const textarea = document.getElementById(textareaId);
+            textarea.value = btn.textContent.trim();
+            btn.closest('.panel-chips').querySelectorAll('.panel-chip').forEach(c => c.classList.remove('panel-chip--activo'));
+            btn.classList.add('panel-chip--activo');
+            textarea.focus();
+        }
 
         function toggleRechazo(id) {
             const panel = document.getElementById('rechazo-' + id);

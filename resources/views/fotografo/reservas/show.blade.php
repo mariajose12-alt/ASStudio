@@ -130,6 +130,9 @@
                     </div>
 
                     <div class="rf-motivo-wrap" id="campoMotivo" style="display: none;">
+                        <label class="rf-motivo-lbl">Motivos frecuentes</label>
+                        <div class="rf-motivo-chips" id="motivoChips"></div>
+
                         <label class="rf-motivo-lbl" for="motivoTextarea">Motivo / observación *</label>
                         <textarea id="motivoTextarea"
                                   name="motivo"
@@ -202,6 +205,28 @@
             RECHAZADA:              'a-re',
         };
 
+        const presetsPorAccion = {
+            RECHAZADA: [
+                'No tengo disponibilidad en la fecha solicitada.',
+                'El lugar propuesto está fuera de mi zona de cobertura.',
+                'El tipo de sesión no coincide con mi especialidad.',
+                'Conflicto con otra reserva ya confirmada.',
+            ],
+            MODIFICACION_PROPUESTA: [
+                'No tengo disponibilidad a esa hora, propongo otro horario.',
+                'Se necesita más tiempo del solicitado para este tipo de sesión.',
+                'Propongo cambiar el lugar por uno más adecuado.',
+            ],
+        };
+
+        function usarMotivoPreset(btn) {
+            const ta = document.getElementById('motivoTextarea');
+            ta.value = btn.textContent.trim();
+            document.querySelectorAll('.rf-motivo-chip').forEach(c => c.classList.remove('rf-motivo-chip--activo'));
+            btn.classList.add('rf-motivo-chip--activo');
+            ta.focus();
+        }
+
         document.querySelectorAll('.rf-abtn').forEach(btn => {
             btn.addEventListener('click', function () {
                 const accion = this.dataset.accion;
@@ -219,6 +244,11 @@
 
                 const ta = motivoWrap.querySelector('textarea');
                 needsMotivo ? ta.setAttribute('required', 'required') : ta.removeAttribute('required');
+
+                const chipsWrap = document.getElementById('motivoChips');
+                chipsWrap.innerHTML = needsMotivo
+                    ? (presetsPorAccion[accion] || []).map(p => `<button type="button" class="rf-motivo-chip" onclick="usarMotivoPreset(this)">${p}</button>`).join('')
+                    : '';
 
                 const needsDuracion = accion === 'APROBADA' || accion === 'MODIFICACION_PROPUESTA';
                 document.getElementById('campoDuracion').style.display = needsDuracion ? 'flex' : 'none';

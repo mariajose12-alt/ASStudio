@@ -111,6 +111,19 @@
                 <div class="revisar-pago-rechazo-form" id="formRechazo">
                     <form method="POST" action="{{ route('admin.pagos.rechazar', $pago->id) }}">
                         @csrf
+                        <label class="revisar-pago-label">Motivos frecuentes</label>
+                        <div class="revisar-pago-chips">
+                            @foreach ([
+                                'El monto transferido no coincide con el esperado.',
+                                'La imagen del comprobante está borrosa o ilegible.',
+                                'El comprobante no corresponde a esta reserva.',
+                                'La fecha de la transferencia no es válida.',
+                                'Este comprobante ya fue utilizado anteriormente.',
+                            ] as $preset)
+                                <button type="button" class="revisar-pago-chip" onclick="usarMotivoPreset(this)">{{ $preset }}</button>
+                            @endforeach
+                        </div>
+
                         <label for="motivo" class="revisar-pago-label">Motivo del rechazo</label>
                         <textarea name="motivo" id="motivo" rows="3" required
                                   placeholder="Ej: el monto transferido no coincide con el esperado"
@@ -266,6 +279,31 @@
             color: #9a2a1c;
             margin-bottom: 8px;
         }
+        .revisar-pago-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .revisar-pago-chip {
+            background: #ffffff;
+            border: 1px solid rgba(217,48,37,0.3);
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #9a2a1c;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.15s, color 0.15s;
+        }
+        .revisar-pago-chip:hover,
+        .revisar-pago-chip.revisar-pago-chip--activo {
+            background: #c5341f;
+            border-color: #c5341f;
+            color: #ffffff;
+        }
+
         .revisar-pago-textarea {
             width: 100%;
             border: 1px solid rgba(217,48,37,0.3);
@@ -282,4 +320,13 @@
             color: #ffffff;
         }
     </style>
+
+    <script>
+        function usarMotivoPreset(btn) {
+            document.getElementById('motivo').value = btn.textContent.trim();
+            document.querySelectorAll('.revisar-pago-chip').forEach(c => c.classList.remove('revisar-pago-chip--activo'));
+            btn.classList.add('revisar-pago-chip--activo');
+            document.getElementById('motivo').focus();
+        }
+    </script>
 @endsection

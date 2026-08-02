@@ -35,8 +35,12 @@ class ProfileController extends Controller
     // Para actualizar la contraseña del usuario
     public function updatePassword(Request $request): RedirectResponse
     {
+        // Si el usuario todavía no tiene contraseña (se registró con Google),
+        // no le pedimos "contraseña actual" porque no existe ninguna.
+        $tieneContrasena = ! is_null($request->user()->contrasena);
+
         $validated = $request->validateWithBag('updatePassword', [
-            'current_password' => ['required', 'current_password'],
+            'current_password' => [$tieneContrasena ? 'required' : 'nullable', 'current_password'],
             'password'          => ['required', Password::defaults(), 'confirmed'],
         ]);
 

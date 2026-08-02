@@ -4808,6 +4808,29 @@ textarea { resize: vertical; min-height: 100px; }
     color: var(--navy);
 }
 
+.panel-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.panel-chip {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--navy);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.panel-chip:hover,
+.panel-chip.panel-chip--activo {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #fff;
+}
+
 .panel-textarea {
     width: 100%;
     padding: 10px;
@@ -5258,6 +5281,30 @@ textarea { resize: vertical; min-height: 100px; }
     font-size: 12px;
     font-weight: 600;
     color: var(--muted);
+}
+
+.rf-motivo-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+.rf-motivo-chip {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--navy);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.rf-motivo-chip:hover,
+.rf-motivo-chip.rf-motivo-chip--activo {
+    background: #E8A020;
+    border-color: #E8A020;
+    color: #fff;
 }
 
 .rf-motivo-ta,

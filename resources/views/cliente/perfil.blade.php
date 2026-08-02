@@ -127,8 +127,9 @@
     {{-- ══════════════════════════════════════════
          CAMBIAR CONTRASEÑA
     ══════════════════════════════════════════ --}}
+    @php $tieneContrasena = ! is_null(auth()->user()->contrasena); @endphp
     <div class="card" id="cambiar-password">
-        <div class="card-header"><h2>Cambiar contraseña</h2></div>
+        <div class="card-header"><h2>{{ $tieneContrasena ? 'Cambiar contraseña' : 'Establecer contraseña' }}</h2></div>
         <div class="card-body">
 
             @if (session('status') === 'password-updated')
@@ -146,21 +147,30 @@
                 </div>
             @endif
 
+            @if (! $tieneContrasena)
+                <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">
+                    Tu cuenta usa Google para iniciar sesión. Puedes establecer una contraseña
+                    para además poder entrar con tu correo, sin depender de Google.
+                </p>
+            @endif
+
             <form method="POST" action="{{ route('password.update') }}">
                 @csrf
                 @method('PUT')
 
-                <div class="form-group">
-                    <label for="current_password">Contraseña actual</label>
-                    <input type="password" id="current_password" name="current_password"
-                           autocomplete="current-password" required>
-                    @error('current_password', 'updatePassword')
-                    <span class="field-error">{{ $message }}</span>
-                    @enderror
-                </div>
+                @if ($tieneContrasena)
+                    <div class="form-group">
+                        <label for="current_password">Contraseña actual</label>
+                        <input type="password" id="current_password" name="current_password"
+                               autocomplete="current-password" required>
+                        @error('current_password', 'updatePassword')
+                        <span class="field-error">{{ $message }}</span>
+                        @enderror
+                    </div>
+                @endif
 
                 <div class="form-group">
-                    <label for="password">Nueva contraseña</label>
+                    <label for="password">{{ $tieneContrasena ? 'Nueva contraseña' : 'Contraseña' }}</label>
                     <input type="password" id="password" name="password"
                            autocomplete="new-password" required>
                     @error('password', 'updatePassword')
@@ -169,13 +179,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="password_confirmation">Confirmar nueva contraseña</label>
+                    <label for="password_confirmation">Confirmar {{ $tieneContrasena ? 'nueva ' : '' }}contraseña</label>
                     <input type="password" id="password_confirmation" name="password_confirmation"
                            autocomplete="new-password" required>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Actualizar contraseña</button>
+                    <button type="submit" class="btn btn-primary">
+                        {{ $tieneContrasena ? 'Actualizar contraseña' : 'Establecer contraseña' }}
+                    </button>
                 </div>
             </form>
         </div>

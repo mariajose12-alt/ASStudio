@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Cliente;
 use App\Models\Usuario;
 use App\Models\Persona;
+use App\Mail\BienvenidaEmail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController extends Controller
@@ -44,6 +46,8 @@ class GoogleController extends Controller
             $usuario->marcarVerificado();
 
             Cliente::create(['usuario_id' => $usuario->id]);
+
+            Mail::to($usuario->email)->send(new BienvenidaEmail($usuario));
 
             Auth::login($usuario);
             return redirect('/');

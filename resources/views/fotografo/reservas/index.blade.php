@@ -139,10 +139,22 @@
                             <input type="hidden" name="accion" value="MODIFICACION_PROPUESTA">
 
                             <div class="form-group">
-                                <label class="panel-label">Motivo de la modificación *</label>
-                                <textarea name="motivo" rows="4" class="panel-textarea"
+                                <label class="panel-label" for="motivo-propuesta-{{ $reserva->id }}">Motivo de la modificación *</label>
+                                <textarea name="motivo" id="motivo-propuesta-{{ $reserva->id }}" rows="4" class="panel-textarea"
                                           placeholder="Describe qué cambios propones en la descripción de la sesión..."
                                           required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="panel-chips">
+                                    @foreach ([
+                                        'No tengo disponibilidad a esa hora, propongo otro horario.',
+                                        'Se necesita más tiempo del solicitado para este tipo de sesión.',
+                                        'Propongo cambiar el lugar por uno más adecuado.',
+                                    ] as $preset)
+                                        <button type="button" class="panel-chip" onclick="usarMotivoPreset(this, 'motivo-propuesta-{{ $reserva->id }}')">{{ $preset }}</button>
+                                    @endforeach
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -204,10 +216,22 @@
                             @csrf
                             <input type="hidden" name="accion" value="RECHAZADA">
                             <div class="form-group">
-                                <label class="panel-label">Indica el motivo *</label>
-                                <textarea name="motivo" rows="4" class="panel-textarea"
+                                <label class="panel-label" for="motivo-rechazo-{{ $reserva->id }}">Indica el motivo *</label>
+                                <textarea name="motivo" id="motivo-rechazo-{{ $reserva->id }}" rows="4" class="panel-textarea"
                                           placeholder="Explica por qué no puedes aceptar esta reserva..."
                                           required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <div class="panel-chips">
+                                    @foreach ([
+                                        'No tengo disponibilidad en la fecha solicitada.',
+                                        'El lugar propuesto está fuera de mi zona de cobertura.',
+                                        'El tipo de sesión no coincide con mi especialidad.',
+                                        'Conflicto con otra reserva ya confirmada.',
+                                    ] as $preset)
+                                        <button type="button" class="panel-chip" onclick="usarMotivoPreset(this, 'motivo-rechazo-{{ $reserva->id }}')">{{ $preset }}</button>
+                                    @endforeach
+                                </div>
                             </div>
                             <div class="panel-actions">
                                 <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
@@ -259,6 +283,14 @@
 
 @push('scripts')
     <script>
+        function usarMotivoPreset(btn, textareaId) {
+            const textarea = document.getElementById(textareaId);
+            textarea.value = btn.textContent.trim();
+            btn.closest('.panel-chips').querySelectorAll('.panel-chip').forEach(c => c.classList.remove('panel-chip--activo'));
+            btn.classList.add('panel-chip--activo');
+            textarea.focus();
+        }
+
         function toggleAprobar(id) {
             const panel = document.getElementById('aprobar-' + id);
             const isHidden = panel.style.display === 'none' || panel.style.display === '';

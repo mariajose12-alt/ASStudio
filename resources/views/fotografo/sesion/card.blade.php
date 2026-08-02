@@ -69,7 +69,7 @@
                 </button>
             @endif
 
-            {{-- Ver selección del cliente (solo EN_EDICION y si hay fotos seleccionadas) --}}
+            {{-- Ver selección / exportar CSV (solo EN_EDICION y si hay fotos seleccionadas) --}}
             @if($sesion->estado === 'EN_EDICION')
                 @php $seleccionadas = $sesion->fotografias->where('seleccionada', true)->where('estado', 'PENDIENTE_EDICION'); @endphp
                 @if($seleccionadas->count() > 0)
@@ -79,12 +79,19 @@
                                 {{ Illuminate\Support\Js::from($sesion->reserva->cliente->usuario->persona->nombre . ' ' . $sesion->reserva->cliente->usuario->persona->apellido) }},
                                 {{ $seleccionadas->map(fn($f) => ['nombre' => $f->nombre_original ?? basename($f->url)])->values()->toJson() }}
                             )">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
                         Ver selección
                         <span class="btn-seleccion-badge">{{ $seleccionadas->count() }}</span>
                     </button>
+
+                    <a href="{{ route('fotografo.fotografias.seleccion.csv', $sesion->id) }}" class="btn-seleccion" style="text-decoration: none;">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Exportar selección
+                    </a>
                 @endif
             @endif
 

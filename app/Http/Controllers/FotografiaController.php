@@ -61,6 +61,54 @@ class FotografiaController extends Controller
         ));
     }
 
+    // Exporta la selección del cliente en CSV (formato compatible con
+    // catálogos de edición tipo Pic-Time: Nombre / Nota / Conjunto de fotos / Fecha de creación)
+    public function exportarSeleccionCsv(int $id)
+    {
+        $fotografo = auth()->user()->empleado->fotografo;
+
+        $sesion = Sesion::with(['reserva.cliente.usuario.persona', 'reserva.paquete', 'fotografias'])
+            ->findOrFail($id);
+
+        $this->authorize('gestionar', $sesion);
+
+        $cliente     = $sesion->reserva->cliente;
+        $nombreArchivo = 'seleccion-sesion-' . $sesion->id . '.csv';
+
+        $fotos = $sesion->fotografias
+            ->where('seleccionada', true)
+            ->sortBy('nombre_original');
+
+        return response()->streamDownload(function () use ($sesion, $cliente, $fotos) {
+            $out = fopen('php://output', 'w');
+
+            // BOM UTF-8, para que Excel no rompa las tildes/ñ al abrir el archivo
+            fwrite($out, "\xEF\xBB\xBF");
+
+            fputcsv($out, [
+                'Colección: ' . ($sesion->reserva->paquete->nombre ?? 'Sesión'),
+                'Favorito: Mis Favoritas',
+                'Correo electrónico ' . $cliente->usuario->email,
+                '',
+            ]);
+
+            fputcsv($out, ['Nombre', 'Nota', 'Conjunto de fotos', 'Fecha de creación']);
+
+            foreach ($fotos as $foto) {
+                fputcsv($out, [
+                    $foto->nombre_original ?? basename($foto->url),
+                    '',
+                    'Destacados',
+                    $foto->updated_at->format('d-m-y'),
+                ]);
+            }
+
+            fclose($out);
+        }, $nombreArchivo, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
     public function store(Request $request, int $sesionId)
     {
         $request->validate([

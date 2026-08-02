@@ -182,7 +182,7 @@ Route::middleware(['auth', 'rol:FOTOGRAFO'])
 
         // Fotografías
         Route::get('sesiones/{id}/fotografias/create',  [FotografiaController::class, 'create'])          ->name('fotografias.create');
-        Route::post('sesiones/{id}/fotografias',        [FotografiaController::class, 'store'])           ->name('fotografias.store');
+        Route::get('sesiones/{id}/seleccion/csv',        [FotografiaController::class, 'exportarSeleccionCsv']) ->name('fotografias.seleccion.csv');Route::post('sesiones/{id}/fotografias',        [FotografiaController::class, 'store'])           ->name('fotografias.store');
         Route::patch('sesiones/{id}/entregar',          [FotografiaController::class, 'marcarEntregada']) ->name('fotografias.entregar');
         //Route::post('sesiones/{id}/confirmar-subida',   [FotografiaController::class, 'confirmarSubida']) ->name('fotografias.confirmarSubida');
         Route::patch('sesiones/{id}/galeria-disponible', [FotografiaController::class, 'marcarGaleriaDisponible']) ->name('fotografias.galeria-disponible');

@@ -47,6 +47,16 @@ return [
         'sid' => env('TWILIO_ACCOUNT_SID'),
         'token' => env('TWILIO_AUTH_TOKEN'),
         'from' => env('TWILIO_FROM'),
+
+        'templates' => [
+            'reserva_aprobada_cliente'            => env('WA_TEMPLATE_RESERVA_APROBADA'),
+            'reserva_rechazada_cliente'            => env('WA_TEMPLATE_RESERVA_RECHAZADA'),
+            'reserva_modificada_cliente'           => env('WA_TEMPLATE_RESERVA_MODIFICADA'),
+            'recordatorio_sesion_cliente'          => env('WA_TEMPLATE_RECORDATORIO_SESION'),
+            'solicitud_estudio_aprobada_cliente'   => env('WA_TEMPLATE_SOLICITUD_ESTUDIO_APROBADA'),
+            'solicitud_estudio_rechazada_cliente'  => env('WA_TEMPLATE_SOLICITUD_ESTUDIO_RECHAZADA'),
+            'nueva_solicitud_estudio_socios'       => env('WA_TEMPLATE_NUEVA_SOLICITUD_ESTUDIO_SOCIOS'),
+        ]
     ],
 
     'tesseract' => [

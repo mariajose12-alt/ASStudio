@@ -101,9 +101,10 @@ class ReservaController extends Controller
         // Si ya tiene teléfono registrado, saltamos el paso automáticamente
         if (!empty($usuario->persona?->telefono)) {
             session(['reserva.paso3' => [
-                'nombre'   => trim($usuario->persona->nombre . ' ' . $usuario->persona->apellido),
-                'correo'   => $usuario->email,
-                'telefono' => $usuario->persona->telefono,
+                'nombre'          => trim($usuario->persona->nombre . ' ' . $usuario->persona->apellido),
+                'correo'          => $usuario->email,
+                'telefono'        => $usuario->persona->telefono,
+                'acepta_whatsapp' => (bool) $usuario->persona->acepta_whatsapp,
             ]]);
 
             return redirect()->route('cliente.reservas.paso4');
@@ -125,9 +126,10 @@ class ReservaController extends Controller
         $usuario->loadMissing('persona');
 
         session(['reserva.paso3' => [
-            'nombre'   => trim($usuario->persona->nombre . ' ' . $usuario->persona->apellido),
-            'correo'   => $usuario->email,
-            'telefono' => $request->telefono,
+            'nombre'          => trim($usuario->persona->nombre . ' ' . $usuario->persona->apellido),
+            'correo'          => $usuario->email,
+            'telefono'        => $request->telefono,
+            'acepta_whatsapp' => $request->boolean('acepta_whatsapp'),
         ]]);
 
         return redirect()->route('cliente.reservas.paso4');
@@ -169,7 +171,10 @@ class ReservaController extends Controller
 
         // Actualizar datos del usuario SOLO al confirmar
         if (!empty($paso3['telefono'])) {
-            Auth::user()->persona->update(['telefono' => $paso3['telefono']]);
+            Auth::user()->persona->update([
+                'telefono'        => $paso3['telefono'],
+                'acepta_whatsapp' => $paso3['acepta_whatsapp'] ?? false,
+            ]);
         }
 
         try {

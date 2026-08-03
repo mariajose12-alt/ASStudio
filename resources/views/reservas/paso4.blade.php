@@ -11,7 +11,11 @@
     {{-- Stepper --}}
     @include('reservas.partials.stepper', ['step' => 4, 'requiereTelefono' => $requiereTelefono])
 
-    <h5>Paso 4 de 4</h5>
+    @php
+        $totalPasos = $requiereTelefono ? 4 : 3;
+        $pasoVisual = $requiereTelefono ? 4 : 3;
+    @endphp
+    <h5>Paso {{ $pasoVisual }} de {{ $totalPasos }}</h5>
     <h4>Resumen de tu Reserva</h4>
 
     @if(session('error'))

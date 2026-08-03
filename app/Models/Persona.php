@@ -13,6 +13,7 @@ class Persona extends Model
         'nombre',
         'apellido',
         'telefono',
+        'acepta_whatsapp',
     ];
 
     public function usuario(): HasOne

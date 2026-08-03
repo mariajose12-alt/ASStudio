@@ -156,6 +156,21 @@ class Usuario extends Authenticatable
         return Attribute::get(fn () => !is_null($this->google_id));
     }
 
+    protected function nombre(): Attribute
+    {
+        return Attribute::get(fn () => $this->persona?->nombre);
+    }
+
+    protected function telefono(): Attribute
+    {
+        return Attribute::get(fn () => $this->persona?->telefono);
+    }
+
+    protected function aceptaWhatsapp(): Attribute
+    {
+        return Attribute::get(fn () => (bool) $this->persona?->acepta_whatsapp);
+    }
+
     public function esSocioEstudio(): bool
     {
         return $this->empleado?->rol === 'SOCIO_ESTUDIO';

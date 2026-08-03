@@ -23,13 +23,15 @@ class ReservaModificadaCliente extends Notification implements ShouldQueue
         return [WhatsAppChannel::class, 'mail', 'database'];
     }
 
-    public function toWhatsApp($notifiable): string
+    public function toWhatsApp($notifiable): ?array
     {
-        return "Hola {$notifiable->nombre}, el fotógrafo propone cambios en tu reserva "
-            . "(nueva propuesta: {$this->reserva->motivo_rechazo} "
-            . "{$this->reserva->fecha_inicio->format('H:i')}). "
-            . "Revísalos y confirma aquí: "
-            . route('cliente.reservas.show', $this->reserva->id);
+        return [
+            'content_sid' => config('services.twilio.templates.reserva_modificada_cliente'),
+            'variables' => [
+                '1' => $notifiable->nombre,
+                '2' => (string) $this->reserva->id, // variable del botón
+            ],
+        ];
     }
 
     public function toMail($notifiable)

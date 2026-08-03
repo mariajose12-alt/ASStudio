@@ -20,15 +20,15 @@ class GaleriaDisponibleCliente extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return [WhatsAppChannel::class, 'mail', 'database'];
+        return ['mail', 'database'];
     }
 
-    public function toWhatsApp($notifiable): string
-    {
-        return "Hola {$notifiable->nombre}, ya puedes seleccionar tus fotos favoritas. "
-            . "Recuerda elegir a tiempo para que tu sesión mantenga prioridad de edición: "
-            . route('cliente.galeria.index');
-    }
+//    public function toWhatsApp($notifiable): string
+//    {
+//        return "Hola {$notifiable->nombre}, ya puedes seleccionar tus fotos favoritas. "
+//            . "Recuerda elegir a tiempo para que tu sesión mantenga prioridad de edición: "
+//            . route('cliente.galeria.index');
+//    }
 
     public function toMail($notifiable)
     {

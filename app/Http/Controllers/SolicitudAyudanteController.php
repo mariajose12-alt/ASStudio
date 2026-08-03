@@ -51,7 +51,8 @@ class SolicitudAyudanteController extends Controller
         try {
             $this->service->postular($solicitud, $fotografo);
 
-            return back()->with('success', 'Te postulaste correctamente. El fotógrafo principal confirmará su selección.');
+            return redirect()->route('fotografo.sesiones.index', ['tab' => 'ayudantes'])
+                ->with('success', 'Te postulaste correctamente. El fotógrafo principal confirmará su selección.');
         } catch (NegocioException $e) {
             return back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
@@ -70,7 +71,8 @@ class SolicitudAyudanteController extends Controller
         try {
             $this->service->confirmar($solicitud, $postulacion, $fotografo);
 
-            return back()->with('success', 'Ayudante confirmado.');
+            return redirect()->route('fotografo.sesiones.index', ['tab' => 'ayudantes'])
+                ->with('success', 'Ayudante confirmado.');
         } catch (NegocioException $e) {
             return back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
@@ -89,7 +91,8 @@ class SolicitudAyudanteController extends Controller
         try {
             $this->service->rechazar($solicitud, $postulacion, $fotografo);
 
-            return back()->with('success', 'Postulación rechazada.');
+            return redirect()->route('fotografo.sesiones.index', ['tab' => 'ayudantes'])
+                ->with('success', 'Postulación rechazada.');
         } catch (NegocioException $e) {
             return back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
@@ -108,7 +111,8 @@ class SolicitudAyudanteController extends Controller
         try {
             $this->service->cancelar($solicitud, $fotografo);
 
-            return back()->with('success', 'Solicitud cancelada. Los ayudantes ya confirmados se mantienen.');
+            return redirect()->route('fotografo.sesiones.index', ['tab' => 'ayudantes'])
+                ->with('success', 'Solicitud cancelada. Los ayudantes ya confirmados se mantienen.');
         } catch (NegocioException $e) {
             return back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {

@@ -10,7 +10,7 @@
     {{-- Stepper --}}
     @include('reservas.partials.stepper', ['step' => 1, 'requiereTelefono' => $requiereTelefono])
 
-    <h5>Paso 1 de 4</h5>
+    <h5>Paso 1 de {{ $requiereTelefono ? 4 : 3 }}</h5>
     <h4>Especificaciones de la Sesión</h4>
 
     <form method="POST" action="{{ route('cliente.reservas.guardarPaso1') }}" novalidate>

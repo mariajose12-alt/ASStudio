@@ -10,7 +10,7 @@
     {{-- Stepper --}}
     @include('reservas.partials.stepper', ['step' => 2, 'requiereTelefono' => $requiereTelefono])
 
-    <h5>Paso 2 de 4</h5>
+    <h5>Paso 2 de {{ $requiereTelefono ? 4 : 3 }}</h5>
     <h4>Fecha, Hora y Descripción</h4>
 
     {{-- Flatpickr CSS --}}

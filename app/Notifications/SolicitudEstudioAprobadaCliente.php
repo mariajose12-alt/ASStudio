@@ -23,11 +23,15 @@ class SolicitudEstudioAprobadaCliente extends Notification implements ShouldQueu
         return [WhatsAppChannel::class, 'mail'];
     }
 
-    public function toWhatsApp($notifiable): string
+    public function toWhatsApp($notifiable): ?array
     {
-        return "¡Hola {$notifiable->nombre}! Tu solicitud de reserva del estudio "
-            . "{$this->solicitud->fecha->format('d/m')} fue *aprobada*. "
-            . "Recuerda completar el pago para confirmar tu día. ";
+        return [
+            'content_sid' => config('services.twilio.templates.solicitud_estudio_aprobada_cliente'),
+            'variables' => [
+                '1' => $notifiable->nombre,
+                '2' => $this->solicitud->fecha->format('d/m'),
+            ],
+        ];
     }
 
     public function toMail($notifiable)

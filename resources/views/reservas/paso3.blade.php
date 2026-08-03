@@ -55,6 +55,13 @@
                 Lo usamos para notificarte por WhatsApp sobre tu sesión. Es opcional.
             </small>
         </div>
+        <div class="form-check" style="margin-top: 12px;">
+            <input type="checkbox" id="acepta_whatsapp" name="acepta_whatsapp" value="1"
+                {{ old('acepta_whatsapp', $p3['acepta_whatsapp'] ?? $persona->acepta_whatsapp) ? 'checked' : '' }}>
+            <label for="acepta_whatsapp" style="font-size:13px; color:var(--ink); margin-left:6px;">
+                Acepto recibir notificaciones sobre mi reserva por WhatsApp.
+            </label>
+        </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
             <a href="{{ route('cliente.reservas.paso2') }}" style="font-size:13px; color:#9a9488; text-decoration:none;">

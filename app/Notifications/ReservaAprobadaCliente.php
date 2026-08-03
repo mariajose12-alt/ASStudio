@@ -23,12 +23,15 @@ class ReservaAprobadaCliente extends Notification implements ShouldQueue
         return [WhatsAppChannel::class, 'mail', 'database'];
     }
 
-    public function toWhatsApp($notifiable): string
+    public function toWhatsApp($notifiable): ?array
     {
-        return "¡Hola {$notifiable->nombre}! Tu reserva del "
-            . "{$this->reserva->fecha_inicio->format('d/m')} fue *aprobada*. "
-            . "Recuerda completar el pago para confirmar tu día. "
-            . route('cliente.reservas.show', $this->reserva->id);
+        return [
+            'content_sid' => config('services.twilio.templates.reserva_aprobada_cliente'),
+            'variables' => [
+                '1' => $notifiable->nombre,
+                '2' => $this->reserva->fecha_inicio->format('d/m'),
+            ],
+        ];
     }
 
     public function toMail($notifiable)

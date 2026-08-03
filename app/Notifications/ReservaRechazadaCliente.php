@@ -23,13 +23,17 @@ class ReservaRechazadaCliente extends Notification implements ShouldQueue
         return [WhatsAppChannel::class, 'mail', 'database'];
     }
 
-    public function toWhatsApp($notifiable): string
+    public function toWhatsApp($notifiable): ?array
     {
-        return "Hola {$notifiable->nombre}, tu reserva del "
-            . "{$this->reserva->fecha_inicio->format('d/m')} no pudo ser aprobada. "
-            . "Motivo de rechazo: {$this->reserva->motivo_rechazo}"
-            . "Revisa los detalles e intenta agendando otra vez aquí: "
-            . route('cliente.reservas.show', $this->reserva->id);
+        return [
+            'content_sid' => config('services.twilio.templates.reserva_rechazada_cliente'),
+            // Este botón ("Agendar de nuevo") es estático, sin variable.
+            'variables' => [
+                '1' => $notifiable->nombre,
+                '2' => $this->reserva->fecha_inicio->format('d/m'),
+                '3' => $this->reserva->motivo_rechazo,
+            ],
+        ];
     }
 
     public function toMail($notifiable)

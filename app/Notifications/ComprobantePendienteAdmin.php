@@ -33,7 +33,7 @@ class ComprobantePendienteAdmin extends Notification implements ShouldQueue
             'titulo'  => 'Comprobante pendiente de revisión',
             'mensaje' => "Reserva #{$this->pago->reserva_id} tiene un comprobante que requiere revisión.",
             'icono'   => 'receipt',
-            'url' => route('admin.reservas.show', $this->pago->reserva_id),
+            'url' => route('admin.pagos.revisar', $this->pago->reserva_id),
         ];
     }
 }

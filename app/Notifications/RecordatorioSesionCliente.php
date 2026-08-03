@@ -23,12 +23,16 @@ class RecordatorioSesionCliente extends Notification implements ShouldQueue
         return [WhatsAppChannel::class, 'mail', 'database'];
     }
 
-    public function toWhatsApp($notifiable): string
+    public function toWhatsApp($notifiable): ?array
     {
-        return "Hola {$notifiable->nombre}, te recordamos tu sesión de fotos mañana "
-            . "{$this->reserva->fecha_inicio->format('d/m')} a las "
-            . "{$this->reserva->fecha_inicio->format('H:i')}. "
-            . "¡Te esperamos en AS Studio!";
+        return [
+            'content_sid' => config('services.twilio.templates.recordatorio_sesion_cliente'),
+            'variables' => [
+                '1' => $notifiable->nombre,
+                '2' => $this->reserva->fecha_inicio->format('d/m'),
+                '3' => $this->reserva->fecha_inicio->format('H:i'),
+            ],
+        ];
     }
 
     public function toMail($notifiable)

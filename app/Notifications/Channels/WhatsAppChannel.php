@@ -21,16 +21,38 @@ class WhatsAppChannel
 
     public function send($notifiable, Notification $notification)
     {
+        \Log::info('WhatsAppChannel::send llamado', [
+            'notification' => get_class($notification),
+            'notifiable_id' => $notifiable->id ?? null,
+            'telefono' => $notifiable->telefono ?? null,
+            'acepta_whatsapp' => $notifiable->acepta_whatsapp ?? null,
+        ]);
+
         if (!method_exists($notification, 'toWhatsApp')) {
+            \Log::info('WhatsAppChannel: sin método toWhatsApp');
             return;
         }
 
-        // Si el modelo no tiene teléfono, no intentes enviar
         if (empty($notifiable->telefono)) {
+            \Log::info('WhatsAppChannel: telefono vacío');
             return;
         }
 
-        $message = $notification->toWhatsApp($notifiable);
+        if (!$notifiable->acepta_whatsapp) {
+            \Log::info('WhatsAppChannel: acepta_whatsapp false');
+            return;
+        }
+
+        $payload = $notification->toWhatsApp($notifiable);
+
+        if (empty($payload['content_sid'])) {
+            Log::info('WhatsApp omitido: falta ContentSid configurado', [
+                'notification' => get_class($notification),
+            ]);
+            return;
+        }
+
+        \Log::info('WhatsAppChannel: enviando a Twilio', ['content_sid' => $payload['content_sid']]);
 
         $client = new Client(
             config('services.twilio.sid'),
@@ -41,8 +63,9 @@ class WhatsAppChannel
             $client->messages->create(
                 'whatsapp:' . $notifiable->telefono,
                 [
-                    'from' => config('services.twilio.from'),
-                    'body' => $message,
+                    'from'             => config('services.twilio.from'),
+                    'contentSid'       => $payload['content_sid'],
+                    'contentVariables' => json_encode($payload['variables'] ?? []),
                 ]
             );
         } catch (TwilioException $e) {

@@ -8,3 +8,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('nomina::confirmar-vencidas')->daily();
+Schedule::command('notificaciones:limpiar')->daily();

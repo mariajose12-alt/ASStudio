@@ -29,7 +29,8 @@ class ReservaModificadaCliente extends Notification implements ShouldQueue
             'content_sid' => config('services.twilio.templates.reserva_modificada_cliente'),
             'variables' => [
                 '1' => $notifiable->nombre,
-                '2' => (string) $this->reserva->id, // variable del botón
+                '2' => $this->reserva->motivo_rechazo,
+                '3' => (string) $this->reserva->id, // variable del botón
             ],
         ];
     }

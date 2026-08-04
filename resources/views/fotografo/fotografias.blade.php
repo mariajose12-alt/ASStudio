@@ -121,7 +121,7 @@
                 <div class="estado-selector">
                     <label class="estado-option">
                         <input type="radio" name="estado_sel" value="ORIGINAL" checked>
-                        <span>RAW / Original</span>
+                        <span>Original</span>
                     </label>
                     <label class="estado-option">
                         <input type="radio" name="estado_sel" value="EDITADA">

@@ -8,13 +8,17 @@ use App\Notifications\GaleriaDisponibleCliente;
 use App\Notifications\SeleccionConfirmadaFotografo;
 use App\Models\Fotografia;
 use App\Models\Sesion;
+use App\Services\MarcaAguaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Intervention\Image\Laravel\Facades\Image;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class FotografiaController extends Controller
 {
+    public function __construct(private MarcaAguaService $marcaAgua) {}
+
     public function create(int $id)
     {
         $fotografo = auth()->user()->empleado->fotografo;
@@ -128,14 +132,28 @@ class FotografiaController extends Controller
         $estado  = $request->estado;
         $carpeta = $estado === 'ORIGINAL' ? 'raw' : 'editadas';
         $guardadas = [];
+        $formatosConThumb = ['jpg', 'jpeg', 'png', 'webp'];
+
 
         foreach ($request->file('fotos') as $archivo) {
             $nombreOriginal = $archivo->getClientOriginalName();
+            $extension      = strtolower($archivo->getClientOriginalExtension());
 
-            $path = Storage::disk('r2')->putFile(
-                "sesiones/{$sesionId}/{$carpeta}",
-                $archivo
-            );
+            if ($estado === 'ORIGINAL' && in_array($extension, $formatosConThumb)) {
+                $conMarca = $this->marcaAgua->aplicar(
+                    file_get_contents($archivo->getRealPath())
+                );
+
+                $nombreBase = pathinfo($nombreOriginal, PATHINFO_FILENAME);
+                $path = "sesiones/{$sesionId}/{$carpeta}/" . Str::random(20) . "_{$nombreBase}.jpg";
+
+                Storage::disk('r2')->put($path, $conMarca);
+            } else {
+                $path = Storage::disk('r2')->putFile(
+                    "sesiones/{$sesionId}/{$carpeta}",
+                    $archivo
+                );
+            }
 
             $foto = Fotografia::create([
                 'sesion_id'                => $sesionId,
@@ -147,8 +165,6 @@ class FotografiaController extends Controller
                 'aprobada'                 => $estado === 'ORIGINAL' ? true : $esPrincipal,
             ]);
 
-            $extension = strtolower($archivo->getClientOriginalExtension());
-            $formatosConThumb = ['jpg', 'jpeg', 'png', 'webp'];
             if (in_array($extension, $formatosConThumb)) {
                 GenerarThumbnailFoto::dispatch($foto->id);
             }

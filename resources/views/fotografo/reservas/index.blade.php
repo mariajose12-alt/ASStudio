@@ -255,7 +255,7 @@
                         </div>
                     @endif
 
-                    {{-- Acciones APROBADA --}}
+                    {{-- Acciones APROBADA
                     @if($reserva->estado === 'APROBADA' && $reserva->sesion?->estado !== 'CERRADA')
                         <form method="POST"
                               action="{{ route('fotografo.reservas.accion', $reserva) }}"
@@ -271,6 +271,7 @@
                     @elseif($reserva->sesion?->estado === 'CERRADA')
                         <span class="reserva-cerrada">✓ Sesión cerrada</span>
                     @endif
+                    --}}
 
                 </div>
             </div>
